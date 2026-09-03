@@ -63,6 +63,7 @@ export async function responder(req, res) {
 
   const { respuesta, adjunto, nuevoEstado } = req.body
   const fecha = hoy()
+  const estadoAnterior = solicitud.estado
 
   solicitud.respuesta = respuesta
   solicitud.adjuntoRespuesta = adjunto || solicitud.adjuntoRespuesta
@@ -71,7 +72,11 @@ export async function responder(req, res) {
   if (nuevoEstado) solicitud.estado = nuevoEstado
   await solicitud.save()
 
-  await SolicitudHistorial.create({ solicitudId: solicitud.id, estado: solicitud.estado, fecha, por: req.user.nombre })
+  // Solo se registra en el historial cuando el estado realmente cambia,
+  // para no acumular una fila cada vez que se edita la respuesta.
+  if (solicitud.estado !== estadoAnterior) {
+    await SolicitudHistorial.create({ solicitudId: solicitud.id, estado: solicitud.estado, fecha, por: req.user.nombre })
+  }
 
   res.json(solicitud)
 }

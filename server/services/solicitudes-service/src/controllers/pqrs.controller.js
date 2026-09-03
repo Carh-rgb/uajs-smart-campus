@@ -61,6 +61,7 @@ export async function responder(req, res) {
 
   const { respuesta, adjunto, estado } = req.body
   const fecha = hoy()
+  const estadoAnterior = pqrs.estado
 
   pqrs.respuesta = respuesta
   pqrs.adjuntoRespuesta = adjunto || pqrs.adjuntoRespuesta
@@ -68,7 +69,11 @@ export async function responder(req, res) {
   pqrs.estado = estado || 'Resuelta'
   await pqrs.save()
 
-  await PqrsHistorial.create({ pqrsId: pqrs.id, estado: pqrs.estado, fecha, por: req.user.nombre })
+  // Solo se registra en el historial cuando el estado realmente cambia,
+  // para no acumular una fila cada vez que se edita la respuesta.
+  if (pqrs.estado !== estadoAnterior) {
+    await PqrsHistorial.create({ pqrsId: pqrs.id, estado: pqrs.estado, fecha, por: req.user.nombre })
+  }
 
   res.json(pqrs)
 }
@@ -83,11 +88,14 @@ export async function asignar(req, res) {
 
   const { asignadoA } = req.body
   const fecha = hoy()
+  const estadoAnterior = pqrs.estado
   pqrs.asignadoA = asignadoA
   pqrs.estado = asignadoA === 'Sin asignar' ? pqrs.estado : 'En gestión'
   await pqrs.save()
 
-  await PqrsHistorial.create({ pqrsId: pqrs.id, estado: pqrs.estado, fecha, por: req.user.nombre })
+  if (pqrs.estado !== estadoAnterior) {
+    await PqrsHistorial.create({ pqrsId: pqrs.id, estado: pqrs.estado, fecha, por: req.user.nombre })
+  }
 
   res.json(pqrs)
 }

@@ -47,9 +47,14 @@ export async function actualizarEstado(req, res) {
   if (!reserva) return res.status(404).json({ error: 'Reserva no encontrada.' })
 
   const { estado } = req.body
+  const estadoAnterior = reserva.estado
   reserva.estado = estado
   await reserva.save()
-  await ReservaHistorial.create({ reservaId: reserva.id, estado, fecha: hoy(), por: req.user.nombre })
+
+  // Solo se registra en el historial cuando el estado realmente cambia.
+  if (estado !== estadoAnterior) {
+    await ReservaHistorial.create({ reservaId: reserva.id, estado, fecha: hoy(), por: req.user.nombre })
+  }
 
   res.json(reserva)
 }

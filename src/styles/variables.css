@@ -1,0 +1,55 @@
+:root {
+  /* Paleta institucional extraida del logotipo UNIAJS */
+  --color-navy: #013467;
+  --color-navy-hover: #024a8f;
+  --color-navy-light: #0261bd;
+  --color-navy-tint: #e8f0f8;
+
+  --color-bg: #f4f6f9;
+  --color-surface: #ffffff;
+  --color-border: #e1e6ec;
+
+  --color-text: #16232e;
+  --color-text-secondary: #5b6b7a;
+  --color-text-muted: #8a94a6;
+
+  --color-success: #2e8b57;
+  --color-success-bg: #e7f5ec;
+  --color-warning: #b87e00;
+  --color-warning-bg: #fdf3dd;
+  --color-danger: #c0392b;
+  --color-danger-bg: #fbeae8;
+  --color-info: #2d7dd2;
+  --color-info-bg: #e9f2fc;
+
+  --color-sidebar-accent: #5fa8f0;
+  --sidebar-w: 264px;
+  --sidebar-w-collapsed: 80px;
+
+  --font-heading: 'Poppins', sans-serif;
+  --font-body: 'Inter', sans-serif;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-heading);
+  margin: 0;
+}
+
+button {
+  cursor: pointer;
+}

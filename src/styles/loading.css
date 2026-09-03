@@ -1,0 +1,164 @@
+/* ============================================================
+   Sistema de carga de la marca UAJS Smart Campus.
+   Concepto: una insignia institucional fija en el centro con
+   puntos que "orbitan" alrededor — la metafora de una red de
+   servicios conectados a un campus central — mas un pulso de
+   luz que da vida al conjunto. Se usa tanto en overlays de
+   pagina completa como, en su version compacta, dentro de los
+   botones.
+   ============================================================ */
+
+.brand-orbit {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.brand-orbit--lg {
+  width: 96px;
+  height: 96px;
+  margin-bottom: 26px;
+}
+
+.brand-orbit--md {
+  width: 60px;
+  height: 60px;
+  margin-bottom: 18px;
+}
+
+.brand-orbit__ring {
+  position: absolute;
+  inset: 0;
+  animation: brand-orbit-spin 2.6s linear infinite;
+}
+
+.brand-orbit--md .brand-orbit__ring {
+  animation-duration: 2s;
+}
+
+.brand-orbit__dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  margin: -4px 0 0 -4px;
+  border-radius: 50%;
+  background: var(--color-sidebar-accent, #5fa8f0);
+  box-shadow: 0 0 8px rgba(95, 168, 240, 0.7);
+}
+
+.brand-orbit--md .brand-orbit__dot {
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+}
+
+.brand-orbit--lg .brand-orbit__dot--1 { transform: rotate(0deg) translateX(46px); }
+.brand-orbit--lg .brand-orbit__dot--2 { transform: rotate(120deg) translateX(46px); opacity: 0.6; }
+.brand-orbit--lg .brand-orbit__dot--3 { transform: rotate(240deg) translateX(46px); opacity: 0.3; }
+
+.brand-orbit--md .brand-orbit__dot--1 { transform: rotate(0deg) translateX(28px); }
+.brand-orbit--md .brand-orbit__dot--2 { transform: rotate(120deg) translateX(28px); opacity: 0.6; }
+.brand-orbit--md .brand-orbit__dot--3 { transform: rotate(240deg) translateX(28px); opacity: 0.3; }
+
+.brand-orbit__badge {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  animation: brand-pulse-glow 1.8s ease-in-out infinite;
+}
+
+.brand-orbit--md .brand-orbit__badge {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+}
+
+.brand-orbit__badge-img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.brand-orbit--md .brand-orbit__badge-img {
+  width: 18px;
+  height: 18px;
+}
+
+.brand-orbit__label {
+  position: absolute;
+  top: calc(100% + 12px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  animation: brand-label-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes brand-orbit-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes brand-pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(1, 52, 103, 0.28); }
+  50% { box-shadow: 0 0 0 10px rgba(1, 52, 103, 0); }
+}
+
+@keyframes brand-label-pulse {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+
+/* Contenedor para usar el loader dentro de un panel/tabla en vez de un
+   overlay de pagina completa (p. ej. "Cargando solicitudes..."). */
+.brand-loading-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 36px 0 44px;
+}
+
+/* Overlay de transición entre vistas (montado por RouteLoader) */
+.route-loader-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(244, 246, 249, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 60;
+  backdrop-filter: blur(1px);
+}
+
+/* Spinner compacto para dentro de botones: hereda el color del texto
+   (currentColor), asi sirve igual en botones primarios (fondo navy,
+   texto blanco) que en botones outline/secundarios (texto navy). */
+.btn-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-bottom-color: transparent;
+  opacity: 0.9;
+  animation: brand-orbit-spin 0.65s linear infinite;
+  margin-right: 8px;
+  vertical-align: -2px;
+}
+
+button.btn--loading {
+  cursor: progress;
+  opacity: 0.85;
+}

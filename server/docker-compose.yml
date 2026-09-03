@@ -1,0 +1,22 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: uajs-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: uajs
+      POSTGRES_PASSWORD: uajs_dev_pass
+      POSTGRES_DB: uajs_usuarios
+    ports:
+      - "5432:5432"
+    volumes:
+      - uajs_pgdata:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U uajs"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  uajs_pgdata:

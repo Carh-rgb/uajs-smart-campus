@@ -52,3 +52,11 @@ export async function marcarTodasLeidas(req, res) {
   await Notificacion.update({ leida: true }, { where: { usuarioId: req.user.id, leida: false } })
   res.json({ ok: true })
 }
+
+export async function eliminar(req, res) {
+  const notificacion = await Notificacion.findOne({ where: { id: req.params.id, usuarioId: req.user.id } })
+  if (!notificacion) return res.status(404).json({ error: 'Notificacion no encontrada.' })
+
+  await notificacion.destroy()
+  res.status(204).send()
+}

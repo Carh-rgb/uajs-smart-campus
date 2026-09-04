@@ -63,3 +63,21 @@ export async function historial(req, res) {
   const items = await ReservaHistorial.findAll({ where: { reservaId: req.params.id }, order: [['fecha', 'ASC']] })
   res.json(items)
 }
+
+export async function eliminar(req, res) {
+  const reserva = await Reserva.findByPk(req.params.id)
+  if (!reserva) return res.status(404).json({ error: 'Reserva no encontrada.' })
+
+  const puedeGestionar = req.user.rol === 'Administrativo' || req.user.rol === 'Administrador del sistema'
+  const esDuenio = reserva.solicitanteId === req.user.id
+  if (!puedeGestionar && !(esDuenio && reserva.estado === 'Pendiente')) {
+    return res.status(403).json({
+      error: 'Solo puedes eliminar tus propias reservas mientras esten en estado "Pendiente".',
+    })
+  }
+
+  await ReservaHistorial.destroy({ where: { reservaId: reserva.id } })
+  await reserva.destroy()
+
+  res.status(204).send()
+}

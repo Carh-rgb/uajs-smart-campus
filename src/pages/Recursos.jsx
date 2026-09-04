@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import StatusBadge from '../components/StatusBadge.jsx'
 import Modal from '../components/Modal.jsx'
+import ConfirmDialog from '../components/ConfirmDialog.jsx'
 import LoadingButton from '../components/LoadingButton.jsx'
 import { BrandSpinner } from '../components/BrandSpinner.jsx'
 import { api } from '../api/client.js'
@@ -18,6 +19,8 @@ export default function Recursos() {
   const [form, setForm] = useState({ nombre: '', tipo: tiposRecurso[0], ubicacion: '' })
   const [error, setError] = useState('')
   const [creando, setCreando] = useState(false)
+  const [recursoAEliminar, setRecursoAEliminar] = useState(null)
+  const [eliminando, setEliminando] = useState(false)
 
   const cargar = useCallback(async () => {
     setCargando(true)
@@ -55,6 +58,17 @@ export default function Recursos() {
       setError(err.message || 'No se pudo registrar el recurso.')
     } finally {
       setCreando(false)
+    }
+  }
+
+  const confirmarEliminar = async () => {
+    setEliminando(true)
+    try {
+      await api.delete(`/recursos/${recursoAEliminar.codigo}`)
+      setRecursos((prev) => prev.filter((r) => r.codigo !== recursoAEliminar.codigo))
+      setRecursoAEliminar(null)
+    } finally {
+      setEliminando(false)
     }
   }
 
@@ -100,6 +114,7 @@ export default function Recursos() {
                 <th>Tipo</th>
                 <th>Ubicación</th>
                 <th>Estado</th>
+                {puedeAdministrar && <th></th>}
               </tr>
             </thead>
             <tbody>
@@ -124,6 +139,17 @@ export default function Recursos() {
                       <StatusBadge estado={r.estado} />
                     )}
                   </td>
+                  {puedeAdministrar && (
+                    <td>
+                      <button
+                        className="btn btn--sm"
+                        style={{ width: 'auto', background: 'transparent', border: '1px solid var(--color-danger)', color: 'var(--color-danger)' }}
+                        onClick={() => setRecursoAEliminar(r)}
+                      >
+                        Eliminar
+                      </button>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
@@ -162,6 +188,17 @@ export default function Recursos() {
             </LoadingButton>
           </form>
         </Modal>
+      )}
+
+      {recursoAEliminar && (
+        <ConfirmDialog
+          title="Eliminar recurso"
+          text={`¿Seguro que deseas eliminar el recurso ${recursoAEliminar.codigo} — ${recursoAEliminar.nombre}? Esta acción no se puede deshacer.`}
+          confirmLabel="Eliminar"
+          loading={eliminando}
+          onConfirm={confirmarEliminar}
+          onCancel={() => setRecursoAEliminar(null)}
+        />
       )}
     </div>
   )

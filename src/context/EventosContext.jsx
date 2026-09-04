@@ -50,8 +50,15 @@ export function EventosProvider({ children }) {
 
   const inscritosDe = async (eventoId) => api.get(`/eventos/${eventoId}/inscritos`)
 
+  const eliminarEvento = async (id) => {
+    await api.delete(`/eventos/${id}`)
+    setEventos((prev) => prev.filter((e) => e.id !== id))
+  }
+
   return (
-    <EventosContext.Provider value={{ eventos, cargando, agregarEvento, inscribir, estaInscrito, inscritosDe }}>
+    <EventosContext.Provider
+      value={{ eventos, cargando, agregarEvento, inscribir, estaInscrito, inscritosDe, eliminarEvento }}
+    >
       {children}
     </EventosContext.Provider>
   )

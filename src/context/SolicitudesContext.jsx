@@ -48,9 +48,22 @@ export function SolicitudesProvider({ children }) {
 
   const obtenerSolicitud = async (id) => api.get(`/solicitudes/${id}`)
 
+  const eliminarSolicitud = async (id) => {
+    await api.delete(`/solicitudes/${id}`)
+    setSolicitudes((prev) => prev.filter((s) => s.id !== id))
+  }
+
   return (
     <SolicitudesContext.Provider
-      value={{ solicitudes, cargando, crearSolicitud, responderSolicitud, obtenerSolicitud, recargar: cargar }}
+      value={{
+        solicitudes,
+        cargando,
+        crearSolicitud,
+        responderSolicitud,
+        obtenerSolicitud,
+        eliminarSolicitud,
+        recargar: cargar,
+      }}
     >
       {children}
     </SolicitudesContext.Provider>

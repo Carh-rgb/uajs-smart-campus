@@ -31,3 +31,11 @@ export async function actualizarEstado(req, res) {
   await recurso.save()
   res.json(recurso)
 }
+
+export async function eliminar(req, res) {
+  const recurso = await Recurso.findByPk(req.params.codigo)
+  if (!recurso) return res.status(404).json({ error: 'Recurso no encontrado.' })
+
+  await recurso.destroy()
+  res.status(204).send()
+}

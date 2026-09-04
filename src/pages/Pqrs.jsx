@@ -4,16 +4,29 @@ import { usePqrs } from '../context/PqrsContext.jsx'
 import { useUsers } from '../context/UsersContext.jsx'
 import StatusBadge from '../components/StatusBadge.jsx'
 import Modal from '../components/Modal.jsx'
+import ConfirmDialog from '../components/ConfirmDialog.jsx'
 import LoadingButton from '../components/LoadingButton.jsx'
 import { BrandSpinner, ButtonSpinner } from '../components/BrandSpinner.jsx'
 import { tiposPqrs, dependencias, estadosPqrs } from '../data/mockData.js'
 
 function VistaEstudiante() {
-  const { pqrs, cargando, radicar } = usePqrs()
+  const { pqrs, cargando, radicar, eliminarPqrs } = usePqrs()
   const [radicado, setRadicado] = useState(null)
   const [error, setError] = useState('')
   const [enviando, setEnviando] = useState(false)
   const [form, setForm] = useState({ tipo: tiposPqrs[0], dirigidoA: dependencias[0], asunto: '', descripcion: '', adjunto: null })
+  const [pqrsAEliminar, setPqrsAEliminar] = useState(null)
+  const [eliminando, setEliminando] = useState(false)
+
+  const confirmarEliminar = async () => {
+    setEliminando(true)
+    try {
+      await eliminarPqrs(pqrsAEliminar.id)
+      setPqrsAEliminar(null)
+    } finally {
+      setEliminando(false)
+    }
+  }
 
   // El backend ya devuelve solo las PQRS del usuario autenticado.
   const misPqrs = pqrs
@@ -90,7 +103,7 @@ function VistaEstudiante() {
         ) : (
           <table className="data-table">
             <thead>
-              <tr><th>ID</th><th>Tipo</th><th>Asunto</th><th>Estado</th><th>Respuesta</th><th>Adjunto</th></tr>
+              <tr><th>ID</th><th>Tipo</th><th>Asunto</th><th>Estado</th><th>Respuesta</th><th>Adjunto</th><th></th></tr>
             </thead>
             <tbody>
               {misPqrs.map((p) => (
@@ -101,15 +114,37 @@ function VistaEstudiante() {
                   <td><StatusBadge estado={p.estado} /></td>
                   <td>{p.respuesta || '—'}</td>
                   <td>{p.adjuntoRespuesta ? `📎 ${p.adjuntoRespuesta}` : '—'}</td>
+                  <td>
+                    {p.estado === 'Registrada' && (
+                      <button
+                        className="btn btn--sm"
+                        style={{ width: 'auto', background: 'transparent', border: '1px solid var(--color-danger)', color: 'var(--color-danger)' }}
+                        onClick={() => setPqrsAEliminar(p)}
+                      >
+                        Eliminar
+                      </button>
+                    )}
+                  </td>
                 </tr>
               ))}
               {misPqrs.length === 0 && (
-                <tr><td colSpan={6} style={{ textAlign: 'center', color: 'var(--color-text-secondary)' }}>Aún no has radicado ninguna PQRS.</td></tr>
+                <tr><td colSpan={7} style={{ textAlign: 'center', color: 'var(--color-text-secondary)' }}>Aún no has radicado ninguna PQRS.</td></tr>
               )}
             </tbody>
           </table>
         )}
       </div>
+
+      {pqrsAEliminar && (
+        <ConfirmDialog
+          title="Eliminar PQRS"
+          text={`¿Seguro que deseas eliminar ${pqrsAEliminar.id}? Esta acción no se puede deshacer.`}
+          confirmLabel="Eliminar"
+          loading={eliminando}
+          onConfirm={confirmarEliminar}
+          onCancel={() => setPqrsAEliminar(null)}
+        />
+      )}
     </>
   )
 }
@@ -255,12 +290,14 @@ function VistaDocente() {
 }
 
 function VistaAdministrativo() {
-  const { pqrs, cargando, responder, asignar, obtenerHistorial } = usePqrs()
+  const { pqrs, cargando, responder, asignar, obtenerHistorial, eliminarPqrs } = usePqrs()
   const { responsables } = useUsers()
   const [respondiendoId, setRespondiendoId] = useState(null)
   const [historialId, setHistorialId] = useState(null)
   const [historial, setHistorial] = useState([])
   const [cargandoHistorialId, setCargandoHistorialId] = useState(null)
+  const [pqrsAEliminar, setPqrsAEliminar] = useState(null)
+  const [eliminando, setEliminando] = useState(false)
 
   const verHistorial = async (id) => {
     setCargandoHistorialId(id)
@@ -269,6 +306,16 @@ function VistaAdministrativo() {
       setHistorialId(id)
     } finally {
       setCargandoHistorialId(null)
+    }
+  }
+
+  const confirmarEliminar = async () => {
+    setEliminando(true)
+    try {
+      await eliminarPqrs(pqrsAEliminar.id)
+      setPqrsAEliminar(null)
+    } finally {
+      setEliminando(false)
     }
   }
 
@@ -336,6 +383,13 @@ function VistaAdministrativo() {
                   {cargandoHistorialId === p.id && <ButtonSpinner />}
                   Historial
                 </button>
+                <button
+                  className="btn btn--sm"
+                  style={{ width: 'auto', background: 'transparent', border: '1px solid var(--color-danger)', color: 'var(--color-danger)' }}
+                  onClick={() => setPqrsAEliminar(p)}
+                >
+                  Eliminar
+                </button>
               </td>
             </tr>
           ))}
@@ -361,6 +415,17 @@ function VistaAdministrativo() {
             ))}
           </div>
         </Modal>
+      )}
+
+      {pqrsAEliminar && (
+        <ConfirmDialog
+          title="Eliminar PQRS"
+          text={`¿Seguro que deseas eliminar ${pqrsAEliminar.id}? Esta acción no se puede deshacer.`}
+          confirmLabel="Eliminar"
+          loading={eliminando}
+          onConfirm={confirmarEliminar}
+          onCancel={() => setPqrsAEliminar(null)}
+        />
       )}
     </div>
   )

@@ -58,8 +58,15 @@ export function PqrsProvider({ children }) {
 
   const obtenerHistorial = async (id) => api.get(`/pqrs/${id}/historial`)
 
+  const eliminarPqrs = async (id) => {
+    await api.delete(`/pqrs/${id}`)
+    setPqrs((prev) => prev.filter((p) => p.id !== id))
+  }
+
   return (
-    <PqrsContext.Provider value={{ pqrs, cargando, radicar, responder, asignar, obtenerHistorial }}>
+    <PqrsContext.Provider
+      value={{ pqrs, cargando, radicar, responder, asignar, obtenerHistorial, eliminarPqrs }}
+    >
       {children}
     </PqrsContext.Provider>
   )

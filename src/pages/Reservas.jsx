@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import StatusBadge from '../components/StatusBadge.jsx'
 import Modal from '../components/Modal.jsx'
+import ConfirmDialog from '../components/ConfirmDialog.jsx'
 import LoadingButton from '../components/LoadingButton.jsx'
 import { BrandSpinner, ButtonSpinner } from '../components/BrandSpinner.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
@@ -235,7 +236,7 @@ function FormularioReserva({ user, catalogo, onCrear }) {
   )
 }
 
-function GestionReservas({ reservas, actualizarEstado, onVerHistorial, cargandoHistorialId }) {
+function GestionReservas({ reservas, actualizarEstado, onVerHistorial, cargandoHistorialId, onEliminar }) {
   return (
     <div className="panel">
       <h3 className="panel__title">Reservas de estudiantes y docentes</h3>
@@ -277,12 +278,19 @@ function GestionReservas({ reservas, actualizarEstado, onVerHistorial, cargandoH
               <td>
                 <button
                   className="btn btn--sm"
-                  style={{ width: 'auto', background: 'transparent', border: '1px solid var(--color-border)', color: 'var(--color-text-secondary)' }}
+                  style={{ width: 'auto', background: 'transparent', border: '1px solid var(--color-border)', color: 'var(--color-text-secondary)', marginRight: 6 }}
                   disabled={cargandoHistorialId === r.id}
                   onClick={() => onVerHistorial(r.id)}
                 >
                   {cargandoHistorialId === r.id && <ButtonSpinner />}
                   Historial
+                </button>
+                <button
+                  className="btn btn--sm"
+                  style={{ width: 'auto', background: 'transparent', border: '1px solid var(--color-danger)', color: 'var(--color-danger)' }}
+                  onClick={() => onEliminar(r)}
+                >
+                  Eliminar
                 </button>
               </td>
             </tr>
@@ -302,10 +310,12 @@ function GestionReservas({ reservas, actualizarEstado, onVerHistorial, cargandoH
 
 export default function Reservas() {
   const { user } = useAuth()
-  const { reservas, catalogo, cargando, actualizarEstado, crearReserva, obtenerHistorial } = useReservas()
+  const { reservas, catalogo, cargando, actualizarEstado, crearReserva, obtenerHistorial, eliminarReserva } = useReservas()
   const [historialId, setHistorialId] = useState(null)
   const [historial, setHistorial] = useState([])
   const [cargandoHistorialId, setCargandoHistorialId] = useState(null)
+  const [reservaAEliminar, setReservaAEliminar] = useState(null)
+  const [eliminando, setEliminando] = useState(false)
 
   const esAdministrativo = user?.rol === 'Administrativo' || user?.rol === 'Administrador del sistema'
 
@@ -316,6 +326,16 @@ export default function Reservas() {
       setHistorialId(id)
     } finally {
       setCargandoHistorialId(null)
+    }
+  }
+
+  const confirmarEliminar = async () => {
+    setEliminando(true)
+    try {
+      await eliminarReserva(reservaAEliminar.id)
+      setReservaAEliminar(null)
+    } finally {
+      setEliminando(false)
     }
   }
 
@@ -342,6 +362,7 @@ export default function Reservas() {
           actualizarEstado={actualizarEstado}
           onVerHistorial={verHistorial}
           cargandoHistorialId={cargandoHistorialId}
+          onEliminar={setReservaAEliminar}
         />
       ) : (
         <>
@@ -373,13 +394,22 @@ export default function Reservas() {
                     <td>
                       <button
                         className="btn btn--sm"
-                        style={{ width: 'auto', background: 'transparent', border: '1px solid var(--color-border)', color: 'var(--color-text-secondary)' }}
+                        style={{ width: 'auto', background: 'transparent', border: '1px solid var(--color-border)', color: 'var(--color-text-secondary)', marginRight: 6 }}
                         disabled={cargandoHistorialId === r.id}
                         onClick={() => verHistorial(r.id)}
                       >
                         {cargandoHistorialId === r.id && <ButtonSpinner />}
                         Historial
                       </button>
+                      {r.estado === 'Pendiente' && (
+                        <button
+                          className="btn btn--sm"
+                          style={{ width: 'auto', background: 'transparent', border: '1px solid var(--color-danger)', color: 'var(--color-danger)' }}
+                          onClick={() => setReservaAEliminar(r)}
+                        >
+                          Eliminar
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -407,6 +437,17 @@ export default function Reservas() {
             ))}
           </div>
         </Modal>
+      )}
+
+      {reservaAEliminar && (
+        <ConfirmDialog
+          title="Eliminar reserva"
+          text={`¿Seguro que deseas eliminar la reserva ${reservaAEliminar.id}? Esta acción no se puede deshacer.`}
+          confirmLabel="Eliminar"
+          loading={eliminando}
+          onConfirm={confirmarEliminar}
+          onCancel={() => setReservaAEliminar(null)}
+        />
       )}
     </div>
   )

@@ -7,7 +7,7 @@ const FILTROS = ['Todas', 'No leídas', 'Sistema']
 
 export default function Notificaciones() {
   const [filtro, setFiltro] = useState('Todas')
-  const { notificaciones, cargando, marcarLeida, marcarTodasLeidas, noLeidasCount } = useNotifications()
+  const { notificaciones, cargando, marcarLeida, marcarTodasLeidas, eliminarNotificacion, noLeidasCount } = useNotifications()
 
   const { data } = useFetch(
     () => notificaciones,
@@ -76,6 +76,23 @@ export default function Notificaciones() {
               <p className="notif-item__date">{n.fecha}</p>
             </div>
             {!n.leida && <span className="notif-item__dot" title="No leída" />}
+            <button
+              className="btn btn--sm"
+              style={{
+                width: 'auto',
+                background: 'transparent',
+                border: '1px solid var(--color-danger)',
+                color: 'var(--color-danger)',
+                marginLeft: 12,
+                flexShrink: 0,
+              }}
+              onClick={(e) => {
+                e.stopPropagation()
+                eliminarNotificacion(n.id)
+              }}
+            >
+              Eliminar
+            </button>
           </div>
         ))}
         {data.length === 0 && (

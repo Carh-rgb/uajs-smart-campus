@@ -57,3 +57,15 @@ export async function actualizarRol(req, res) {
   await usuario.save()
   res.json(serializar(usuario))
 }
+
+export async function eliminar(req, res) {
+  const usuario = await Usuario.findByPk(req.params.id)
+  if (!usuario) return res.status(404).json({ error: 'Usuario no encontrado.' })
+
+  if (usuario.id === req.user.id) {
+    return res.status(400).json({ error: 'No puedes eliminar tu propio usuario.' })
+  }
+
+  await usuario.destroy()
+  res.status(204).send()
+}

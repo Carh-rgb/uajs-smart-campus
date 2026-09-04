@@ -39,3 +39,13 @@ export async function inscribir(req, res) {
   })
   res.status(201).json(inscripcion)
 }
+
+export async function eliminar(req, res) {
+  const evento = await Evento.findByPk(req.params.id)
+  if (!evento) return res.status(404).json({ error: 'Evento no encontrado.' })
+
+  await Inscripcion.destroy({ where: { eventoId: evento.id } })
+  await evento.destroy()
+
+  res.status(204).send()
+}

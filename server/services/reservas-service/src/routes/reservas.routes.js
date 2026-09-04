@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { obtenerCatalogo } from '../controllers/catalogo.controller.js'
-import { listar, crear, actualizarEstado, historial } from '../controllers/reservas.controller.js'
+import { listar, crear, actualizarEstado, historial, eliminar } from '../controllers/reservas.controller.js'
 import { requireAuth, requireRole } from '../middlewares/auth.js'
 
 export const reservasRouter = Router()
@@ -15,3 +15,4 @@ reservasRouter.patch(
   actualizarEstado,
 )
 reservasRouter.get('/:id/historial', requireAuth, historial)
+reservasRouter.delete('/:id', requireAuth, eliminar)

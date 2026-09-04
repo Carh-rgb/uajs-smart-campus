@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import StatusBadge from '../components/StatusBadge.jsx'
 import Modal from '../components/Modal.jsx'
+import ConfirmDialog from '../components/ConfirmDialog.jsx'
 import LoadingButton from '../components/LoadingButton.jsx'
 import { BrandSpinner, ButtonSpinner } from '../components/BrandSpinner.jsx'
 import { useFetch } from '../hooks/useFetch.js'
@@ -17,8 +18,11 @@ export default function Solicitudes() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const [historial, setHistorial] = useState([])
-  const { solicitudes, crearSolicitud, obtenerSolicitud } = useSolicitudes()
+  const { solicitudes, crearSolicitud, obtenerSolicitud, eliminarSolicitud } = useSolicitudes()
   const puedeCrear = user?.rol !== 'Administrativo'
+  const esStaff = user?.rol === 'Administrativo' || user?.rol === 'Administrador del sistema'
+  const [solicitudAEliminar, setSolicitudAEliminar] = useState(null)
+  const [eliminando, setEliminando] = useState(false)
 
   // El backend ya devuelve solo las solicitudes propias para
   // Estudiante/Docente, y todas para Administrativo/Admin.
@@ -72,6 +76,16 @@ export default function Solicitudes() {
       setHistorialId(id)
     } finally {
       setCargandoHistorialId(null)
+    }
+  }
+
+  const confirmarEliminar = async () => {
+    setEliminando(true)
+    try {
+      await eliminarSolicitud(solicitudAEliminar.id)
+      setSolicitudAEliminar(null)
+    } finally {
+      setEliminando(false)
     }
   }
 
@@ -164,6 +178,20 @@ export default function Solicitudes() {
                       {cargandoHistorialId === s.id && <ButtonSpinner />}
                       Historial
                     </button>
+                    {(esStaff || (s.solicitanteId === user?.id && s.estado === 'Registrada')) && (
+                      <button
+                        className="btn btn--sm"
+                        style={{
+                          background: 'transparent',
+                          border: '1px solid var(--color-danger)',
+                          color: 'var(--color-danger)',
+                          marginLeft: 6,
+                        }}
+                        onClick={() => setSolicitudAEliminar(s)}
+                      >
+                        Eliminar
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -264,6 +292,17 @@ export default function Solicitudes() {
             ))}
           </div>
         </Modal>
+      )}
+
+      {solicitudAEliminar && (
+        <ConfirmDialog
+          title="Eliminar solicitud"
+          text={`¿Seguro que deseas eliminar la solicitud ${solicitudAEliminar.id}? Esta acción no se puede deshacer.`}
+          confirmLabel="Eliminar"
+          loading={eliminando}
+          onConfirm={confirmarEliminar}
+          onCancel={() => setSolicitudAEliminar(null)}
+        />
       )}
     </div>
   )

@@ -64,11 +64,29 @@ export function NotificationsProvider({ children }) {
     }
   }
 
+  const eliminarNotificacion = async (id) => {
+    const previas = notificaciones
+    setNotificaciones((prev) => prev.filter((n) => n.id !== id))
+    try {
+      await api.delete(`/notificaciones/${id}`)
+    } catch {
+      setNotificaciones(previas)
+    }
+  }
+
   const noLeidasCount = notificaciones.filter((n) => !n.leida).length
 
   return (
     <NotificationsContext.Provider
-      value={{ notificaciones, cargando, agregarNotificacion, marcarLeida, marcarTodasLeidas, noLeidasCount }}
+      value={{
+        notificaciones,
+        cargando,
+        agregarNotificacion,
+        marcarLeida,
+        marcarTodasLeidas,
+        eliminarNotificacion,
+        noLeidasCount,
+      }}
     >
       {children}
     </NotificationsContext.Provider>

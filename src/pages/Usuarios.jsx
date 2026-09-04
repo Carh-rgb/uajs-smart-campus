@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext.jsx'
 import { useUsers } from '../context/UsersContext.jsx'
 import { usePermissions, MODULOS, ROLES_GESTIONABLES } from '../context/PermissionsContext.jsx'
 import Modal from '../components/Modal.jsx'
+import ConfirmDialog from '../components/ConfirmDialog.jsx'
 import LoadingButton from '../components/LoadingButton.jsx'
 import { BrandSpinner, ButtonSpinner } from '../components/BrandSpinner.jsx'
 import { esCorreoInstitucional } from '../utils/validation.js'
@@ -11,7 +12,7 @@ const ROLES_DISPONIBLES = [...ROLES_GESTIONABLES, 'Administrador del sistema']
 
 export default function Usuarios() {
   const { user } = useAuth()
-  const { usuarios, cargando, crearUsuario, toggleActivo, actualizarRol } = useUsers()
+  const { usuarios, cargando, crearUsuario, toggleActivo, actualizarRol, eliminarUsuario } = useUsers()
   const { modulosActivos, toggleModulo } = usePermissions()
 
   const [busqueda, setBusqueda] = useState('')
@@ -22,6 +23,8 @@ export default function Usuarios() {
   const [errorGeneral, setErrorGeneral] = useState('')
   const [creando, setCreando] = useState(false)
   const [cargandoEstadoId, setCargandoEstadoId] = useState(null)
+  const [usuarioAEliminar, setUsuarioAEliminar] = useState(null)
+  const [eliminando, setEliminando] = useState(false)
 
   if (user?.rol !== 'Administrador del sistema') {
     return (
@@ -85,6 +88,16 @@ export default function Usuarios() {
       await toggleActivo(id)
     } finally {
       setCargandoEstadoId(null)
+    }
+  }
+
+  const confirmarEliminar = async () => {
+    setEliminando(true)
+    try {
+      await eliminarUsuario(usuarioAEliminar.id)
+      setUsuarioAEliminar(null)
+    } finally {
+      setEliminando(false)
     }
   }
 
@@ -173,13 +186,22 @@ export default function Usuarios() {
                 <td>
                   <button
                     className="btn btn--sm"
-                    style={{ width: 'auto', background: 'transparent', border: '1px solid var(--color-border)', color: 'var(--color-navy)' }}
+                    style={{ width: 'auto', background: 'transparent', border: '1px solid var(--color-border)', color: 'var(--color-navy)', marginRight: 6 }}
                     disabled={cargandoEstadoId === u.id}
                     onClick={() => handleToggleActivo(u.id)}
                   >
                     {cargandoEstadoId === u.id && <ButtonSpinner />}
                     {u.activo ? 'Desactivar' : 'Activar'}
                   </button>
+                  {u.id !== user.id && (
+                    <button
+                      className="btn btn--sm"
+                      style={{ width: 'auto', background: 'transparent', border: '1px solid var(--color-danger)', color: 'var(--color-danger)' }}
+                      onClick={() => setUsuarioAEliminar(u)}
+                    >
+                      Eliminar
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}
@@ -298,6 +320,17 @@ export default function Usuarios() {
             </LoadingButton>
           </form>
         </Modal>
+      )}
+
+      {usuarioAEliminar && (
+        <ConfirmDialog
+          title="Eliminar usuario"
+          text={`¿Seguro que deseas eliminar a ${usuarioAEliminar.nombre}? Esta acción no se puede deshacer.`}
+          confirmLabel="Eliminar"
+          loading={eliminando}
+          onConfirm={confirmarEliminar}
+          onCancel={() => setUsuarioAEliminar(null)}
+        />
       )}
     </div>
   )

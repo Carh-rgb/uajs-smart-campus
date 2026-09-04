@@ -8,11 +8,12 @@ import { BrandSpinner, ButtonSpinner } from '../components/BrandSpinner.jsx'
 
 export default function Eventos() {
   const { user } = useAuth()
-  const { eventos, cargando, agregarEvento, inscribir, estaInscrito, inscritosDe } = useEventos()
+  const { eventos, cargando, agregarEvento, inscribir, estaInscrito, inscritosDe, eliminarEvento } = useEventos()
 
-  const esAdministrativo = user?.rol === 'Administrativo'
+  const esAdministrativo = user?.rol === 'Administrativo' || user?.rol === 'Administrador del sistema'
 
   const [eventoAConfirmar, setEventoAConfirmar] = useState(null)
+  const [eventoAEliminar, setEventoAEliminar] = useState(null)
   const [mensajeExito, setMensajeExito] = useState('')
   const [modalNuevoAbierto, setModalNuevoAbierto] = useState(false)
   const [eventoInscritosId, setEventoInscritosId] = useState(null)
@@ -21,6 +22,7 @@ export default function Eventos() {
   const [inscribiendo, setInscribiendo] = useState(false)
   const [cargandoInscritosId, setCargandoInscritosId] = useState(null)
   const [guardandoEvento, setGuardandoEvento] = useState(false)
+  const [eliminando, setEliminando] = useState(false)
 
   const [form, setForm] = useState({
     titulo: '', fecha: '', hora: '', lugar: '', ponente: '', descripcion: '',
@@ -63,6 +65,16 @@ export default function Eventos() {
       setError(err.message || 'No se pudo guardar el evento.')
     } finally {
       setGuardandoEvento(false)
+    }
+  }
+
+  const confirmarEliminarEvento = async () => {
+    setEliminando(true)
+    try {
+      await eliminarEvento(eventoAEliminar.id)
+      setEventoAEliminar(null)
+    } finally {
+      setEliminando(false)
     }
   }
 
@@ -115,15 +127,24 @@ export default function Eventos() {
               <p className="event-card__meta">Ponente: {e.ponente}</p>
 
               {esAdministrativo ? (
-                <button
-                  className="btn btn--sm"
-                  style={{ width: 'auto', marginTop: 12, background: 'transparent', border: '1px solid var(--color-border)', color: 'var(--color-navy)' }}
-                  disabled={cargandoInscritosId === e.id}
-                  onClick={() => verInscritos(e.id)}
-                >
-                  {cargandoInscritosId === e.id && <ButtonSpinner />}
-                  Ver inscritos
-                </button>
+                <div style={{ display: 'flex', gap: 6, marginTop: 12, flexWrap: 'wrap' }}>
+                  <button
+                    className="btn btn--sm"
+                    style={{ width: 'auto', background: 'transparent', border: '1px solid var(--color-border)', color: 'var(--color-navy)' }}
+                    disabled={cargandoInscritosId === e.id}
+                    onClick={() => verInscritos(e.id)}
+                  >
+                    {cargandoInscritosId === e.id && <ButtonSpinner />}
+                    Ver inscritos
+                  </button>
+                  <button
+                    className="btn btn--sm"
+                    style={{ width: 'auto', background: 'transparent', border: '1px solid var(--color-danger)', color: 'var(--color-danger)' }}
+                    onClick={() => setEventoAEliminar(e)}
+                  >
+                    Eliminar
+                  </button>
+                </div>
               ) : user?.rol === 'Estudiante' || user?.rol === 'Docente' ? (
                 inscrito ? (
                   <span className="status-badge status-badge--ok" style={{ display: 'inline-block', marginTop: 12 }}>
@@ -152,6 +173,17 @@ export default function Eventos() {
           onConfirm={handleConfirmarInscripcion}
           onCancel={() => setEventoAConfirmar(null)}
           loading={inscribiendo}
+        />
+      )}
+
+      {eventoAEliminar && (
+        <ConfirmDialog
+          title="Eliminar evento"
+          text={`¿Seguro que deseas eliminar "${eventoAEliminar.titulo}"? Esta acción no se puede deshacer.`}
+          confirmLabel="Eliminar"
+          loading={eliminando}
+          onConfirm={confirmarEliminarEvento}
+          onCancel={() => setEventoAEliminar(null)}
         />
       )}
 

@@ -80,3 +80,21 @@ export async function responder(req, res) {
 
   res.json(solicitud)
 }
+
+export async function eliminar(req, res) {
+  const solicitud = await Solicitud.findByPk(req.params.id)
+  if (!solicitud) return res.status(404).json({ error: 'Solicitud no encontrada.' })
+
+  const puedeGestionar = req.user.rol === 'Administrativo' || req.user.rol === 'Administrador del sistema'
+  const esDuenio = solicitud.solicitanteId === req.user.id
+  if (!puedeGestionar && !(esDuenio && solicitud.estado === 'Registrada')) {
+    return res.status(403).json({
+      error: 'Solo puedes eliminar tus propias solicitudes mientras esten en estado "Registrada".',
+    })
+  }
+
+  await SolicitudHistorial.destroy({ where: { solicitudId: solicitud.id } })
+  await solicitud.destroy()
+
+  res.status(204).send()
+}

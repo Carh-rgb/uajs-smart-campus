@@ -61,9 +61,23 @@ export function UsersProvider({ children }) {
     setUsuarios((prev) => prev.map((u) => (u.id === id ? actualizado : u)))
   }
 
+  const eliminarUsuario = async (id) => {
+    await api.delete(`/usuarios/${id}`)
+    setUsuarios((prev) => prev.filter((u) => u.id !== id))
+  }
+
   return (
     <UsersContext.Provider
-      value={{ usuarios, responsables, cargando, crearUsuario, toggleActivo, actualizarRol, cargarUsuarios }}
+      value={{
+        usuarios,
+        responsables,
+        cargando,
+        crearUsuario,
+        toggleActivo,
+        actualizarRol,
+        eliminarUsuario,
+        cargarUsuarios,
+      }}
     >
       {children}
     </UsersContext.Provider>

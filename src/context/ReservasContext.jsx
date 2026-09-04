@@ -62,8 +62,23 @@ export function ReservasProvider({ children }) {
 
   const obtenerHistorial = async (id) => api.get(`/reservas/${id}/historial`)
 
+  const eliminarReserva = async (id) => {
+    await api.delete(`/reservas/${id}`)
+    setReservas((prev) => prev.filter((r) => r.id !== id))
+  }
+
   return (
-    <ReservasContext.Provider value={{ reservas, catalogo, cargando, actualizarEstado, crearReserva, obtenerHistorial }}>
+    <ReservasContext.Provider
+      value={{
+        reservas,
+        catalogo,
+        cargando,
+        actualizarEstado,
+        crearReserva,
+        obtenerHistorial,
+        eliminarReserva,
+      }}
+    >
       {children}
     </ReservasContext.Provider>
   )

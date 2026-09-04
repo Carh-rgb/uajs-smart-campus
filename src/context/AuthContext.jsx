@@ -33,6 +33,17 @@ export function AuthProvider({ children }) {
     return usuario
   }
 
+  const actualizarCorreoRecuperacion = async (correoRecuperacion) => {
+    const usuario = await api.patch('/auth/correo-recuperacion', { correoRecuperacion })
+    setUser(usuario)
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(usuario))
+    } catch {
+      // almacenamiento no disponible; la sesion sigue funcionando en memoria
+    }
+    return usuario
+  }
+
   const logout = () => {
     setToken(null)
     setUser(null)
@@ -65,7 +76,7 @@ export function AuthProvider({ children }) {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, cargando }}>
+    <AuthContext.Provider value={{ user, login, logout, cargando, actualizarCorreoRecuperacion }}>
       {children}
     </AuthContext.Provider>
   )

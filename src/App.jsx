@@ -14,6 +14,8 @@ import DashboardLayout from './layouts/DashboardLayout.jsx'
 
 import Landing from './pages/Landing.jsx'
 import Login from './pages/Login.jsx'
+import ForgotPassword from './pages/ForgotPassword.jsx'
+import ResetPassword from './pages/ResetPassword.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import Perfil from './pages/Perfil.jsx'
 import Solicitudes from './pages/Solicitudes.jsx'
@@ -44,6 +46,8 @@ export default function App() {
                     <Routes>
                       <Route path="/" element={<Landing />} />
                       <Route path="/login" element={<Login />} />
+                      <Route path="/forgot-password" element={<ForgotPassword />} />
+                      <Route path="/reset-password" element={<ResetPassword />} />
 
                       <Route
                         path="/app"

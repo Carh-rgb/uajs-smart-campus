@@ -13,6 +13,9 @@ export const Usuario = sequelize.define(
     },
     programa: { type: DataTypes.STRING, allowNull: true },
     activo: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true },
+    correoRecuperacion: { type: DataTypes.STRING, allowNull: true, validate: { isEmail: true } },
+    resetToken: { type: DataTypes.STRING, allowNull: true },
+    resetTokenExpira: { type: DataTypes.DATE, allowNull: true },
   },
   {
     tableName: 'usuarios',

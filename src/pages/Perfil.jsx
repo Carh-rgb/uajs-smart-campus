@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { useAuth } from '../context/AuthContext.jsx'
+import LoadingButton from '../components/LoadingButton.jsx'
 
 const TIPOS_DOCUMENTO = ['Cédula de ciudadanía', 'Tarjeta de identidad', 'Cédula de extranjería', 'Pasaporte']
 const GENEROS = ['Femenino', 'Masculino', 'Prefiero no decirlo', 'Otro']
@@ -28,7 +29,7 @@ const VALORES_INICIALES_POR_ROL = {
 }
 
 export default function Perfil() {
-  const { user } = useAuth()
+  const { user, actualizarCorreoRecuperacion } = useAuth()
   const rol = user?.rol
   const iniciales = (user?.nombre || 'US')
     .split(' ')
@@ -55,6 +56,26 @@ export default function Perfil() {
   const handleGuardar = () => {
     setGuardado(true)
     setTimeout(() => setGuardado(false), 3000)
+  }
+
+  const [correoRecuperacion, setCorreoRecuperacion] = useState(user?.correoRecuperacion || '')
+  const [errorRecuperacion, setErrorRecuperacion] = useState('')
+  const [guardandoRecuperacion, setGuardandoRecuperacion] = useState(false)
+  const [guardadoRecuperacion, setGuardadoRecuperacion] = useState(false)
+
+  const handleGuardarRecuperacion = async (e) => {
+    e.preventDefault()
+    setErrorRecuperacion('')
+    setGuardandoRecuperacion(true)
+    try {
+      await actualizarCorreoRecuperacion(correoRecuperacion)
+      setGuardadoRecuperacion(true)
+      setTimeout(() => setGuardadoRecuperacion(false), 3000)
+    } catch (err) {
+      setErrorRecuperacion(err.message || 'No se pudo guardar el correo de recuperación.')
+    } finally {
+      setGuardandoRecuperacion(false)
+    }
   }
 
   return (
@@ -192,6 +213,62 @@ export default function Perfil() {
             <input className="field__input" value={direccion} onChange={(e) => setDireccion(e.target.value)} />
           </div>
         </div>
+      </div>
+
+      {/* Correo de recuperación */}
+      <div className="panel">
+        <h3 className="panel__title">Correo de recuperación</h3>
+        <p style={{ fontSize: 12.5, color: 'var(--color-text-secondary)', marginTop: -8, marginBottom: 16 }}>
+          A este correo (puede ser personal, no tiene que ser institucional) se enviará el enlace
+          si alguna vez usas "¿Olvidaste tu contraseña?" en el inicio de sesión.
+        </p>
+
+        {!user?.correoRecuperacion && (
+          <div
+            style={{
+              background: 'var(--color-danger-bg)',
+              border: '1px solid var(--color-danger)',
+              borderRadius: 8,
+              padding: '10px 14px',
+              marginBottom: 16,
+              fontSize: 12.5,
+              color: 'var(--color-danger)',
+            }}
+          >
+            ⚠ No has configurado un correo de recuperación. Si olvidas tu contraseña, no será
+            posible restablecerla hasta que agregues uno aquí.
+          </div>
+        )}
+
+        <form onSubmit={handleGuardarRecuperacion}>
+          {errorRecuperacion && (
+            <p style={{ fontSize: 12.5, color: 'var(--color-danger)', marginBottom: 14 }}>{errorRecuperacion}</p>
+          )}
+          <div className="field">
+            <label className="field__label">Correo de recuperación</label>
+            <input
+              className="field__input"
+              type="email"
+              placeholder="tu.correo.personal@gmail.com"
+              value={correoRecuperacion}
+              onChange={(e) => setCorreoRecuperacion(e.target.value)}
+            />
+          </div>
+          <LoadingButton
+            type="submit"
+            className="btn btn--primary"
+            style={{ width: 'auto' }}
+            loading={guardandoRecuperacion}
+            loadingText="Guardando..."
+          >
+            Guardar correo de recuperación
+          </LoadingButton>
+          {guardadoRecuperacion && (
+            <p style={{ fontSize: 12.5, color: 'var(--color-success)', marginTop: 10 }}>
+              ✓ Correo de recuperación guardado.
+            </p>
+          )}
+        </form>
       </div>
 
       {/* Contacto de emergencia */}

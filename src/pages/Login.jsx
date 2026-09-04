@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
 import { esCorreoInstitucional } from '../utils/validation.js'
 import LoadingButton from '../components/LoadingButton.jsx'
@@ -95,6 +95,12 @@ export default function Login() {
                 if (camposInvalidos.password) setCamposInvalidos({ ...camposInvalidos, password: false })
               }}
             />
+            <Link
+              to="/forgot-password"
+              style={{ display: 'inline-block', marginTop: 8, fontSize: 12.5, color: 'var(--color-navy)' }}
+            >
+              ¿Olvidaste tu contraseña?
+            </Link>
           </div>
 
           <LoadingButton

@@ -35,7 +35,12 @@ function FormularioReserva({ user, catalogo, onCrear }) {
     if (pabellones.length && !pabellonId) setPabellonId(pabellones[0].id)
     if (salasEspeciales.length && !salaEspecialId) setSalaEspecialId(salasEspeciales[0].id)
     if (salasBiblioteca.length && !salaBibliotecaId) setSalaBibliotecaId(salasBiblioteca[0].id)
-    if (equipos.length && !equipoCodigo) setEquipoCodigo(equipos[0].codigo)
+    if (equipos.length && !equipoCodigo) {
+      // Preferir un equipo con stock disponible como valor inicial, para
+      // que el estudiante no arranque el formulario con algo que no puede pedir.
+      const conStock = equipos.find((eq) => eq.stock > 0)
+      setEquipoCodigo((conStock || equipos[0]).codigo)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pabellones, salasEspeciales, salasBiblioteca, equipos])
 
@@ -64,6 +69,8 @@ function FormularioReserva({ user, catalogo, onCrear }) {
       : equipos.find((e) => e.codigo === equipoCodigo)?.nombre
 
   const tipoEspacio = pestana === 'Laboratorios y equipos' ? 'equipo' : 'espacio'
+  const equipoSeleccionado = equipos.find((e) => e.codigo === equipoCodigo)
+  const sinStock = tipoEspacio === 'equipo' && (!equipoSeleccionado || equipoSeleccionado.stock === 0)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -191,9 +198,16 @@ function FormularioReserva({ user, catalogo, onCrear }) {
             <label className="field__label">Equipo</label>
             <select className="field__input" value={equipoCodigo} onChange={(e) => setEquipoCodigo(e.target.value)}>
               {equipos.map((eq) => (
-                <option key={eq.codigo} value={eq.codigo}>{eq.nombre} ({eq.tipo})</option>
+                <option key={eq.codigo} value={eq.codigo} disabled={eq.stock === 0}>
+                  {eq.nombre} ({eq.tipo}) — {eq.stock > 0 ? `${eq.stock} disponible${eq.stock === 1 ? '' : 's'}` : 'sin stock'}
+                </option>
               ))}
             </select>
+            {equipoSeleccionado?.stock === 0 && (
+              <p style={{ fontSize: 12, color: 'var(--color-danger)', marginTop: 6 }}>
+                No hay unidades disponibles de este equipo por ahora.
+              </p>
+            )}
           </div>
         )}
 
@@ -229,6 +243,7 @@ function FormularioReserva({ user, catalogo, onCrear }) {
           style={{ width: 'auto' }}
           loading={enviando}
           loadingText="Reservando..."
+          disabled={sinStock}
         >
           Reservar {espacioSeleccionado}
         </LoadingButton>
@@ -237,12 +252,12 @@ function FormularioReserva({ user, catalogo, onCrear }) {
   )
 }
 
-function StockEquipos({ equipos }) {
+function StockEquipos({ equipos, subtitulo }) {
   return (
     <div className="panel">
       <h3 className="panel__title">Stock de equipos</h3>
       <p style={{ fontSize: 12, color: 'var(--color-text-muted)', marginTop: -8, marginBottom: 16 }}>
-        Unidades totales disponibles por equipo. Solo lo ve el personal administrativo.
+        {subtitulo || 'Unidades totales disponibles por equipo. Solo lo ve el personal administrativo.'}
       </p>
       <table className="data-table">
         <thead>
@@ -449,6 +464,12 @@ export default function Reservas() {
         </>
       ) : (
         <>
+          {catalogo.equipos.length > 0 && (
+            <StockEquipos
+              equipos={catalogo.equipos}
+              subtitulo="Unidades disponibles de cada equipo. Si un equipo está en 0, no podrás reservarlo por ahora."
+            />
+          )}
           <FormularioReserva user={user} catalogo={catalogo} onCrear={crearReserva} />
 
           <div className="panel">

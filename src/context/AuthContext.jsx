@@ -33,14 +33,24 @@ export function AuthProvider({ children }) {
     return usuario
   }
 
-  const actualizarCorreoRecuperacion = async (correoRecuperacion) => {
-    const usuario = await api.patch('/auth/correo-recuperacion', { correoRecuperacion })
+  const actualizarUsuarioLocal = (usuario) => {
     setUser(usuario)
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(usuario))
     } catch {
       // almacenamiento no disponible; la sesion sigue funcionando en memoria
     }
+  }
+
+  const actualizarCorreoRecuperacion = async (correoRecuperacion) => {
+    const usuario = await api.patch('/auth/correo-recuperacion', { correoRecuperacion })
+    actualizarUsuarioLocal(usuario)
+    return usuario
+  }
+
+  const actualizarPerfil = async (datos) => {
+    const usuario = await api.patch('/auth/perfil', datos)
+    actualizarUsuarioLocal(usuario)
     return usuario
   }
 
@@ -76,7 +86,7 @@ export function AuthProvider({ children }) {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, cargando, actualizarCorreoRecuperacion }}>
+    <AuthContext.Provider value={{ user, login, logout, cargando, actualizarPerfil, actualizarCorreoRecuperacion }}>
       {children}
     </AuthContext.Provider>
   )

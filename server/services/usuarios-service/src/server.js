@@ -11,7 +11,9 @@ const app = express()
 const PORT = process.env.PORT || 4001
 
 app.use(cors({ origin: process.env.FRONTEND_ORIGIN || 'http://localhost:5183' }))
-app.use(express.json())
+// Limite elevado porque la foto de perfil viaja como data URL (base64)
+// en el cuerpo del PATCH de perfil.
+app.use(express.json({ limit: '2mb' }))
 
 app.get('/health', (req, res) => res.json({ status: 'ok', service: 'usuarios-service' }))
 

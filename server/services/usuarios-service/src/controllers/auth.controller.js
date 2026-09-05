@@ -12,6 +12,36 @@ function firmarToken(usuario) {
   )
 }
 
+// Campos de perfil que el propio usuario puede editar: datos de contacto
+// personal, sin implicaciones de seguridad ni de registro institucional.
+// Nombre, correo, rol, genero, documento de identidad, programa y el
+// registro academico/laboral quedan fuera: solo los fija el
+// Administrador del sistema (al crear la cuenta o desde Usuarios).
+const CAMPOS_PERFIL_EDITABLES = [
+  'fotoPerfil',
+  'telefono',
+  'direccion',
+  'fechaNacimiento',
+  'contactoEmergenciaNombre',
+  'contactoEmergenciaRelacion',
+  'contactoEmergenciaTelefono',
+]
+
+// Datos de registro institucional que solo se capturan al crear la
+// cuenta (ver registrar()); el propio usuario no puede modificarlos.
+const CAMPOS_REGISTRO_INSTITUCIONAL = [
+  'genero',
+  'tipoDocumento',
+  'numeroDocumento',
+  'codigoEstudiantil',
+  'semestre',
+  'area',
+  'asignaturas',
+  'cargo',
+  'oficina',
+  'extension',
+]
+
 function serializar(usuario) {
   return {
     id: usuario.id,
@@ -21,6 +51,23 @@ function serializar(usuario) {
     programa: usuario.programa,
     activo: usuario.activo,
     correoRecuperacion: usuario.correoRecuperacion,
+    fotoPerfil: usuario.fotoPerfil,
+    telefono: usuario.telefono,
+    direccion: usuario.direccion,
+    fechaNacimiento: usuario.fechaNacimiento,
+    genero: usuario.genero,
+    tipoDocumento: usuario.tipoDocumento,
+    numeroDocumento: usuario.numeroDocumento,
+    codigoEstudiantil: usuario.codigoEstudiantil,
+    semestre: usuario.semestre,
+    area: usuario.area,
+    asignaturas: usuario.asignaturas,
+    cargo: usuario.cargo,
+    oficina: usuario.oficina,
+    extension: usuario.extension,
+    contactoEmergenciaNombre: usuario.contactoEmergenciaNombre,
+    contactoEmergenciaRelacion: usuario.contactoEmergenciaRelacion,
+    contactoEmergenciaTelefono: usuario.contactoEmergenciaTelefono,
   }
 }
 
@@ -59,12 +106,18 @@ export async function registrar(req, res) {
   }
 
   const passwordHash = await bcrypt.hash(password, 10)
+  const registroInstitucional = {}
+  for (const campo of CAMPOS_REGISTRO_INSTITUCIONAL) {
+    if (req.body[campo]) registroInstitucional[campo] = req.body[campo]
+  }
+
   const usuario = await Usuario.create({
     nombre,
     correo: correo.toLowerCase(),
     passwordHash,
     rol,
     programa: programa || null,
+    ...registroInstitucional,
   })
 
   const token = firmarToken(usuario)
@@ -74,6 +127,20 @@ export async function registrar(req, res) {
 export async function perfil(req, res) {
   const usuario = await Usuario.findByPk(req.user.id)
   if (!usuario) return res.status(404).json({ error: 'Usuario no encontrado.' })
+  res.json(serializar(usuario))
+}
+
+export async function actualizarPerfil(req, res) {
+  const usuario = await Usuario.findByPk(req.user.id)
+  if (!usuario) return res.status(404).json({ error: 'Usuario no encontrado.' })
+
+  for (const campo of CAMPOS_PERFIL_EDITABLES) {
+    if (campo in req.body) {
+      usuario[campo] = req.body[campo] || null
+    }
+  }
+  await usuario.save()
+
   res.json(serializar(usuario))
 }
 

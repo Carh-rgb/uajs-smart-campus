@@ -236,10 +236,68 @@ function FormularioReserva({ user, catalogo, onCrear }) {
   )
 }
 
+function StockEquipos({ equipos }) {
+  return (
+    <div className="panel">
+      <h3 className="panel__title">Stock de equipos</h3>
+      <p style={{ fontSize: 12, color: 'var(--color-text-muted)', marginTop: -8, marginBottom: 16 }}>
+        Unidades totales disponibles por equipo. Solo lo ve el personal administrativo.
+      </p>
+      <table className="data-table">
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Equipo</th>
+            <th>Tipo</th>
+            <th>Stock</th>
+          </tr>
+        </thead>
+        <tbody>
+          {equipos.map((eq) => (
+            <tr key={eq.codigo}>
+              <td>{eq.codigo}</td>
+              <td>{eq.nombre}</td>
+              <td>{eq.tipo}</td>
+              <td>
+                <span
+                  className={`status-badge ${eq.stock > 0 ? 'status-badge--ok' : 'status-badge--bad'}`}
+                >
+                  {eq.stock} {eq.stock === 1 ? 'unidad' : 'unidades'}
+                </span>
+              </td>
+            </tr>
+          ))}
+          {equipos.length === 0 && (
+            <tr>
+              <td colSpan={4} style={{ textAlign: 'center', color: 'var(--color-text-secondary)' }}>
+                No hay equipos registrados en el catálogo.
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
 function GestionReservas({ reservas, actualizarEstado, onVerHistorial, cargandoHistorialId, onEliminar }) {
+  const [errorEstado, setErrorEstado] = useState('')
+
+  const handleCambiarEstado = async (id, estado) => {
+    setErrorEstado('')
+    try {
+      await actualizarEstado(id, estado)
+    } catch (err) {
+      setErrorEstado(err.message || 'No se pudo actualizar el estado de la reserva.')
+    }
+  }
+
   return (
     <div className="panel">
       <h3 className="panel__title">Reservas de estudiantes y docentes</h3>
+      {errorEstado && (
+        <p style={{ fontSize: 12.5, color: 'var(--color-danger)', marginTop: -8, marginBottom: 14 }}>{errorEstado}</p>
+      )}
       <table className="data-table">
         <thead>
           <tr>
@@ -268,7 +326,7 @@ function GestionReservas({ reservas, actualizarEstado, onVerHistorial, cargandoH
                 <select
                   className="toolbar__select"
                   value={r.estado}
-                  onChange={(e) => actualizarEstado(r.id, e.target.value)}
+                  onChange={(e) => handleCambiarEstado(r.id, e.target.value)}
                 >
                   {estadosReserva.map((estado) => (
                     <option key={estado} value={estado}>{estado}</option>
@@ -310,12 +368,31 @@ function GestionReservas({ reservas, actualizarEstado, onVerHistorial, cargandoH
 
 export default function Reservas() {
   const { user } = useAuth()
-  const { reservas, catalogo, cargando, actualizarEstado, crearReserva, obtenerHistorial, eliminarReserva } = useReservas()
+  const {
+    reservas,
+    catalogo,
+    cargando,
+    actualizarEstado,
+    crearReserva,
+    obtenerHistorial,
+    eliminarReserva,
+    recargar,
+    recargarCatalogo,
+  } = useReservas()
   const [historialId, setHistorialId] = useState(null)
   const [historial, setHistorial] = useState([])
   const [cargandoHistorialId, setCargandoHistorialId] = useState(null)
   const [reservaAEliminar, setReservaAEliminar] = useState(null)
   const [eliminando, setEliminando] = useState(false)
+
+  // El catalogo de equipos (y su stock) vive en un contexto que se monta
+  // una sola vez al iniciar sesion, asi que sin esto quedaba desfasado
+  // hasta refrescar el navegador cada vez que algo cambiaba en Recursos.
+  useEffect(() => {
+    recargar()
+    recargarCatalogo()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const esAdministrativo = user?.rol === 'Administrativo' || user?.rol === 'Administrador del sistema'
 
@@ -357,13 +434,16 @@ export default function Reservas() {
           </div>
         </div>
       ) : esAdministrativo ? (
-        <GestionReservas
-          reservas={reservas}
-          actualizarEstado={actualizarEstado}
-          onVerHistorial={verHistorial}
-          cargandoHistorialId={cargandoHistorialId}
-          onEliminar={setReservaAEliminar}
-        />
+        <>
+          <StockEquipos equipos={catalogo.equipos} />
+          <GestionReservas
+            reservas={reservas}
+            actualizarEstado={actualizarEstado}
+            onVerHistorial={verHistorial}
+            cargandoHistorialId={cargandoHistorialId}
+            onEliminar={setReservaAEliminar}
+          />
+        </>
       ) : (
         <>
           <FormularioReserva user={user} catalogo={catalogo} onCrear={crearReserva} />

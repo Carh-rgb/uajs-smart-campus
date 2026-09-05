@@ -35,16 +35,20 @@ export function ReservasProvider({ children }) {
     cargar()
   }, [cargar])
 
-  useEffect(() => {
+  const cargarCatalogo = useCallback(() => {
     if (!user) {
       setCatalogo(CATALOGO_VACIO)
       return
     }
-    api
+    return api
       .get('/reservas/catalogo')
       .then(setCatalogo)
       .catch(() => setCatalogo(CATALOGO_VACIO))
   }, [user])
+
+  useEffect(() => {
+    cargarCatalogo()
+  }, [cargarCatalogo])
 
   const crearReserva = async ({ tipoEspacio, espacio, fecha, horaInicio, horaFin, motivo }) => {
     const nueva = await api.post('/reservas', { tipoEspacio, espacio, fecha, horaInicio, horaFin, motivo })
@@ -57,14 +61,18 @@ export function ReservasProvider({ children }) {
     const actualizada = await api.patch(`/reservas/${id}/estado`, { estado: nuevoEstado })
     setReservas((prev) => prev.map((r) => (r.id === id ? actualizada : r)))
     agregarNotificacion('Reservas', `Tu reserva ${id} cambió a estado ${nuevoEstado}.`, actualizada.solicitanteId)
+    // Confirmar/descartar una reserva de equipo cambia su stock disponible.
+    if (actualizada.tipoEspacio === 'equipo') cargarCatalogo()
     return actualizada
   }
 
   const obtenerHistorial = async (id) => api.get(`/reservas/${id}/historial`)
 
   const eliminarReserva = async (id) => {
+    const reserva = reservas.find((r) => r.id === id)
     await api.delete(`/reservas/${id}`)
     setReservas((prev) => prev.filter((r) => r.id !== id))
+    if (reserva?.tipoEspacio === 'equipo' && reserva.estado === 'Confirmada') cargarCatalogo()
   }
 
   return (
@@ -77,6 +85,8 @@ export function ReservasProvider({ children }) {
         crearReserva,
         obtenerHistorial,
         eliminarReserva,
+        recargar: cargar,
+        recargarCatalogo: cargarCatalogo,
       }}
     >
       {children}

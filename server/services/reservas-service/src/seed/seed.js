@@ -20,9 +20,9 @@ const SALAS_BIBLIOTECA = [
 ]
 
 const EQUIPOS = [
-  { codigo: 'REC-001', nombre: 'Videobeam Epson X400', tipo: 'Audiovisual' },
-  { codigo: 'REC-014', nombre: 'Portátil Dell Latitude', tipo: 'Equipo de cómputo' },
-  { codigo: 'REC-031', nombre: 'Amplificador portátil', tipo: 'Audiovisual' },
+  { codigo: 'REC-001', nombre: 'Videobeam Epson X400', tipo: 'Audiovisual', stock: 4 },
+  { codigo: 'REC-014', nombre: 'Portátil Dell Latitude', tipo: 'Equipo de cómputo', stock: 8 },
+  { codigo: 'REC-031', nombre: 'Amplificador portátil', tipo: 'Audiovisual', stock: 2 },
 ]
 
 const RESERVAS_SEED = [

@@ -7,6 +7,7 @@ import ConfirmDialog from '../components/ConfirmDialog.jsx'
 import LoadingButton from '../components/LoadingButton.jsx'
 import { BrandSpinner, ButtonSpinner } from '../components/BrandSpinner.jsx'
 import { esCorreoInstitucional } from '../utils/validation.js'
+import { useHighlightRow } from '../hooks/useHighlightRow.js'
 
 const ROLES_DISPONIBLES = [...ROLES_GESTIONABLES, 'Administrador del sistema']
 const TIPOS_DOCUMENTO = ['Cédula de ciudadanía', 'Tarjeta de identidad', 'Cédula de extranjería', 'Pasaporte']
@@ -44,6 +45,7 @@ export default function Usuarios() {
   const [cargandoEstadoId, setCargandoEstadoId] = useState(null)
   const [usuarioAEliminar, setUsuarioAEliminar] = useState(null)
   const [eliminando, setEliminando] = useState(false)
+  const highlightId = useHighlightRow()
 
   if (user?.rol !== 'Administrador del sistema') {
     return (
@@ -185,7 +187,7 @@ export default function Usuarios() {
           </thead>
           <tbody>
             {usuariosFiltrados.map((u) => (
-              <tr key={u.id}>
+              <tr key={u.id} data-row-id={u.id} className={highlightId === u.id ? 'row--highlight' : undefined}>
                 <td>{u.nombre}</td>
                 <td>{u.correo}</td>
                 <td>

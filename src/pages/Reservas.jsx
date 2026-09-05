@@ -7,6 +7,7 @@ import { BrandSpinner, ButtonSpinner } from '../components/BrandSpinner.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useReservas } from '../context/ReservasContext.jsx'
 import { estadosReserva } from '../data/mockData.js'
+import { useHighlightRow } from '../hooks/useHighlightRow.js'
 
 const PESTANAS_DOCENTE = ['Pabellones / Salones', 'Salas especiales', 'Salas de biblioteca', 'Laboratorios y equipos']
 const PESTANAS_ESTUDIANTE = ['Laboratorios y equipos', 'Salas de biblioteca']
@@ -280,7 +281,7 @@ function StockEquipos({ equipos }) {
   )
 }
 
-function GestionReservas({ reservas, actualizarEstado, onVerHistorial, cargandoHistorialId, onEliminar }) {
+function GestionReservas({ reservas, actualizarEstado, onVerHistorial, cargandoHistorialId, onEliminar, highlightId }) {
   const [errorEstado, setErrorEstado] = useState('')
 
   const handleCambiarEstado = async (id, estado) => {
@@ -314,7 +315,7 @@ function GestionReservas({ reservas, actualizarEstado, onVerHistorial, cargandoH
         </thead>
         <tbody>
           {reservas.map((r) => (
-            <tr key={r.id}>
+            <tr key={r.id} data-row-id={r.id} className={highlightId === r.id ? 'row--highlight' : undefined}>
               <td>{r.id}</td>
               <td>{r.solicitanteNombre}</td>
               <td>{r.rolSolicitante}</td>
@@ -384,6 +385,7 @@ export default function Reservas() {
   const [cargandoHistorialId, setCargandoHistorialId] = useState(null)
   const [reservaAEliminar, setReservaAEliminar] = useState(null)
   const [eliminando, setEliminando] = useState(false)
+  const highlightId = useHighlightRow()
 
   // El catalogo de equipos (y su stock) vive en un contexto que se monta
   // una sola vez al iniciar sesion, asi que sin esto quedaba desfasado
@@ -442,6 +444,7 @@ export default function Reservas() {
             onVerHistorial={verHistorial}
             cargandoHistorialId={cargandoHistorialId}
             onEliminar={setReservaAEliminar}
+            highlightId={highlightId}
           />
         </>
       ) : (
@@ -464,7 +467,7 @@ export default function Reservas() {
               </thead>
               <tbody>
                 {reservas.map((r) => (
-                  <tr key={r.id}>
+                  <tr key={r.id} data-row-id={r.id} className={highlightId === r.id ? 'row--highlight' : undefined}>
                     <td>{r.id}</td>
                     <td>{r.espacio}</td>
                     <td>{r.fecha}</td>

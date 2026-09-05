@@ -5,10 +5,12 @@ import ConfirmDialog from '../components/ConfirmDialog.jsx'
 import Modal from '../components/Modal.jsx'
 import LoadingButton from '../components/LoadingButton.jsx'
 import { BrandSpinner, ButtonSpinner } from '../components/BrandSpinner.jsx'
+import { useHighlightRow } from '../hooks/useHighlightRow.js'
 
 export default function Eventos() {
   const { user } = useAuth()
   const { eventos, cargando, agregarEvento, inscribir, estaInscrito, inscritosDe, eliminarEvento } = useEventos()
+  const highlightId = useHighlightRow()
 
   const esAdministrativo = user?.rol === 'Administrativo' || user?.rol === 'Administrador del sistema'
 
@@ -120,7 +122,11 @@ export default function Eventos() {
         {eventos.map((e) => {
           const inscrito = estaInscrito(e.id)
           return (
-            <div className="event-card" key={e.id}>
+            <div
+              className={`event-card${highlightId === e.id ? ' row--highlight' : ''}`}
+              key={e.id}
+              data-row-id={e.id}
+            >
               <p className="event-card__date">{e.fecha} · {e.hora}</p>
               <h3 className="event-card__title">{e.titulo}</h3>
               <p className="event-card__meta">Lugar: {e.lugar}</p>

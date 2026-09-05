@@ -8,8 +8,9 @@ import ConfirmDialog from '../components/ConfirmDialog.jsx'
 import LoadingButton from '../components/LoadingButton.jsx'
 import { BrandSpinner, ButtonSpinner } from '../components/BrandSpinner.jsx'
 import { tiposPqrs, dependencias, estadosPqrs } from '../data/mockData.js'
+import { useHighlightRow } from '../hooks/useHighlightRow.js'
 
-function VistaEstudiante() {
+function VistaEstudiante({ highlightId }) {
   const { pqrs, cargando, radicar, eliminarPqrs } = usePqrs()
   const [radicado, setRadicado] = useState(null)
   const [error, setError] = useState('')
@@ -107,7 +108,7 @@ function VistaEstudiante() {
             </thead>
             <tbody>
               {misPqrs.map((p) => (
-                <tr key={p.id}>
+                <tr key={p.id} data-row-id={p.id} className={highlightId === p.id ? 'row--highlight' : undefined}>
                   <td>{p.id}</td>
                   <td>{p.tipo}</td>
                   <td>{p.asunto}</td>
@@ -228,7 +229,7 @@ function ResponderPqrsModal({ item, onClose, onSubmit }) {
   )
 }
 
-function VistaDocente() {
+function VistaDocente({ highlightId }) {
   const { pqrs, cargando, responder } = usePqrs()
   const [respondiendoId, setRespondiendoId] = useState(null)
 
@@ -254,7 +255,7 @@ function VistaDocente() {
         </thead>
         <tbody>
           {asignadas.map((p) => (
-            <tr key={p.id}>
+            <tr key={p.id} data-row-id={p.id} className={highlightId === p.id ? 'row--highlight' : undefined}>
               <td>{p.id}</td>
               <td>{p.tipo}</td>
               <td>{p.asunto}</td>
@@ -289,7 +290,7 @@ function VistaDocente() {
   )
 }
 
-function VistaAdministrativo() {
+function VistaAdministrativo({ highlightId }) {
   const { pqrs, cargando, responder, asignar, obtenerHistorial, eliminarPqrs } = usePqrs()
   const { responsables } = useUsers()
   const [respondiendoId, setRespondiendoId] = useState(null)
@@ -338,7 +339,7 @@ function VistaAdministrativo() {
         </thead>
         <tbody>
           {pqrs.map((p) => (
-            <tr key={p.id}>
+            <tr key={p.id} data-row-id={p.id} className={highlightId === p.id ? 'row--highlight' : undefined}>
               <td>{p.id}</td>
               <td>{p.tipo}</td>
               <td>{p.asunto}</td>
@@ -433,6 +434,7 @@ function VistaAdministrativo() {
 
 export default function Pqrs() {
   const { user } = useAuth()
+  const highlightId = useHighlightRow()
 
   return (
     <div>
@@ -443,9 +445,11 @@ export default function Pqrs() {
         </p>
       </div>
 
-      {user?.rol === 'Estudiante' && <VistaEstudiante />}
-      {user?.rol === 'Docente' && <VistaDocente />}
-      {(user?.rol === 'Administrativo' || user?.rol === 'Administrador del sistema') && <VistaAdministrativo />}
+      {user?.rol === 'Estudiante' && <VistaEstudiante highlightId={highlightId} />}
+      {user?.rol === 'Docente' && <VistaDocente highlightId={highlightId} />}
+      {(user?.rol === 'Administrativo' || user?.rol === 'Administrador del sistema') && (
+        <VistaAdministrativo highlightId={highlightId} />
+      )}
     </div>
   )
 }

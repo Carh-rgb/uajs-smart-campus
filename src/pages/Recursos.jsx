@@ -7,10 +7,12 @@ import { BrandSpinner } from '../components/BrandSpinner.jsx'
 import { api } from '../api/client.js'
 import { useAuth } from '../context/AuthContext.jsx'
 import { tiposRecurso, estadosRecurso } from '../data/mockData.js'
+import { useHighlightRow } from '../hooks/useHighlightRow.js'
 
 export default function Recursos() {
   const { user } = useAuth()
   const puedeAdministrar = user?.rol === 'Administrativo' || user?.rol === 'Administrador del sistema'
+  const highlightId = useHighlightRow()
 
   const [recursos, setRecursos] = useState([])
   const [cargando, setCargando] = useState(true)
@@ -119,7 +121,7 @@ export default function Recursos() {
             </thead>
             <tbody>
               {recursos.map((r) => (
-                <tr key={r.codigo}>
+                <tr key={r.codigo} data-row-id={r.codigo} className={highlightId === r.codigo ? 'row--highlight' : undefined}>
                   <td>{r.codigo}</td>
                   <td>{r.nombre}</td>
                   <td>{r.tipo}</td>

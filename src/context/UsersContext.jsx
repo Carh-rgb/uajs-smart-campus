@@ -45,8 +45,8 @@ export function UsersProvider({ children }) {
       .catch(() => setResponsables([]))
   }, [user])
 
-  const crearUsuario = async ({ nombre, correo, rol, programa, password }) => {
-    const { usuario } = await api.post('/auth/register', { nombre, correo, password, rol, programa })
+  const crearUsuario = async (datos) => {
+    const { usuario } = await api.post('/auth/register', datos)
     setUsuarios((prev) => [usuario, ...prev])
     return usuario
   }

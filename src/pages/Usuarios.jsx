@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useUsers } from '../context/UsersContext.jsx'
-import { usePermissions, MODULOS, ROLES_GESTIONABLES } from '../context/PermissionsContext.jsx'
+import { ROLES_GESTIONABLES } from '../context/PermissionsContext.jsx'
 import Modal from '../components/Modal.jsx'
 import ConfirmDialog from '../components/ConfirmDialog.jsx'
 import LoadingButton from '../components/LoadingButton.jsx'
@@ -9,16 +9,35 @@ import { BrandSpinner, ButtonSpinner } from '../components/BrandSpinner.jsx'
 import { esCorreoInstitucional } from '../utils/validation.js'
 
 const ROLES_DISPONIBLES = [...ROLES_GESTIONABLES, 'Administrador del sistema']
+const TIPOS_DOCUMENTO = ['Cédula de ciudadanía', 'Tarjeta de identidad', 'Cédula de extranjería', 'Pasaporte']
+const GENEROS = ['Femenino', 'Masculino', 'Prefiero no decirlo', 'Otro']
+
+const FORM_INICIAL = {
+  nombre: '',
+  correo: '',
+  rol: 'Estudiante',
+  programa: '',
+  password: '',
+  genero: GENEROS[0],
+  tipoDocumento: TIPOS_DOCUMENTO[0],
+  numeroDocumento: '',
+  codigoEstudiantil: '',
+  semestre: '',
+  area: '',
+  asignaturas: '',
+  cargo: '',
+  oficina: '',
+  extension: '',
+}
 
 export default function Usuarios() {
   const { user } = useAuth()
   const { usuarios, cargando, crearUsuario, toggleActivo, actualizarRol, eliminarUsuario } = useUsers()
-  const { modulosActivos, toggleModulo } = usePermissions()
 
   const [busqueda, setBusqueda] = useState('')
   const [filtroRol, setFiltroRol] = useState('Todos')
   const [modalAbierto, setModalAbierto] = useState(false)
-  const [form, setForm] = useState({ nombre: '', correo: '', rol: 'Estudiante', programa: '', password: '' })
+  const [form, setForm] = useState(FORM_INICIAL)
   const [errores, setErrores] = useState({})
   const [errorGeneral, setErrorGeneral] = useState('')
   const [creando, setCreando] = useState(false)
@@ -35,7 +54,7 @@ export default function Usuarios() {
         </div>
         <div className="panel">
           <p style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>
-            Solo el rol Administrador del sistema puede gestionar usuarios y permisos.
+            Solo el rol Administrador del sistema puede gestionar usuarios.
           </p>
         </div>
       </div>
@@ -73,7 +92,7 @@ export default function Usuarios() {
     setCreando(true)
     try {
       await crearUsuario(form)
-      setForm({ nombre: '', correo: '', rol: 'Estudiante', programa: '', password: '' })
+      setForm(FORM_INICIAL)
       setModalAbierto(false)
     } catch (err) {
       setErrorGeneral(err.message || 'No se pudo crear el usuario.')
@@ -106,7 +125,7 @@ export default function Usuarios() {
       <div className="view-header">
         <h1 className="view-header__title">Usuarios</h1>
         <p className="view-header__subtitle">
-          Crea usuarios, gestiona su estado y administra los permisos de cada perfil
+          Crea usuarios y gestiona su estado, rol y registro institucional
         </p>
       </div>
 
@@ -217,43 +236,6 @@ export default function Usuarios() {
         )}
       </div>
 
-      <div className="panel">
-        <h3 className="panel__title">Permisos por rol — módulos activos</h3>
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>Módulo</th>
-              {ROLES_GESTIONABLES.map((rol) => (
-                <th key={rol} style={{ textAlign: 'center' }}>{rol}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {MODULOS.map((modulo) => (
-              <tr key={modulo.id}>
-                <td>{modulo.label}</td>
-                {ROLES_GESTIONABLES.map((rol) => {
-                  const activo = modulosActivos(rol).includes(modulo.id)
-                  return (
-                    <td key={rol} style={{ textAlign: 'center' }}>
-                      <input
-                        type="checkbox"
-                        checked={activo}
-                        onChange={() => toggleModulo(rol, modulo.id)}
-                        style={{ width: 16, height: 16, cursor: 'pointer' }}
-                      />
-                    </td>
-                  )
-                })}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <p style={{ fontSize: 12, color: 'var(--color-text-muted)', marginTop: 16 }}>
-          El rol Administrador del sistema siempre mantiene acceso completo y no se muestra en esta tabla.
-        </p>
-      </div>
-
       {modalAbierto && (
         <Modal title="Nuevo usuario" onClose={() => setModalAbierto(false)}>
           <form onSubmit={handleCrear} noValidate>
@@ -296,6 +278,111 @@ export default function Usuarios() {
                 <input className="field__input" value={form.programa} onChange={(e) => setForm({ ...form, programa: e.target.value })} />
               </div>
             </div>
+
+            <p className="field-section-title">Documento de identidad</p>
+            <div className="field-grid">
+              <div className="field">
+                <label className="field__label">Tipo de documento</label>
+                <select
+                  className="field__input"
+                  value={form.tipoDocumento}
+                  onChange={(e) => setForm({ ...form, tipoDocumento: e.target.value })}
+                >
+                  {TIPOS_DOCUMENTO.map((t) => <option key={t}>{t}</option>)}
+                </select>
+              </div>
+              <div className="field">
+                <label className="field__label">Número de documento</label>
+                <input
+                  className="field__input"
+                  value={form.numeroDocumento}
+                  onChange={(e) => setForm({ ...form, numeroDocumento: e.target.value })}
+                />
+              </div>
+              <div className="field">
+                <label className="field__label">Género</label>
+                <select className="field__input" value={form.genero} onChange={(e) => setForm({ ...form, genero: e.target.value })}>
+                  {GENEROS.map((g) => <option key={g}>{g}</option>)}
+                </select>
+              </div>
+            </div>
+
+            {form.rol === 'Estudiante' && (
+              <>
+                <p className="field-section-title">Información académica</p>
+                <div className="field-grid">
+                  <div className="field">
+                    <label className="field__label">Código estudiantil</label>
+                    <input
+                      className="field__input"
+                      value={form.codigoEstudiantil}
+                      onChange={(e) => setForm({ ...form, codigoEstudiantil: e.target.value })}
+                    />
+                  </div>
+                  <div className="field">
+                    <label className="field__label">Semestre actual</label>
+                    <input
+                      className="field__input"
+                      value={form.semestre}
+                      onChange={(e) => setForm({ ...form, semestre: e.target.value })}
+                    />
+                  </div>
+                </div>
+              </>
+            )}
+
+            {form.rol === 'Docente' && (
+              <>
+                <p className="field-section-title">Información laboral</p>
+                <div className="field-grid">
+                  <div className="field">
+                    <label className="field__label">Facultad / Área</label>
+                    <input className="field__input" value={form.area} onChange={(e) => setForm({ ...form, area: e.target.value })} />
+                  </div>
+                  <div className="field">
+                    <label className="field__label">Asignaturas a cargo</label>
+                    <input
+                      className="field__input"
+                      value={form.asignaturas}
+                      onChange={(e) => setForm({ ...form, asignaturas: e.target.value })}
+                    />
+                  </div>
+                  <div className="field">
+                    <label className="field__label">Extensión telefónica</label>
+                    <input
+                      className="field__input"
+                      value={form.extension}
+                      onChange={(e) => setForm({ ...form, extension: e.target.value })}
+                    />
+                  </div>
+                </div>
+              </>
+            )}
+
+            {(form.rol === 'Administrativo' || form.rol === 'Administrador del sistema') && (
+              <>
+                <p className="field-section-title">Información laboral</p>
+                <div className="field-grid">
+                  <div className="field">
+                    <label className="field__label">Cargo</label>
+                    <input className="field__input" value={form.cargo} onChange={(e) => setForm({ ...form, cargo: e.target.value })} />
+                  </div>
+                  <div className="field">
+                    <label className="field__label">Oficina / Dependencia</label>
+                    <input className="field__input" value={form.oficina} onChange={(e) => setForm({ ...form, oficina: e.target.value })} />
+                  </div>
+                  <div className="field">
+                    <label className="field__label">Extensión telefónica</label>
+                    <input
+                      className="field__input"
+                      value={form.extension}
+                      onChange={(e) => setForm({ ...form, extension: e.target.value })}
+                    />
+                  </div>
+                </div>
+              </>
+            )}
+
             <div className="field">
               <label className="field__label">Contraseña temporal</label>
               <input

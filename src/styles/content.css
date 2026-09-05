@@ -6,7 +6,7 @@
 }
 
 .kpi-card {
-  background: #fff;
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: 18px 20px;
@@ -34,7 +34,7 @@
 }
 
 .panel {
-  background: #fff;
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: 20px;
@@ -132,7 +132,7 @@
 }
 
 .service-card {
-  background: #fff;
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: 20px;
@@ -178,7 +178,8 @@
   border-radius: var(--radius-sm);
   font-family: var(--font-body);
   font-size: 13px;
-  background: #fff;
+  background: var(--color-surface);
+  color: var(--color-text);
 }
 
 .btn--sm {
@@ -190,11 +191,16 @@
   display: flex;
   gap: 20px;
   align-items: center;
-  background: #fff;
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: 24px;
   margin-bottom: 20px;
+}
+
+.profile-card__avatar-wrap {
+  position: relative;
+  flex-shrink: 0;
 }
 
 .profile-card__avatar {
@@ -210,6 +216,31 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+}
+
+.profile-card__avatar--img {
+  object-fit: cover;
+}
+
+.profile-card__avatar-edit {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--color-navy);
+  color: #fff;
+  border: 2px solid var(--color-surface);
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.profile-card__avatar-edit:hover {
+  background: var(--color-navy-hover);
 }
 
 .field-grid {
@@ -273,7 +304,7 @@
 }
 
 .event-card {
-  background: #fff;
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: 20px;
@@ -310,7 +341,7 @@
   padding: 14px 16px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  background: #fff;
+  background: var(--color-surface);
 }
 
 .notif-item--unread {
@@ -358,7 +389,7 @@
 }
 
 .modal-panel {
-  background: #fff;
+  background: var(--color-surface);
   border-radius: var(--radius-md);
   width: 100%;
   max-height: 90vh;

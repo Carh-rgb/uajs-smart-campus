@@ -1,6 +1,7 @@
 import React from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext.jsx'
+import { ThemeProvider } from './context/ThemeContext.jsx'
 import { NotificationsProvider } from './context/NotificationsContext.jsx'
 import { PermissionsProvider } from './context/PermissionsContext.jsx'
 import { SolicitudesProvider } from './context/SolicitudesContext.jsx'
@@ -36,14 +37,15 @@ import './styles/loading.css'
 export default function App() {
   return (
     <AuthProvider>
-      <NotificationsProvider>
-        <PermissionsProvider>
-          <UsersProvider>
-            <SolicitudesProvider>
-              <ReservasProvider>
-                <EventosProvider>
-                  <PqrsProvider>
-                    <Routes>
+      <ThemeProvider>
+        <NotificationsProvider>
+          <PermissionsProvider>
+            <UsersProvider>
+              <SolicitudesProvider>
+                <ReservasProvider>
+                  <EventosProvider>
+                    <PqrsProvider>
+                      <Routes>
                       <Route path="/" element={<Landing />} />
                       <Route path="/login" element={<Login />} />
                       <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -121,6 +123,7 @@ export default function App() {
           </UsersProvider>
         </PermissionsProvider>
       </NotificationsProvider>
+      </ThemeProvider>
     </AuthProvider>
   )
 }

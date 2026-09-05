@@ -24,7 +24,7 @@ function ChevronIcon() {
 }
 
 export default function Sidebar({ mobileOpen, onCloseMobile }) {
-  const { user, logout } = useAuth()
+  const { user } = useAuth()
   const { modulosActivos } = usePermissions()
   const [colapsado, setColapsado] = useState(false)
 
@@ -103,13 +103,6 @@ export default function Sidebar({ mobileOpen, onCloseMobile }) {
             </NavLink>
           )}
         </nav>
-
-        <div className="sidebar__footer">
-          <button className="sidebar__logout" data-tooltip="Cerrar sesión" onClick={logout}>
-            <span className="sidebar__item-icon">⏻</span>
-            <span className="sidebar__label">Cerrar sesión</span>
-          </button>
-        </div>
       </aside>
     </>
   )

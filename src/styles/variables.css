@@ -34,6 +34,25 @@
   --radius-lg: 16px;
 }
 
+/* Modo oscuro: se activa con [data-theme="dark"] en <html> (ver
+   ThemeContext). Los componentes no cambian, solo los tokens de color,
+   porque todo el CSS del proyecto ya se apoya en estas variables. */
+:root[data-theme='dark'] {
+  --color-navy-tint: #163654;
+  --color-bg: #10161d;
+  --color-surface: #1a222c;
+  --color-border: #2c3946;
+
+  --color-text: #e9eef3;
+  --color-text-secondary: #a9b6c2;
+  --color-text-muted: #7c8a97;
+
+  --color-success-bg: #16302199;
+  --color-warning-bg: #3a2c0d99;
+  --color-danger-bg: #3a191599;
+  --color-info-bg: #142b4099;
+}
+
 * {
   box-sizing: border-box;
 }

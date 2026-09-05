@@ -1,13 +1,22 @@
 import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useFetch } from '../hooks/useFetch.js'
 import { useNotifications } from '../context/NotificationsContext.jsx'
 import { BrandSpinner } from '../components/BrandSpinner.jsx'
+import { rutaDeNotificacion } from '../utils/notificaciones.js'
 
 const FILTROS = ['Todas', 'No leídas', 'Sistema']
 
 export default function Notificaciones() {
+  const navigate = useNavigate()
   const [filtro, setFiltro] = useState('Todas')
   const { notificaciones, cargando, marcarLeida, marcarTodasLeidas, eliminarNotificacion, noLeidasCount } = useNotifications()
+
+  const handleClickNotificacion = (n) => {
+    if (!n.leida) marcarLeida(n.id)
+    const ruta = rutaDeNotificacion(n.categoria)
+    if (ruta) navigate(ruta)
+  }
 
   const { data } = useFetch(
     () => notificaciones,
@@ -67,10 +76,10 @@ export default function Notificaciones() {
           <div
             key={n.id}
             className={`notif-item ${!n.leida ? 'notif-item--unread' : ''}`}
-            onClick={() => !n.leida && marcarLeida(n.id)}
-            style={{ cursor: n.leida ? 'default' : 'pointer' }}
+            onClick={() => handleClickNotificacion(n)}
+            style={{ cursor: !n.leida || rutaDeNotificacion(n.categoria) ? 'pointer' : 'default' }}
           >
-            <div style={{ flex: 1 }}>
+            <div style={{ flex: 1 }} title={rutaDeNotificacion(n.categoria) ? 'Ir al módulo' : undefined}>
               <p className="notif-item__category">{n.categoria}</p>
               <p className="notif-item__text">{n.mensaje}</p>
               <p className="notif-item__date">{n.fecha}</p>

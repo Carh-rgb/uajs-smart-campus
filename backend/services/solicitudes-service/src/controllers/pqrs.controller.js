@@ -105,19 +105,3 @@ export async function historial(req, res) {
   res.json(items)
 }
 
-export async function eliminar(req, res) {
-  const pqrs = await Pqrs.findByPk(req.params.id)
-  if (!pqrs) return res.status(404).json({ error: 'PQRS no encontrada.' })
-
-  const esDuenio = pqrs.solicitanteId === req.user.id
-  if (!puedeGestionar(req.user) && !(esDuenio && pqrs.estado === 'Registrada')) {
-    return res.status(403).json({
-      error: 'Solo puedes eliminar tus propias PQRS mientras esten en estado "Registrada".',
-    })
-  }
-
-  await PqrsHistorial.destroy({ where: { pqrsId: pqrs.id } })
-  await pqrs.destroy()
-
-  res.status(204).send()
-}

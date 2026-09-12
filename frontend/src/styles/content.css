@@ -27,6 +27,34 @@
   margin: 0;
 }
 
+.kpi-card__icon {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  background: var(--color-navy-tint);
+  color: var(--color-navy);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.kpi-card__icon svg {
+  width: 17px;
+  height: 17px;
+}
+
+:root[data-theme='dark'] .kpi-card__icon {
+  color: var(--color-sidebar-accent);
+}
+
+.kpi-card__value-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .content-row {
   display: grid;
   grid-template-columns: 1.4fr 1fr;
@@ -91,6 +119,67 @@ tr.row--highlight td,
     background: transparent;
     box-shadow: inset 3px 0 0 transparent;
   }
+}
+
+.filtro-pills {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.filtro-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+
+.filtro-pill:hover {
+  border-color: var(--color-navy-light);
+  color: var(--color-navy);
+}
+
+.filtro-pill--activa,
+.filtro-pill--activa:hover {
+  background: var(--color-navy);
+  border-color: var(--color-navy);
+  color: #fff;
+}
+
+.filtro-pill__count {
+  background: var(--color-navy-tint);
+  color: var(--color-navy);
+  border-radius: 999px;
+  padding: 1px 7px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.filtro-pill--activa .filtro-pill__count {
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+}
+
+.asignacion-box {
+  background: var(--color-navy-tint);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin-bottom: 18px;
+}
+
+.asignacion-box .field:last-of-type {
+  margin-bottom: 12px;
 }
 
 .status-badge {

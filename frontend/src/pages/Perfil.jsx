@@ -14,6 +14,7 @@ function registroInstitucionalDe(user) {
     return {
       titulo: 'Información académica',
       campos: [
+        { label: 'Programa académico', valor: user.programa || SIN_DATO },
         { label: 'Código estudiantil', valor: user.codigoEstudiantil || SIN_DATO },
         { label: 'Semestre actual', valor: user.semestre || SIN_DATO },
       ],

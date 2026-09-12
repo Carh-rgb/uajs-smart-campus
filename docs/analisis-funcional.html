@@ -1,0 +1,441 @@
+<title>Análisis Funcional UAJS Smart Campus</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  :root{
+    --paper:#f4f6f9;
+    --surface:#ffffff;
+    --ink:#16232e;
+    --ink-soft:#56636f;
+    --ink-faint:#8a97a3;
+    --line:#dbe2e9;
+    --line-strong:#c3cdd8;
+    --navy:#013467;
+    --navy-deep:#012347;
+    --navy-tint:#e8f0f8;
+    --wine:#7a2740;
+    --wine-tint:#f3e7ea;
+    --shadow: 0 1px 2px rgba(1,52,103,0.06), 0 8px 24px rgba(1,52,103,0.05);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#10161d;
+      --surface:#182029;
+      --ink:#e7edf3;
+      --ink-soft:#a7b4c0;
+      --ink-faint:#7c8894;
+      --line:#2a3542;
+      --line-strong:#3a4753;
+      --navy:#8bb7e6;
+      --navy-deep:#bcd6f2;
+      --navy-tint:#182838;
+      --wine:#e0a3b2;
+      --wine-tint:#2c1b21;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.25);
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#10161d;
+    --surface:#182029;
+    --ink:#e7edf3;
+    --ink-soft:#a7b4c0;
+    --ink-faint:#7c8894;
+    --line:#2a3542;
+    --line-strong:#3a4753;
+    --navy:#8bb7e6;
+    --navy-deep:#bcd6f2;
+    --navy-tint:#182838;
+    --wine:#e0a3b2;
+    --wine-tint:#2c1b21;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.25);
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', system-ui, sans-serif;
+    font-size:15.5px;
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{ background:var(--wine-tint); color:var(--ink); }
+
+  h1,h2,h3{
+    font-family:'Source Serif 4', Georgia, serif;
+    color:var(--navy);
+    text-wrap:balance;
+    margin:0;
+  }
+
+  .doc{ max-width:800px; margin:0 auto; padding:0 24px 96px; }
+
+  /* ---------- Cover ---------- */
+  .cover{
+    padding:56px 0 40px;
+    border-bottom:3px solid var(--navy);
+    margin-bottom:48px;
+  }
+  .cover__mark{
+    display:flex; align-items:center; gap:10px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11.5px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--ink-soft);
+    margin-bottom:28px;
+  }
+  .cover__mark b{
+    color:var(--navy); font-weight:700; letter-spacing:.02em;
+    font-size:13px;
+  }
+  .cover__mark::before{
+    content:""; width:28px; height:28px; border-radius:6px;
+    background:linear-gradient(135deg, var(--navy) 0%, var(--navy-deep) 100%);
+    flex-shrink:0;
+  }
+  .cover h1{ font-size:clamp(28px,4.6vw,40px); font-weight:700; line-height:1.15; margin-bottom:10px; }
+  .cover__sub{ color:var(--ink-soft); font-size:15px; max-width:60ch; }
+  .cover__meta{
+    display:flex; flex-wrap:wrap; gap:10px;
+    margin-top:26px;
+  }
+  .chip{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px; letter-spacing:.04em;
+    padding:5px 11px; border-radius:100px;
+    background:var(--navy-tint); color:var(--navy-deep);
+    border:1px solid transparent;
+  }
+  .chip--wine{ background:var(--wine-tint); color:var(--wine); }
+
+  /* ---------- Sections ---------- */
+  section.block{ margin-bottom:56px; }
+  .block__head{
+    display:flex; align-items:baseline; gap:16px;
+    margin-bottom:20px;
+    padding-bottom:14px;
+    border-bottom:1px solid var(--line);
+  }
+  .block__num{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px; font-weight:600; color:var(--wine);
+    flex-shrink:0;
+  }
+  .block__head h2{ font-size:22px; font-weight:600; }
+
+  p{ margin:0 0 14px; max-width:70ch; color:var(--ink); }
+  p.lede{ color:var(--ink-soft); }
+  strong{ color:var(--ink); font-weight:600; }
+
+  .callout{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-left:3px solid var(--navy);
+    border-radius:4px;
+    padding:16px 20px;
+    margin:18px 0;
+    box-shadow:var(--shadow);
+  }
+  .callout--out{ border-left-color:var(--wine); }
+  .callout h3{ font-size:13px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-soft); font-family:'IBM Plex Sans',sans-serif; font-weight:600; margin-bottom:8px; }
+  .callout ul{ margin:0; padding-left:18px; }
+  .callout li{ margin-bottom:4px; }
+
+  /* ---------- Actors table ---------- */
+  table{ width:100%; border-collapse:collapse; }
+  .actors{ background:var(--surface); border:1px solid var(--line); border-radius:6px; overflow:hidden; box-shadow:var(--shadow); }
+  .actors th{
+    text-align:left; font-family:'IBM Plex Mono',monospace; font-size:11px;
+    text-transform:uppercase; letter-spacing:.06em; color:var(--ink-faint);
+    padding:12px 16px; background:var(--navy-tint); border-bottom:1px solid var(--line);
+  }
+  .actors td{ padding:14px 16px; border-bottom:1px solid var(--line); vertical-align:top; font-size:14.5px; }
+  .actors tr:last-child td{ border-bottom:none; }
+  .actor-name{ font-weight:600; color:var(--navy); white-space:nowrap; }
+  .mods{ display:flex; flex-wrap:wrap; gap:5px; }
+  .mod{
+    font-family:'IBM Plex Mono',monospace; font-size:10.5px;
+    background:var(--wine-tint); color:var(--wine); padding:2px 8px; border-radius:100px;
+  }
+
+  /* ---------- Service cards ---------- */
+  .services{ display:grid; grid-template-columns:repeat(2,1fr); gap:14px; }
+  .svc{
+    background:var(--surface); border:1px solid var(--line); border-radius:6px;
+    padding:16px 18px; box-shadow:var(--shadow);
+  }
+  .svc h3{ font-family:'Source Serif 4',serif; font-size:16.5px; color:var(--navy); margin-bottom:6px; font-weight:600; }
+  .svc p{ font-size:13.5px; color:var(--ink-soft); margin:0; }
+
+  /* ---------- Use cases ---------- */
+  .module{ margin-bottom:22px; }
+  .module__title{
+    font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:600;
+    letter-spacing:.05em; text-transform:uppercase; color:var(--navy);
+    margin-bottom:10px; display:flex; align-items:center; gap:8px;
+  }
+  .module__title::after{ content:""; flex:1; height:1px; background:var(--line); }
+  .uc{
+    display:grid; grid-template-columns:118px 1fr; gap:14px;
+    padding:10px 0; border-bottom:1px dashed var(--line);
+    font-size:14px;
+  }
+  .uc:last-child{ border-bottom:none; }
+  .uc__actor{ font-weight:600; color:var(--wine); font-size:12.5px; padding-top:1px; }
+  .uc__case b{ color:var(--ink); }
+
+  /* ---------- EPS tables ---------- */
+  .eps{ margin-bottom:22px; }
+  .eps__name{ font-family:'Source Serif 4',serif; font-weight:600; color:var(--navy); font-size:16px; margin-bottom:8px; }
+  .eps table{ background:var(--surface); border:1px solid var(--line); border-radius:6px; overflow:hidden; box-shadow:var(--shadow); }
+  .eps th{
+    text-align:left; font-family:'IBM Plex Mono',monospace; font-size:10.5px;
+    text-transform:uppercase; letter-spacing:.06em; color:var(--ink-faint);
+    padding:10px 14px; background:var(--navy-tint); border-bottom:1px solid var(--line);
+    width:33.33%;
+  }
+  .eps td{ padding:12px 14px; font-size:13.5px; vertical-align:top; border-right:1px solid var(--line); color:var(--ink-soft); }
+  .eps td:last-child{ border-right:none; }
+
+  footer{
+    margin-top:60px; padding-top:20px; border-top:1px solid var(--line);
+    text-align:center; font-size:11.5px; color:var(--ink-faint); line-height:1.7;
+  }
+
+  @media (max-width:640px){
+    .services{ grid-template-columns:1fr; }
+    .uc{ grid-template-columns:1fr; gap:4px; }
+    .eps table, .eps thead{ display:block; }
+    .eps thead{ display:none; }
+    .eps tr{ display:block; margin-bottom:10px; border-bottom:1px solid var(--line); }
+    .eps td{ display:block; border-right:none; border-bottom:1px dashed var(--line); }
+    .eps td::before{ content: attr(data-label); display:block; font-family:'IBM Plex Mono',monospace; font-size:10px; text-transform:uppercase; color:var(--ink-faint); margin-bottom:3px; }
+  }
+
+  @media print{
+    body{ background:#fff; }
+    .callout, .svc, .actors, .eps table{ box-shadow:none; }
+  }
+</style>
+
+<div class="doc">
+
+  <div class="cover">
+    <div class="cover__mark"><b>UNIAJS</b> · Sistemas Distribuidos</div>
+    <h1>Análisis Funcional</h1>
+    <p class="cover__sub">Proyecto Integrador — UAJS Smart Campus · Entregable 1, Fase 2: problemática, alcance, actores, servicios, casos de uso y flujo de entradas/procesos/salidas.</p>
+    <div class="cover__meta">
+      <span class="chip">Entregable 1</span>
+      <span class="chip">Fase 2 · Análisis funcional</span>
+      <span class="chip chip--wine">6 microservicios</span>
+      <span class="chip chip--wine">4 roles</span>
+    </div>
+  </div>
+
+  <section class="block">
+    <div class="block__head"><span class="block__num">01</span><h2>Problemática y alcance</h2></div>
+    <p>Hoy los trámites y servicios de la Corporación Universitaria Antonio José de Sucre se gestionan de forma dispersa: oficinas físicas, correo electrónico, mensajería y hojas de cálculo. Un estudiante o docente no tiene un lugar único donde radicar una solicitud, reservar un espacio, presentar una PQRS o enterarse de un evento — y mucho menos hacerle seguimiento al estado de esos trámites. Del lado administrativo, no existe un directorio centralizado de disponibilidad de espacios y equipos, y las notificaciones a los interesados dependen de gestión manual, sin trazabilidad.</p>
+    <p><strong>UAJS Smart Campus</strong> propone resolver esto con una plataforma web que centraliza estos servicios detrás de una autenticación por rol, con persistencia real y trazabilidad de cada trámite desde que se radica hasta que se cierra.</p>
+    <div class="callout">
+      <h3>Dentro del alcance</h3>
+      <ul>
+        <li>Autenticación y permisos por rol (Estudiante, Docente, Administrativo, Administrador del sistema).</li>
+        <li>Radicación y seguimiento de <strong>Solicitudes</strong> y <strong>PQRS</strong>, con asignación a un responsable y notificación real.</li>
+        <li><strong>Reservas</strong> de espacios y equipos con verificación de disponibilidad, y catálogo de <strong>Recursos</strong> administrable.</li>
+        <li>Agenda de <strong>Eventos</strong> institucionales por facultad, con inscripción y cupo máximo opcional.</li>
+        <li><strong>Notificaciones</strong> internas, <strong>Reportes</strong> agregados y <strong>búsqueda</strong> unificada sobre todos los módulos anteriores.</li>
+      </ul>
+    </div>
+    <div class="callout callout--out">
+      <h3>Fuera de alcance (por ahora)</h3>
+      <ul>
+        <li>Pagos en línea y facturación.</li>
+        <li>Integración con el sistema académico oficial de notas y matrícula.</li>
+        <li>Inicio de sesión federado institucional (SSO) y aplicación móvil nativa.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="block__head"><span class="block__num">02</span><h2>Actores del sistema</h2></div>
+    <p class="lede">Cuatro roles, cada uno con un conjunto de módulos habilitados según lo que necesita resolver.</p>
+    <table class="actors">
+      <thead><tr><th>Rol</th><th>Quién es</th><th>Módulos habilitados</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="actor-name">Estudiante</td>
+          <td>Persona matriculada en un programa académico; usa la plataforma para sus propios trámites.</td>
+          <td class="mods"><span class="mod">Inicio</span><span class="mod">Perfil</span><span class="mod">Solicitudes</span><span class="mod">Reservas</span><span class="mod">Eventos</span><span class="mod">Notificaciones</span><span class="mod">PQRS</span></td>
+        </tr>
+        <tr>
+          <td class="actor-name">Docente</td>
+          <td>Personal académico vinculado a una facultad. Además ve en su Inicio las PQRS que le fueron asignadas.</td>
+          <td class="mods"><span class="mod">Inicio</span><span class="mod">Perfil</span><span class="mod">Solicitudes</span><span class="mod">Reservas</span><span class="mod">Eventos</span><span class="mod">Notificaciones</span><span class="mod">PQRS</span></td>
+        </tr>
+        <tr>
+          <td class="actor-name">Administrativo</td>
+          <td>Personal de una dependencia (Registro Académico, Bienestar Universitario, etc.) que gestiona los trámites de terceros.</td>
+          <td class="mods"><span class="mod">Inicio</span><span class="mod">Perfil</span><span class="mod">Solicitudes</span><span class="mod">Reservas</span><span class="mod">Recursos</span><span class="mod">Eventos</span><span class="mod">Notificaciones</span><span class="mod">PQRS</span><span class="mod">Reportes</span></td>
+        </tr>
+        <tr>
+          <td class="actor-name">Administrador del sistema</td>
+          <td>Rol técnico/directivo con acceso total, incluida la gestión de cuentas y permisos por rol.</td>
+          <td class="mods"><span class="mod">Todos los anteriores</span><span class="mod">Usuarios</span><span class="mod">Reportes completos</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="block">
+    <div class="block__head"><span class="block__num">03</span><h2>Servicios universitarios</h2></div>
+    <div class="services">
+      <div class="svc"><h3>Solicitudes</h3><p>Certificado académico, cambio de horario, constancia de matrícula, homologación, corrección de datos, carta de presentación.</p></div>
+      <div class="svc"><h3>PQRS</h3><p>Peticiones, quejas, reclamos y sugerencias, con asignación a un responsable y nota de traspaso notificada.</p></div>
+      <div class="svc"><h3>Reservas</h3><p>Espacios (salones, pabellones, salas especiales y de biblioteca) y equipos, con verificación de disponibilidad por fecha y hora.</p></div>
+      <div class="svc"><h3>Recursos</h3><p>Catálogo administrable de recursos físicos y tecnológicos, con historial de cambios de estado.</p></div>
+      <div class="svc"><h3>Eventos</h3><p>Agenda institucional por facultad, con inscripción, cupo máximo opcional y estados Activo/Inactivo/Cancelado.</p></div>
+      <div class="svc"><h3>Notificaciones</h3><p>Avisos generados automáticamente por la plataforma ante cambios de estado o asignaciones.</p></div>
+      <div class="svc"><h3>Reportes</h3><p>Indicadores agregados — solicitudes, PQRS, disponibilidad de recursos, eventos, usuarios — para Administrativo y Admin.</p></div>
+      <div class="svc"><h3>Búsqueda</h3><p>Motor unificado (Elasticsearch) sobre todos los módulos anteriores, filtrado según lo que cada rol puede ver.</p></div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="block__head"><span class="block__num">04</span><h2>Casos de uso</h2></div>
+
+    <div class="module">
+      <div class="module__title">Solicitudes</div>
+      <div class="uc"><div class="uc__actor">Estudiante / Docente</div><div class="uc__case"><b>Radicar solicitud.</b> Elige tipo y dependencia; el sistema genera un ID consecutivo (SOL-XXXX) en estado Registrada.</div></div>
+      <div class="uc"><div class="uc__actor">Estudiante / Docente</div><div class="uc__case"><b>Consultar el detalle y el historial</b> de una solicitud propia.</div></div>
+      <div class="uc"><div class="uc__actor">Administrativo</div><div class="uc__case"><b>Responder y cambiar el estado</b> (Registrada → En revisión → Asignada → En proceso → Resuelta → Cerrada).</div></div>
+    </div>
+
+    <div class="module">
+      <div class="module__title">PQRS</div>
+      <div class="uc"><div class="uc__actor">Estudiante / Docente</div><div class="uc__case"><b>Radicar una PQRS</b> dirigida a una dependencia.</div></div>
+      <div class="uc"><div class="uc__actor">Administrativo</div><div class="uc__case"><b>Asignar la PQRS a un responsable con una nota</b> — el responsable recibe una notificación real con ese texto.</div></div>
+      <div class="uc"><div class="uc__actor">Administrativo</div><div class="uc__case"><b>Filtrar por estado</b> con los botones Todos / Registrada / En gestión / Resuelta.</div></div>
+    </div>
+
+    <div class="module">
+      <div class="module__title">Reservas</div>
+      <div class="uc"><div class="uc__actor">Cualquier rol</div><div class="uc__case"><b>Reservar un espacio o equipo.</b> El sistema valida disponibilidad antes de confirmar.</div></div>
+      <div class="uc"><div class="uc__actor">Administrativo</div><div class="uc__case"><b>Confirmar, denegar o cancelar</b> una reserva y consultar su historial.</div></div>
+    </div>
+
+    <div class="module">
+      <div class="module__title">Eventos</div>
+      <div class="uc"><div class="uc__actor">Administrativo</div><div class="uc__case"><b>Publicar un evento</b> con facultad responsable, cupo máximo opcional y estado.</div></div>
+      <div class="uc"><div class="uc__actor">Estudiante / Docente</div><div class="uc__case"><b>Inscribirse a un evento</b> — bloqueado si está cancelado o si ya se llenó el cupo.</div></div>
+    </div>
+
+    <div class="module">
+      <div class="module__title">Recursos</div>
+      <div class="uc"><div class="uc__actor">Administrativo</div><div class="uc__case"><b>Editar un recurso</b> — datos, estado y disponibilidad — y consultar su historial o eliminarlo desde un mismo panel.</div></div>
+    </div>
+
+    <div class="module">
+      <div class="module__title">Usuarios</div>
+      <div class="uc"><div class="uc__actor">Administrador</div><div class="uc__case"><b>Crear, activar/desactivar</b> un usuario y asignar su rol y permisos por módulo.</div></div>
+    </div>
+
+    <div class="module">
+      <div class="module__title">Búsqueda</div>
+      <div class="uc"><div class="uc__actor">Cualquier rol</div><div class="uc__case"><b>Buscar en toda la plataforma</b> desde la barra superior; resultados agrupados por módulo y filtrados según el rol.</div></div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="block__head"><span class="block__num">05</span><h2>Entradas, procesos y salidas</h2></div>
+
+    <div class="eps">
+      <div class="eps__name">Solicitudes</div>
+      <table>
+        <thead><tr><th>Entradas</th><th>Proceso</th><th>Salidas</th></tr></thead>
+        <tbody><tr>
+          <td data-label="Entradas">Tipo, dependencia, descripción, adjunto opcional.</td>
+          <td data-label="Proceso">Validación → generación de ID consecutivo → persistencia → indexación en el buscador.</td>
+          <td data-label="Salidas">Confirmación en pantalla, entrada en "Mis solicitudes", registro en el historial.</td>
+        </tr></tbody>
+      </table>
+    </div>
+
+    <div class="eps">
+      <div class="eps__name">PQRS</div>
+      <table>
+        <thead><tr><th>Entradas</th><th>Proceso</th><th>Salidas</th></tr></thead>
+        <tbody><tr>
+          <td data-label="Entradas">Tipo, dependencia, asunto, descripción.</td>
+          <td data-label="Proceso">Radicación → asignación opcional con nota → notificación al responsable → respuesta y cambio de estado.</td>
+          <td data-label="Salidas">PQRS con estado actualizado; notificación real para el responsable asignado.</td>
+        </tr></tbody>
+      </table>
+    </div>
+
+    <div class="eps">
+      <div class="eps__name">Reservas</div>
+      <table>
+        <thead><tr><th>Entradas</th><th>Proceso</th><th>Salidas</th></tr></thead>
+        <tbody><tr>
+          <td data-label="Entradas">Tipo de espacio/equipo, fecha, hora inicio/fin, motivo.</td>
+          <td data-label="Proceso">Verificación de disponibilidad → creación en Pendiente → decisión del Administrativo → ajuste de stock si es equipo.</td>
+          <td data-label="Salidas">Reserva confirmada o denegada, historial de cambios, stock actualizado.</td>
+        </tr></tbody>
+      </table>
+    </div>
+
+    <div class="eps">
+      <div class="eps__name">Eventos</div>
+      <table>
+        <thead><tr><th>Entradas</th><th>Proceso</th><th>Salidas</th></tr></thead>
+        <tbody><tr>
+          <td data-label="Entradas">Título, facultad, fecha/hora, lugar, ponente, cupo máximo opcional.</td>
+          <td data-label="Proceso">Publicación → apertura de inscripciones si está Activo → validación de cupo en cada inscripción.</td>
+          <td data-label="Salidas">Evento en la agenda, conteo de inscritos, notificación de inscripción confirmada.</td>
+        </tr></tbody>
+      </table>
+    </div>
+
+    <div class="eps">
+      <div class="eps__name">Recursos</div>
+      <table>
+        <thead><tr><th>Entradas</th><th>Proceso</th><th>Salidas</th></tr></thead>
+        <tbody><tr>
+          <td data-label="Entradas">Nombre, tipo, ubicación (alta); nuevo estado (edición).</td>
+          <td data-label="Proceso">Alta del recurso → sincronización con el catálogo reservable si aplica → registro en el historial de estado.</td>
+          <td data-label="Salidas">Recurso en el catálogo, historial consultable, disponibilidad en Reservas actualizada.</td>
+        </tr></tbody>
+      </table>
+    </div>
+
+    <div class="eps">
+      <div class="eps__name">Notificaciones</div>
+      <table>
+        <thead><tr><th>Entradas</th><th>Proceso</th><th>Salidas</th></tr></thead>
+        <tbody><tr>
+          <td data-label="Entradas">Eventos internos: cambio de estado, asignación, inscripción confirmada.</td>
+          <td data-label="Proceso">Generación automática del mensaje → asociación al usuario destinatario.</td>
+          <td data-label="Salidas">Notificación en la campana del topbar, marcable como leída.</td>
+        </tr></tbody>
+      </table>
+    </div>
+
+    <div class="eps">
+      <div class="eps__name">Búsqueda</div>
+      <table>
+        <thead><tr><th>Entradas</th><th>Proceso</th><th>Salidas</th></tr></thead>
+        <tbody><tr>
+          <td data-label="Entradas">Texto escrito por el usuario en la barra superior.</td>
+          <td data-label="Proceso">Consulta de texto completo sobre el índice unificado → filtrado según lo que el rol puede ver.</td>
+          <td data-label="Salidas">Resultados agrupados por módulo, con enlace directo al registro.</td>
+        </tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    Corporación Universitaria Antonio José de Sucre (UNIAJS) · Vigilada Mineducación<br>
+    Proyecto Integrador — UAJS Smart Campus · Asignatura: Sistemas Distribuidos
+  </footer>
+
+</div>

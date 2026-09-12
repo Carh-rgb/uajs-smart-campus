@@ -1,0 +1,288 @@
+<title>Diseño de Frontend UAJS Smart Campus</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600&display=swap');
+
+  :root{
+    --paper:#f4f6f9; --surface:#ffffff; --ink:#16232e; --ink-soft:#56636f; --ink-faint:#8a97a3;
+    --line:#dbe2e9; --line-strong:#c3cdd8;
+    --navy:#013467; --navy-deep:#012347; --navy-tint:#e8f0f8;
+    --wine:#7a2740; --wine-tint:#f3e7ea;
+    --shadow: 0 1px 2px rgba(1,52,103,0.06), 0 8px 24px rgba(1,52,103,0.05);
+    --wf-line:#8a97a3; --wf-fill:#eef1f4;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#10161d; --surface:#182029; --ink:#e7edf3; --ink-soft:#a7b4c0; --ink-faint:#7c8894;
+      --line:#2a3542; --line-strong:#3a4753; --navy:#8bb7e6; --navy-deep:#bcd6f2; --navy-tint:#182838;
+      --wine:#e0a3b2; --wine-tint:#2c1b21; --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.25);
+      --wf-line:#5c6a77; --wf-fill:#1e2731;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#10161d; --surface:#182029; --ink:#e7edf3; --ink-soft:#a7b4c0; --ink-faint:#7c8894;
+    --line:#2a3542; --line-strong:#3a4753; --navy:#8bb7e6; --navy-deep:#bcd6f2; --navy-tint:#182838;
+    --wine:#e0a3b2; --wine-tint:#2c1b21; --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.25);
+    --wf-line:#5c6a77; --wf-fill:#1e2731;
+  }
+
+  *{box-sizing:border-box;}
+  body{ margin:0; background:var(--paper); color:var(--ink); font-family:'IBM Plex Sans', system-ui, sans-serif; font-size:15.5px; line-height:1.65; -webkit-font-smoothing:antialiased; }
+  h1,h2,h3{ font-family:'Source Serif 4', Georgia, serif; color:var(--navy); text-wrap:balance; margin:0; }
+  p{ margin:0 0 14px; max-width:72ch; }
+  .doc{ max-width:900px; margin:0 auto; padding:0 24px 90px; }
+
+  .cover{ padding:48px 0 32px; border-bottom:3px solid var(--navy); margin-bottom:40px; }
+  .cover__mark{ display:flex; align-items:center; gap:10px; font-family:'IBM Plex Mono', monospace; font-size:11.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:24px; }
+  .cover__mark b{ color:var(--navy); font-weight:700; font-size:13px; }
+  .cover__mark::before{ content:""; width:26px; height:26px; border-radius:6px; background:linear-gradient(135deg, var(--navy) 0%, var(--navy-deep) 100%); flex-shrink:0; }
+  .cover h1{ font-size:clamp(26px,4.4vw,36px); font-weight:700; line-height:1.15; margin-bottom:8px; }
+  .cover__sub{ color:var(--ink-soft); font-size:14.5px; max-width:64ch; }
+  .chip{ font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:.04em; padding:5px 11px; border-radius:100px; background:var(--navy-tint); color:var(--navy-deep); display:inline-block; margin-top:18px; margin-right:6px; }
+
+  section.block{ margin-bottom:50px; }
+  .block__head{ display:flex; align-items:baseline; gap:16px; margin-bottom:20px; padding-bottom:12px; border-bottom:1px solid var(--line); }
+  .block__num{ font-family:'IBM Plex Mono', monospace; font-size:13px; font-weight:600; color:var(--wine); flex-shrink:0; }
+  .block__head h2{ font-size:21px; font-weight:600; }
+  .lede{ color:var(--ink-soft); }
+
+  /* ---- palette ---- */
+  .swatches{ display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:12px; margin-bottom:22px; }
+  .swatch{ border:1px solid var(--line); border-radius:8px; overflow:hidden; background:var(--surface); box-shadow:var(--shadow); }
+  .swatch__fill{ height:52px; }
+  .swatch__meta{ padding:8px 10px; }
+  .swatch__name{ font-size:12px; font-weight:600; }
+  .swatch__hex{ font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--ink-faint); }
+
+  .subhead{ font-family:'IBM Plex Mono',monospace; font-size:11.5px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-faint); margin:26px 0 12px; }
+
+  /* ---- typography sample ---- */
+  .type-cards{ display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:8px; }
+  .type-card{ background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:20px; box-shadow:var(--shadow); }
+  .type-card__label{ font-family:'IBM Plex Mono',monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-faint); margin-bottom:10px; }
+  .sample-h{ font-family:'Poppins',sans-serif; font-weight:700; font-size:24px; color:var(--navy); margin-bottom:6px; }
+  .sample-b{ font-family:'Inter',sans-serif; font-size:14px; color:var(--ink); line-height:1.6; }
+
+  /* ---- icon strip ---- */
+  .icon-strip{ display:flex; flex-wrap:wrap; gap:10px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:18px; box-shadow:var(--shadow); }
+  .icon-strip svg{ width:22px; height:22px; stroke:var(--navy); }
+  .icon-note{ font-size:13px; color:var(--ink-soft); margin-top:10px; }
+
+  /* ---- nav table ---- */
+  table{ width:100%; border-collapse:collapse; }
+  .navtable{ background:var(--surface); border:1px solid var(--line); border-radius:6px; overflow:hidden; box-shadow:var(--shadow); margin-bottom:8px; }
+  .navtable th{ text-align:left; font-family:'IBM Plex Mono',monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-faint); padding:10px 14px; background:var(--navy-tint); border-bottom:1px solid var(--line); }
+  .navtable td{ padding:11px 14px; border-bottom:1px solid var(--line); font-size:13.5px; vertical-align:top; }
+  .navtable tr:last-child td{ border-bottom:none; }
+  .route{ font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:var(--navy); white-space:nowrap; }
+  .mods{ display:flex; flex-wrap:wrap; gap:5px; }
+  .mod{ font-family:'IBM Plex Mono',monospace; font-size:10px; background:var(--wine-tint); color:var(--wine); padding:2px 7px; border-radius:100px; }
+
+  /* ---- wireframes ---- */
+  .wf-wrap{ overflow-x:auto; }
+  .wf-grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:8px; }
+  .wf-card{ background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:14px; box-shadow:var(--shadow); }
+  .wf-card__label{ font-family:'IBM Plex Mono',monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-faint); margin-bottom:10px; }
+  .wf-card svg{ display:block; width:100%; height:auto; }
+
+  /* ---- components ---- */
+  .comp-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+  .comp{ background:var(--surface); border:1px solid var(--line); border-radius:6px; padding:12px 14px; box-shadow:var(--shadow); }
+  .comp b{ display:block; font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:var(--navy); margin-bottom:3px; }
+  .comp span{ font-size:12.5px; color:var(--ink-soft); }
+
+  footer{ margin-top:56px; padding-top:20px; border-top:1px solid var(--line); text-align:center; font-size:11.5px; color:var(--ink-faint); line-height:1.7; }
+
+  @media (max-width:640px){ .type-cards, .wf-grid, .comp-grid{ grid-template-columns:1fr; } }
+</style>
+
+<div class="doc">
+
+  <div class="cover">
+    <div class="cover__mark"><b>UNIAJS</b> · Sistemas Distribuidos</div>
+    <h1>Diseño de Frontend</h1>
+    <p class="cover__sub">Proyecto Integrador — UAJS Smart Campus · Entregable 1, Fase 4: identidad visual, navegación, wireframes y componentes reutilizables — documentados a partir de la interfaz real ya construida.</p>
+    <span class="chip">Entregable 1 · Fase 4</span>
+    <span class="chip">15 páginas · 15 componentes · 22 iconos</span>
+  </div>
+
+  <!-- 01 IDENTIDAD VISUAL -->
+  <section class="block">
+    <div class="block__head"><span class="block__num">01</span><h2>Identidad visual</h2></div>
+    <p class="lede">Una sola paleta y una sola familia tipográfica en toda la aplicación, controladas por variables CSS — cambiar de tema claro a oscuro es solo redefinir esos tokens, ningún componente tiene colores propios.</p>
+
+    <div class="subhead">Paleta — modo claro</div>
+    <div class="swatches">
+      <div class="swatch"><div class="swatch__fill" style="background:#013467"></div><div class="swatch__meta"><div class="swatch__name">Navy</div><div class="swatch__hex">#013467</div></div></div>
+      <div class="swatch"><div class="swatch__fill" style="background:#0261bd"></div><div class="swatch__meta"><div class="swatch__name">Navy light</div><div class="swatch__hex">#0261bd</div></div></div>
+      <div class="swatch"><div class="swatch__fill" style="background:#e8f0f8"></div><div class="swatch__meta"><div class="swatch__name">Navy tint</div><div class="swatch__hex">#e8f0f8</div></div></div>
+      <div class="swatch"><div class="swatch__fill" style="background:#f4f6f9"></div><div class="swatch__meta"><div class="swatch__name">Fondo</div><div class="swatch__hex">#f4f6f9</div></div></div>
+      <div class="swatch"><div class="swatch__fill" style="background:#16232e"></div><div class="swatch__meta"><div class="swatch__name">Texto</div><div class="swatch__hex">#16232e</div></div></div>
+      <div class="swatch"><div class="swatch__fill" style="background:#2e8b57"></div><div class="swatch__meta"><div class="swatch__name">Éxito</div><div class="swatch__hex">#2e8b57</div></div></div>
+      <div class="swatch"><div class="swatch__fill" style="background:#b87e00"></div><div class="swatch__meta"><div class="swatch__name">Advertencia</div><div class="swatch__hex">#b87e00</div></div></div>
+      <div class="swatch"><div class="swatch__fill" style="background:#c0392b"></div><div class="swatch__meta"><div class="swatch__name">Peligro</div><div class="swatch__hex">#c0392b</div></div></div>
+    </div>
+
+    <div class="subhead">Tipografía</div>
+    <div class="type-cards">
+      <div class="type-card">
+        <div class="type-card__label">Encabezados — Poppins</div>
+        <div class="sample-h">Gestión de PQRS</div>
+        <div class="sample-b" style="font-family:'Poppins',sans-serif; font-size:12.5px; color:var(--ink-soft);">peso 600–700, usada solo en títulos</div>
+      </div>
+      <div class="type-card">
+        <div class="type-card__label">Texto — Inter</div>
+        <div class="sample-b">Radica tu solicitud y hazle seguimiento a su estado en cualquier momento desde este panel.</div>
+      </div>
+    </div>
+
+    <div class="subhead">Iconografía</div>
+    <div class="icon-strip">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M7 3h7l5 5v12a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="5" width="17" height="15" rx="2" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <svg viewBox="0 0 24 24" fill="none"><path d="M6 10a6 6 0 0 1 12 0v4l1.5 3h-15L6 14v-4Z" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8.2" r="3.5" stroke-width="1.6"/><path d="M5 20c1-4 3.8-6 7-6s6 2 7 6" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <svg viewBox="0 0 24 24" fill="none"><circle cx="10.5" cy="10.5" r="6.5" stroke-width="1.6"/><path d="m20 20-4.8-4.8" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <svg viewBox="0 0 24 24" fill="none"><path d="M4 5h16v11H9l-4 4V5Z" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="9.5" width="18" height="9.5" rx="1.5" stroke-width="1.6"/><path d="M8 9.5V6.8a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2.7M3 13.5h18" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <svg viewBox="0 0 24 24" fill="none"><path d="m12 4 10 5-10 5L2 9l10-5Z" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 11.5v4c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5v-4M20 10v6" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <svg viewBox="0 0 24 24" fill="none"><path d="M3 10v4a1 1 0 0 0 1 1h2l8 4V5L6 9H4a1 1 0 0 0-1 1Z" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M18 9.5a3 3 0 0 1 0 5" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <svg viewBox="0 0 24 24" fill="none"><path d="M4 11 12 4l8 7" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10v9a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-9" stroke-width="1.6" stroke-linecap="round"/></svg>
+    </div>
+    <p class="icon-note">22 iconos de línea propios (<code style="font-family:'IBM Plex Mono',monospace;">icons.jsx</code>), un mismo trazo de 1.6px, sin relleno — un único lenguaje visual reutilizado en Login, Landing, Sidebar, Topbar y Dashboard.</p>
+  </section>
+
+  <!-- 02 NAVEGACIÓN -->
+  <section class="block">
+    <div class="block__head"><span class="block__num">02</span><h2>Navegación</h2></div>
+    <p class="lede">Cuatro rutas públicas y un árbol protegido bajo <code style="font-family:'IBM Plex Mono',monospace;">/app</code>, donde cada módulo se muestra u oculta según los permisos del rol que inició sesión.</p>
+
+    <div class="subhead">Rutas públicas</div>
+    <table class="navtable">
+      <tbody>
+        <tr><td class="route">/</td><td>Landing — presentación de la plataforma y sus servicios</td></tr>
+        <tr><td class="route">/login</td><td>Inicio de sesión</td></tr>
+        <tr><td class="route">/forgot-password · /reset-password</td><td>Recuperación de contraseña</td></tr>
+      </tbody>
+    </table>
+
+    <div class="subhead">Rutas protegidas (/app) — por rol</div>
+    <table class="navtable">
+      <thead><tr><th>Ruta</th><th>Vista</th><th>Visible para</th></tr></thead>
+      <tbody>
+        <tr><td class="route">/app</td><td>Dashboard / Inicio</td><td class="mods"><span class="mod">Todos</span></td></tr>
+        <tr><td class="route">/app/perfil</td><td>Perfil</td><td class="mods"><span class="mod">Todos</span></td></tr>
+        <tr><td class="route">/app/solicitudes</td><td>Solicitudes</td><td class="mods"><span class="mod">Todos</span></td></tr>
+        <tr><td class="route">/app/solicitudes/:id</td><td>Detalle de solicitud</td><td class="mods"><span class="mod">Todos</span></td></tr>
+        <tr><td class="route">/app/reservas</td><td>Reservas</td><td class="mods"><span class="mod">Todos</span></td></tr>
+        <tr><td class="route">/app/eventos</td><td>Eventos y actividades</td><td class="mods"><span class="mod">Todos</span></td></tr>
+        <tr><td class="route">/app/notificaciones</td><td>Notificaciones</td><td class="mods"><span class="mod">Todos</span></td></tr>
+        <tr><td class="route">/app/pqrs</td><td>PQRS</td><td class="mods"><span class="mod">Todos</span></td></tr>
+        <tr><td class="route">/app/recursos</td><td>Recursos</td><td class="mods"><span class="mod">Administrativo</span><span class="mod">Admin</span></td></tr>
+        <tr><td class="route">/app/reportes</td><td>Reportes</td><td class="mods"><span class="mod">Administrativo</span><span class="mod">Admin</span></td></tr>
+        <tr><td class="route">/app/usuarios</td><td>Usuarios y permisos</td><td class="mods"><span class="mod">Admin</span></td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:13px; color:var(--ink-soft);"><code style="font-family:'IBM Plex Mono',monospace;">ProtectedRoute</code> exige sesión iniciada; <code style="font-family:'IBM Plex Mono',monospace;">ModuleRoute</code> exige además que ese módulo esté en los permisos del rol — si no, redirige con un aviso de "acceso no disponible" en vez de romper la navegación.</p>
+  </section>
+
+  <!-- 03 WIREFRAMES -->
+  <section class="block">
+    <div class="block__head"><span class="block__num">03</span><h2>Wireframes</h2></div>
+    <p class="lede">La estructura base se repite en las 14 vistas internas; solo cambia el contenido de la zona central. A continuación, la estructura base y los tres patrones de contenido que la llenan.</p>
+
+    <div class="wf-wrap">
+    <div class="wf-grid">
+
+      <div class="wf-card">
+        <div class="wf-card__label">Estructura base (Sidebar + Topbar)</div>
+        <svg viewBox="0 0 380 240">
+          <rect x="1" y="1" width="378" height="238" fill="none" stroke="var(--wf-line)"/>
+          <rect x="1" y="1" width="90" height="238" fill="var(--wf-fill)" stroke="var(--wf-line)"/>
+          <rect x="10" y="14" width="72" height="14" fill="none" stroke="var(--wf-line)"/>
+          <rect x="10" y="46" width="72" height="9" fill="none" stroke="var(--wf-line)"/>
+          <rect x="10" y="64" width="72" height="9" fill="none" stroke="var(--wf-line)"/>
+          <rect x="10" y="82" width="72" height="9" fill="none" stroke="var(--wf-line)"/>
+          <rect x="10" y="100" width="72" height="9" fill="none" stroke="var(--wf-line)"/>
+          <rect x="91" y="1" width="288" height="34" fill="var(--wf-fill)" stroke="var(--wf-line)"/>
+          <rect x="105" y="12" width="120" height="10" fill="none" stroke="var(--wf-line)"/>
+          <rect x="330" y="10" width="16" height="16" rx="8" fill="none" stroke="var(--wf-line)"/>
+          <rect x="352" y="10" width="16" height="16" rx="8" fill="none" stroke="var(--wf-line)"/>
+          <rect x="102" y="46" width="266" height="182" fill="none" stroke="var(--wf-line)" stroke-dasharray="3 3"/>
+          <text x="235" y="142" text-anchor="middle" font-size="11" fill="var(--wf-line)" font-family="'IBM Plex Mono',monospace">contenido</text>
+        </svg>
+      </div>
+
+      <div class="wf-card">
+        <div class="wf-card__label">Login (pantalla pública)</div>
+        <svg viewBox="0 0 380 240">
+          <rect x="1" y="1" width="378" height="238" fill="none" stroke="var(--wf-line)"/>
+          <rect x="60" y="30" width="260" height="180" fill="var(--wf-fill)" stroke="var(--wf-line)"/>
+          <rect x="150" y="46" width="80" height="10" fill="none" stroke="var(--wf-line)"/>
+          <rect x="80" y="76" width="220" height="9" fill="none" stroke="var(--wf-line)"/>
+          <rect x="80" y="96" width="220" height="22" fill="none" stroke="var(--wf-line)"/>
+          <rect x="80" y="128" width="220" height="22" fill="none" stroke="var(--wf-line)"/>
+          <rect x="80" y="164" width="220" height="26" fill="var(--wf-fill)" stroke="var(--wf-line)" stroke-width="1.6"/>
+          <text x="190" y="180" text-anchor="middle" font-size="10" fill="var(--wf-line)" font-family="'IBM Plex Mono',monospace">Iniciar sesión</text>
+        </svg>
+      </div>
+
+      <div class="wf-card">
+        <div class="wf-card__label">Patrón tabla (Solicitudes, Recursos…)</div>
+        <svg viewBox="0 0 380 240">
+          <rect x="1" y="1" width="378" height="238" fill="none" stroke="var(--wf-line)"/>
+          <rect x="16" y="14" width="160" height="14" fill="none" stroke="var(--wf-line)"/>
+          <rect x="16" y="40" width="90" height="18" fill="none" stroke="var(--wf-line)"/>
+          <rect x="270" y="40" width="94" height="18" fill="var(--wf-fill)" stroke="var(--wf-line)"/>
+          <rect x="16" y="70" width="348" height="150" fill="none" stroke="var(--wf-line)"/>
+          <line x1="16" y1="94" x2="364" y2="94" stroke="var(--wf-line)"/>
+          <line x1="16" y1="118" x2="364" y2="118" stroke="var(--wf-line)"/>
+          <line x1="16" y1="142" x2="364" y2="142" stroke="var(--wf-line)"/>
+          <line x1="16" y1="166" x2="364" y2="166" stroke="var(--wf-line)"/>
+          <line x1="16" y1="190" x2="364" y2="190" stroke="var(--wf-line)"/>
+        </svg>
+      </div>
+
+      <div class="wf-card">
+        <div class="wf-card__label">Patrón tarjetas (Eventos)</div>
+        <svg viewBox="0 0 380 240">
+          <rect x="1" y="1" width="378" height="238" fill="none" stroke="var(--wf-line)"/>
+          <rect x="16" y="14" width="160" height="14" fill="none" stroke="var(--wf-line)"/>
+          <rect x="16" y="40" width="60" height="16" rx="9" fill="none" stroke="var(--wf-line)"/>
+          <rect x="82" y="40" width="60" height="16" rx="9" fill="none" stroke="var(--wf-line)"/>
+          <rect x="148" y="40" width="60" height="16" rx="9" fill="none" stroke="var(--wf-line)"/>
+          <rect x="16" y="70" width="112" height="150" fill="none" stroke="var(--wf-line)"/>
+          <rect x="134" y="70" width="112" height="150" fill="none" stroke="var(--wf-line)"/>
+          <rect x="252" y="70" width="112" height="150" fill="none" stroke="var(--wf-line)"/>
+        </svg>
+      </div>
+
+    </div>
+    </div>
+  </section>
+
+  <!-- 04 COMPONENTES -->
+  <section class="block">
+    <div class="block__head"><span class="block__num">04</span><h2>Componentes reutilizables</h2></div>
+    <p class="lede">15 componentes en <code style="font-family:'IBM Plex Mono',monospace;">src/components/</code>, además de 2 hooks propios, compartidos entre las 15 páginas de la aplicación.</p>
+    <div class="comp-grid">
+      <div class="comp"><b>Modal</b><span>Ventana emergente base, usada por casi todos los formularios y detalles.</span></div>
+      <div class="comp"><b>ConfirmDialog</b><span>Confirmación antes de una acción irreversible (eliminar, etc.).</span></div>
+      <div class="comp"><b>LoadingButton</b><span>Botón que muestra un spinner y se deshabilita mientras dura la acción.</span></div>
+      <div class="comp"><b>StatusBadge</b><span>Etiqueta de color según el estado (Activo, Pendiente, Resuelta…).</span></div>
+      <div class="comp"><b>KpiCard</b><span>Tarjeta de indicador numérico usada en Dashboard y Reportes.</span></div>
+      <div class="comp"><b>BrandSpinner</b><span>Indicador de carga de marca, en tamaño de página y de botón.</span></div>
+      <div class="comp"><b>Sidebar</b><span>Menú lateral, arma su lista de módulos según el rol y sus permisos.</span></div>
+      <div class="comp"><b>Topbar + TopbarSearch</b><span>Barra superior con búsqueda global, notificaciones y menú de usuario.</span></div>
+      <div class="comp"><b>ProtectedRoute / ModuleRoute</b><span>Guardas de navegación: exigen sesión y, además, permiso sobre el módulo.</span></div>
+      <div class="comp"><b>EntradaAnimada</b><span>Animación de bienvenida de 3s tras iniciar sesión.</span></div>
+      <div class="comp"><b>BackendStatusBanner / RouteLoader</b><span>Avisan si el backend no responde o si una ruta está cargando.</span></div>
+      <div class="comp"><b>useHighlightRow / useFetch</b><span>Hooks propios: resaltar una fila desde un resultado de búsqueda, y una carga de datos reutilizable.</span></div>
+    </div>
+  </section>
+
+  <footer>
+    Corporación Universitaria Antonio José de Sucre (UNIAJS) · Vigilada Mineducación<br>
+    Proyecto Integrador — UAJS Smart Campus · Asignatura: Sistemas Distribuidos
+  </footer>
+
+</div>

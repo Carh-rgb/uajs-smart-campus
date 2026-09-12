@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { listar, crear, inscritos, inscribir, eliminar } from '../controllers/eventos.controller.js'
+import { listar, crear, actualizar, actualizarEstado, inscritos, inscribir, eliminar } from '../controllers/eventos.controller.js'
 import { requireAuth, requireRole } from '../middlewares/auth.js'
 
 export const eventosRouter = Router()
@@ -8,6 +8,8 @@ const puedeAdministrar = requireRole('Administrativo', 'Administrador del sistem
 
 eventosRouter.get('/', requireAuth, listar)
 eventosRouter.post('/', requireAuth, puedeAdministrar, crear)
+eventosRouter.patch('/:id', requireAuth, puedeAdministrar, actualizar)
+eventosRouter.patch('/:id/estado', requireAuth, puedeAdministrar, actualizarEstado)
 eventosRouter.get('/:id/inscritos', requireAuth, puedeAdministrar, inscritos)
 eventosRouter.post('/:id/inscribir', requireAuth, requireRole('Estudiante', 'Docente'), inscribir)
 eventosRouter.delete('/:id', requireAuth, puedeAdministrar, eliminar)

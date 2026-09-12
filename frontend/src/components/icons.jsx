@@ -198,3 +198,23 @@ export function IconoHerramientas(props) {
     </svg>
   )
 }
+
+export function IconoMegafono(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M3 10v4a1 1 0 0 0 1 1h2l8 4V5L6 9H4a1 1 0 0 0-1 1Z" {...trazo} />
+      <path d="M18 9.5a3 3 0 0 1 0 5" {...trazo} />
+      <path d="M9 15v3a2 2 0 0 0 4 0v-2" {...trazo} />
+    </svg>
+  )
+}
+
+export function IconoAlerta(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M12 3 2 20h20L12 3Z" {...trazo} />
+      <path d="M12 10v4" {...trazo} />
+      <path d="M12 17.5h.01" {...trazo} />
+    </svg>
+  )
+}

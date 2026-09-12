@@ -87,6 +87,15 @@ export const recursos = [
 export const tiposRecurso = ['Audiovisual', 'Equipo de cómputo', 'Mobiliario', 'Instrumento de laboratorio', 'Otro']
 export const estadosRecurso = ['Disponible', 'En mantenimiento', 'Fuera de servicio']
 
+export const facultadesEventos = [
+  'Facultad de Ciencias de la Ingeniería',
+  'Facultad de Ciencias Administrativas, Económicas y Contables',
+  'Facultad de Ciencias Sociales y Educación',
+  'Facultad de Ciencias de la Salud',
+  'General / Bienestar Universitario',
+]
+export const estadosEvento = ['Activo', 'Inactivo', 'Cancelado']
+
 export const estadosReserva = ['Pendiente', 'Confirmada', 'Cancelada', 'Denegada']
 
 export const reservasIniciales = [
@@ -112,6 +121,28 @@ export const notificacionesIniciales = [
   { id: 2, categoria: 'Reservas', mensaje: 'Reserva aprobada para Salón B05 el 19 de agosto.', fecha: '2026-08-18', leida: false },
   { id: 3, categoria: 'Institucional', mensaje: 'Recuerda inscribirte a la Semana de la Ingeniería.', fecha: '2026-08-17', leida: true },
   { id: 4, categoria: 'Solicitudes', mensaje: 'Tu solicitud SOL-0214 fue resuelta.', fecha: '2026-08-11', leida: true },
+]
+
+// Contenido ilustrativo para el panel "Anuncios y beneficios" del
+// dashboard del Estudiante. Es contenido de ejemplo (no datos reales de
+// la institución): la universidad deberia reemplazarlo por sus propias
+// promociones, convenios y campañas vigentes.
+export const promocionesInstitucionales = [
+  {
+    titulo: 'Semana de bienestar universitario',
+    descripcion: 'Actividades deportivas, jornadas de salud y descuentos en la cafetería toda la semana.',
+    vigencia: 'Hasta el 30 de septiembre',
+  },
+  {
+    titulo: 'Biblioteca digital sin costo',
+    descripcion: 'Acceso a más de 10.000 libros y artículos académicos con tu correo institucional.',
+    vigencia: 'Beneficio permanente',
+  },
+  {
+    titulo: 'Descuento en transporte estudiantil',
+    descripcion: '15% de descuento presentando tu carné en las rutas asociadas con la universidad.',
+    vigencia: 'Todo el semestre',
+  },
 ]
 
 export const tiposPqrs = ['Petición', 'Queja', 'Reclamo', 'Sugerencia']

@@ -32,10 +32,24 @@ export function EventosProvider({ children }) {
     cargar()
   }, [cargar])
 
-  const agregarEvento = async ({ titulo, fecha, hora, lugar, ponente, descripcion }) => {
-    const nuevo = await api.post('/eventos', { titulo, fecha, hora, lugar, ponente, descripcion })
-    setEventos((prev) => [{ ...nuevo, inscrito: false }, ...prev])
+  const agregarEvento = async ({ titulo, fecha, hora, lugar, ponente, descripcion, facultad, cupoMaximo }) => {
+    const nuevo = await api.post('/eventos', { titulo, fecha, hora, lugar, ponente, descripcion, facultad, cupoMaximo })
+    setEventos((prev) => [{ ...nuevo, inscrito: false, inscritosCount: 0 }, ...prev])
     return nuevo
+  }
+
+  const actualizarEnLista = (actualizado) => {
+    setEventos((prev) => prev.map((e) => (e.id === actualizado.id ? { ...e, ...actualizado } : e)))
+  }
+
+  const actualizarEvento = async (id, datos) => {
+    const actualizado = await api.patch(`/eventos/${id}`, datos)
+    actualizarEnLista(actualizado)
+  }
+
+  const actualizarEstadoEvento = async (id, estado) => {
+    const actualizado = await api.patch(`/eventos/${id}/estado`, { estado })
+    actualizarEnLista(actualizado)
   }
 
   const inscribir = async (eventoId, tituloEvento) => {
@@ -57,7 +71,7 @@ export function EventosProvider({ children }) {
 
   return (
     <EventosContext.Provider
-      value={{ eventos, cargando, agregarEvento, inscribir, estaInscrito, inscritosDe, eliminarEvento }}
+      value={{ eventos, cargando, agregarEvento, actualizarEvento, actualizarEstadoEvento, inscribir, estaInscrito, inscritosDe, eliminarEvento }}
     >
       {children}
     </EventosContext.Provider>

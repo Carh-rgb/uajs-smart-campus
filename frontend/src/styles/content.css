@@ -419,12 +419,42 @@ tr.row--highlight td,
   padding: 20px;
 }
 
+.event-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
 .event-card__date {
   font-size: 11px;
   font-weight: 600;
   color: var(--color-navy-light);
   text-transform: uppercase;
-  margin: 0 0 8px;
+  margin: 0;
+}
+
+.event-card__badges {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.event-card__tag {
+  display: inline-block;
+  background: var(--color-navy-tint);
+  color: var(--color-navy);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 10.5px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+:root[data-theme='dark'] .event-card__tag {
+  color: var(--color-sidebar-accent);
 }
 
 .event-card__title {

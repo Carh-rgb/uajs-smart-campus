@@ -12,7 +12,9 @@ const REGLAS_VISIBILIDAD = {
   solicitud: (doc, user) => esStaff(user) || doc.ownerId === user.id,
   pqrs: (doc, user) => esStaff(user) || doc.ownerId === user.id || doc.asignadoA === user.nombre,
   reserva: (doc, user) => esStaff(user) || doc.ownerId === user.id,
-  evento: () => true,
+  // Un evento Inactivo es un borrador aun no publicado: solo el personal
+  // administrativo lo ve en la busqueda (igual que en eventos.controller.js).
+  evento: (doc, user) => doc.estado !== 'Inactivo' || esStaff(user),
   recurso: (doc, user) => esStaff(user),
   usuario: (doc, user) => user.rol === 'Administrador del sistema',
 }

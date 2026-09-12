@@ -1,4 +1,4 @@
-import { Recurso } from '../models/index.js'
+import { Recurso, RecursoHistorial } from '../models/index.js'
 
 const RECURSOS_SEED = [
   { codigo: 'REC-001', nombre: 'Videobeam Epson X400', tipo: 'Audiovisual', ubicacion: 'Almacén Pabellón A', estado: 'Disponible' },
@@ -9,6 +9,9 @@ const RECURSOS_SEED = [
 export async function seed() {
   if ((await Recurso.count()) === 0) {
     await Recurso.bulkCreate(RECURSOS_SEED)
+    await RecursoHistorial.bulkCreate(
+      RECURSOS_SEED.map((r) => ({ recursoCodigo: r.codigo, estado: r.estado, fecha: '2026-07-15', por: 'Sistema' })),
+    )
     console.log(`[recursos-service] Sembrados ${RECURSOS_SEED.length} recursos.`)
   }
 }

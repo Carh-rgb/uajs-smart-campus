@@ -1,4 +1,4 @@
-import { Recurso } from '../models/index.js'
+import { Recurso, RecursoHistorial } from '../models/index.js'
 import { sincronizarEquipoEnReservas } from '../utils/reservasClient.js'
 import { indexarRecurso, eliminarRecursoDelIndice } from '../utils/busquedaClient.js'
 
@@ -6,6 +6,10 @@ import { indexarRecurso, eliminarRecursoDelIndice } from '../utils/busquedaClien
 // equipos" en el modulo de Reservas); mobiliario, instrumentos de
 // laboratorio, etc. no tienen contraparte reservable.
 const TIPOS_RESERVABLES = ['Audiovisual', 'Equipo de cómputo']
+
+function hoy() {
+  return new Date().toISOString().slice(0, 10)
+}
 
 async function siguienteCodigo() {
   // Basado en el maximo codigo existente, no en el conteo de filas (ver la
@@ -16,8 +20,10 @@ async function siguienteCodigo() {
 }
 
 export async function listar(req, res) {
-  const { tipo } = req.query
-  const where = tipo && tipo !== 'Todos' ? { tipo } : {}
+  const { tipo, estado } = req.query
+  const where = {}
+  if (tipo && tipo !== 'Todos') where.tipo = tipo
+  if (estado && estado !== 'Todos') where.estado = estado
   const recursos = await Recurso.findAll({ where, order: [['createdAt', 'DESC']] })
   res.json(recursos)
 }
@@ -30,6 +36,7 @@ export async function crear(req, res) {
 
   const codigo = await siguienteCodigo()
   const recurso = await Recurso.create({ codigo, nombre, tipo, ubicacion, estado: 'Disponible' })
+  await RecursoHistorial.create({ recursoCodigo: codigo, estado: 'Disponible', fecha: hoy(), por: req.user.nombre })
 
   if (TIPOS_RESERVABLES.includes(tipo)) {
     sincronizarEquipoEnReservas({ codigo, nombre, tipo, delta: 1 })
@@ -37,6 +44,49 @@ export async function crear(req, res) {
   indexarRecurso(recurso)
 
   res.status(201).json(recurso)
+}
+
+// Edita nombre/tipo/ubicacion (todo menos el estado, que tiene su propio
+// endpoint por el efecto colateral que tiene sobre el stock reservable).
+export async function actualizar(req, res) {
+  const recurso = await Recurso.findByPk(req.params.codigo)
+  if (!recurso) return res.status(404).json({ error: 'Recurso no encontrado.' })
+
+  const { nombre, tipo, ubicacion } = req.body
+  if (!nombre || !tipo || !ubicacion) {
+    return res.status(400).json({ error: 'nombre, tipo y ubicacion son obligatorios.' })
+  }
+
+  const nombreAnterior = recurso.nombre
+  const tipoAnterior = recurso.tipo
+  const cambioDeIdentidad = nombre !== nombreAnterior || tipo !== tipoAnterior
+
+  recurso.nombre = nombre
+  recurso.tipo = tipo
+  recurso.ubicacion = ubicacion
+  await recurso.save()
+
+  // El catalogo de equipos reservables en reservas-service agrupa el stock
+  // por nombre (ver catalogo.controller.js alla). Si este recurso estaba
+  // aportando una unidad y cambia de nombre o tipo, hay que mover esa
+  // unidad del equipo viejo al nuevo para no desincronizar el stock.
+  if (cambioDeIdentidad && recurso.estado === 'Disponible') {
+    if (TIPOS_RESERVABLES.includes(tipoAnterior)) {
+      sincronizarEquipoEnReservas({
+        codigo: recurso.codigo,
+        nombre: nombreAnterior,
+        tipo: tipoAnterior,
+        delta: -1,
+        eliminarSiVacio: true,
+      })
+    }
+    if (TIPOS_RESERVABLES.includes(tipo)) {
+      sincronizarEquipoEnReservas({ codigo: recurso.codigo, nombre, tipo, delta: 1 })
+    }
+  }
+  indexarRecurso(recurso)
+
+  res.json(recurso)
 }
 
 export async function actualizarEstado(req, res) {
@@ -61,9 +111,18 @@ export async function actualizarEstado(req, res) {
       sincronizarEquipoEnReservas({ codigo: recurso.codigo, nombre: recurso.nombre, tipo: recurso.tipo, delta: 1 })
     }
   }
+
+  if (nuevoEstado !== estadoAnterior) {
+    await RecursoHistorial.create({ recursoCodigo: recurso.codigo, estado: nuevoEstado, fecha: hoy(), por: req.user.nombre })
+  }
   indexarRecurso(recurso)
 
   res.json(recurso)
+}
+
+export async function historial(req, res) {
+  const items = await RecursoHistorial.findAll({ where: { recursoCodigo: req.params.codigo }, order: [['fecha', 'ASC']] })
+  res.json(items)
 }
 
 export async function eliminar(req, res) {
@@ -71,6 +130,7 @@ export async function eliminar(req, res) {
   if (!recurso) return res.status(404).json({ error: 'Recurso no encontrado.' })
 
   await recurso.destroy()
+  await RecursoHistorial.destroy({ where: { recursoCodigo: recurso.codigo } })
 
   if (TIPOS_RESERVABLES.includes(recurso.tipo)) {
     // Solo se descuenta del catalogo reservable si el recurso seguia

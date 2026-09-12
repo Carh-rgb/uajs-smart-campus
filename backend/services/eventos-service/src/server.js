@@ -22,7 +22,10 @@ app.use((err, req, res, next) => {
 
 async function start() {
   await sequelize.authenticate()
-  await sequelize.sync()
+  // alter:true (solo aqui, no en los demas servicios): la tabla eventos ya
+  // tenia filas antes de agregar facultad/estado/cupoMaximo, y este
+  // proyecto no usa una herramienta de migraciones aparte de sync().
+  await sequelize.sync({ alter: true })
   await seed()
   app.listen(PORT, () => console.log(`[eventos-service] escuchando en http://localhost:${PORT}`))
 }

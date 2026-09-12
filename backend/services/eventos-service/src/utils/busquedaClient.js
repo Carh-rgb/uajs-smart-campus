@@ -20,7 +20,8 @@ export async function indexarEvento(evento) {
         entidadId: evento.id,
         titulo: evento.titulo,
         subtitulo: `${evento.fecha} · ${evento.lugar}`,
-        texto: [evento.descripcion, evento.ponente].filter(Boolean).join(' '),
+        texto: [evento.descripcion, evento.ponente, evento.facultad].filter(Boolean).join(' '),
+        estado: evento.estado,
         ruta: '/app/eventos',
       }),
     })

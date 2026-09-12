@@ -16,6 +16,9 @@ const MAPA_TIPO = {
   Ocupado: 'bad',
   'En gestión': 'warn',
   Denegada: 'bad',
+  Activo: 'ok',
+  Inactivo: 'warn',
+  Cancelado: 'bad',
 }
 
 export default function StatusBadge({ estado }) {

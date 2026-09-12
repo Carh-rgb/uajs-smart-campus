@@ -2,65 +2,78 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
 import { usePermissions, MODULOS } from '../context/PermissionsContext.jsx'
-import { useSolicitudes } from '../context/SolicitudesContext.jsx'
-import { usePqrs } from '../context/PqrsContext.jsx'
-import { useReservas } from '../context/ReservasContext.jsx'
-import { useEventos } from '../context/EventosContext.jsx'
-import { useUsers } from '../context/UsersContext.jsx'
 import { api } from '../api/client.js'
 import { INFO_POR_MODULO } from './Sidebar.jsx'
 import { IconoLupa, IconoDocumento, IconoChat, IconoCalendario, IconoGorro, IconoHerramientas, IconoUsuarios } from './icons.jsx'
 
 const incluye = (valor, q) => typeof valor === 'string' && valor.toLowerCase().includes(q)
-const coincideAlguno = (campos, q) => campos.some((c) => incluye(c, q))
+
+const ICONO_POR_TIPO = {
+  solicitud: IconoDocumento,
+  pqrs: IconoChat,
+  reserva: IconoCalendario,
+  evento: IconoGorro,
+  recurso: IconoHerramientas,
+  usuario: IconoUsuarios,
+}
+
+const CATEGORIA_POR_TIPO = {
+  solicitud: 'Solicitudes',
+  pqrs: 'PQRS',
+  reserva: 'Reservas',
+  evento: 'Eventos',
+  recurso: 'Recursos',
+  usuario: 'Usuarios',
+}
 
 export default function TopbarSearch() {
   const { user } = useAuth()
   const { modulosActivos } = usePermissions()
-  const { solicitudes } = useSolicitudes()
-  const { pqrs } = usePqrs()
-  const { reservas } = useReservas()
-  const { eventos } = useEventos()
-  const { usuarios } = useUsers()
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
   const [abierto, setAbierto] = useState(false)
   const [activeIndex, setActiveIndex] = useState(0)
-  const [recursos, setRecursos] = useState([])
+  const [resultadosBusqueda, setResultadosBusqueda] = useState([])
+  const [buscando, setBuscando] = useState(false)
   const wrapRef = useRef(null)
 
   const esAdmin = user?.rol === 'Administrador del sistema'
-  const esAdministrativo = user?.rol === 'Administrativo' || esAdmin
   const activos = modulosActivos(user?.rol)
-
-  // El catalogo de recursos no vive en un context global (solo la pagina
-  // Recursos lo consulta), asi que aqui se trae una copia liviana propia,
-  // igual que hacen los demas modulos, solo para quien puede verlos.
-  useEffect(() => {
-    if (!esAdministrativo) {
-      setRecursos([])
-      return
-    }
-    api
-      .get('/recursos')
-      .then(setRecursos)
-      .catch(() => setRecursos([]))
-  }, [esAdministrativo])
 
   const catalogoModulos = useMemo(() => {
     const base = MODULOS.filter((m) => activos.includes(m.id)).map((m) => ({
       id: `modulo-${m.id}`,
-      categoria: 'Módulos',
       titulo: m.label,
-      subtitulo: null,
       to: INFO_POR_MODULO[m.id]?.to || '/app',
       Icono: INFO_POR_MODULO[m.id]?.Icono || IconoLupa,
     }))
     if (esAdmin) {
-      base.push({ id: 'modulo-usuarios', categoria: 'Módulos', titulo: 'Usuarios', subtitulo: null, to: '/app/usuarios', Icono: IconoUsuarios })
+      base.push({ id: 'modulo-usuarios', titulo: 'Usuarios', to: '/app/usuarios', Icono: IconoUsuarios })
     }
     return base
   }, [activos, esAdmin])
+
+  // Busqueda de texto completo (Elasticsearch, vía /api/buscar) para todo
+  // lo que no sean modulos. Pequeno debounce para no disparar una peticion
+  // por cada tecla; el backend ya filtra los resultados segun lo que el
+  // rol del usuario puede ver (ver busqueda-service/controllers/buscar).
+  useEffect(() => {
+    const q = query.trim()
+    if (!q) {
+      setResultadosBusqueda([])
+      setBuscando(false)
+      return
+    }
+    setBuscando(true)
+    const timer = setTimeout(() => {
+      api
+        .get(`/buscar?q=${encodeURIComponent(q)}`)
+        .then(setResultadosBusqueda)
+        .catch(() => setResultadosBusqueda([]))
+        .finally(() => setBuscando(false))
+    }, 250)
+    return () => clearTimeout(timer)
+  }, [query])
 
   const resultados = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -69,97 +82,35 @@ export default function TopbarSearch() {
     const grupos = []
 
     const modulos = catalogoModulos.filter((m) => incluye(m.titulo, q))
-    if (modulos.length) grupos.push({ categoria: 'Módulos', items: modulos.slice(0, 5) })
-
-    const solicitudesMatch = solicitudes
-      .filter((s) => coincideAlguno([s.id, s.tipo, s.dependencia, s.descripcion, s.estado, s.asignadoA], q))
-      .slice(0, 4)
-      .map((s) => ({
-        id: `solicitud-${s.id}`,
-        categoria: 'Solicitudes',
-        titulo: `${s.id} · ${s.tipo}`,
-        subtitulo: s.descripcion || s.dependencia,
-        Icono: IconoDocumento,
-        to: `/app/solicitudes/${s.id}`,
-      }))
-    if (solicitudesMatch.length) grupos.push({ categoria: 'Solicitudes', items: solicitudesMatch })
-
-    const pqrsMatch = pqrs
-      .filter((p) => coincideAlguno([p.id, p.tipo, p.asunto, p.descripcion, p.estado, p.solicitante, p.asignadoA], q))
-      .slice(0, 4)
-      .map((p) => ({
-        id: `pqrs-${p.id}`,
-        categoria: 'PQRS',
-        titulo: `${p.id} · ${p.asunto || p.tipo}`,
-        subtitulo: p.descripcion,
-        Icono: IconoChat,
-        to: '/app/pqrs',
-        state: { highlightId: p.id },
-      }))
-    if (pqrsMatch.length) grupos.push({ categoria: 'PQRS', items: pqrsMatch })
-
-    const reservasMatch = reservas
-      .filter((r) => coincideAlguno([r.id, r.espacio, r.motivo, r.estado, r.solicitanteNombre, r.rolSolicitante, r.fecha], q))
-      .slice(0, 4)
-      .map((r) => ({
-        id: `reserva-${r.id}`,
-        categoria: 'Reservas',
-        titulo: `${r.id} · ${r.espacio}`,
-        subtitulo: `${r.fecha} · ${r.estado}`,
-        Icono: IconoCalendario,
-        to: '/app/reservas',
-        state: { highlightId: r.id },
-      }))
-    if (reservasMatch.length) grupos.push({ categoria: 'Reservas', items: reservasMatch })
-
-    const eventosMatch = eventos
-      .filter((e) => coincideAlguno([e.id, e.titulo, e.lugar, e.ponente, e.descripcion, e.fecha], q))
-      .slice(0, 4)
-      .map((e) => ({
-        id: `evento-${e.id}`,
-        categoria: 'Eventos',
-        titulo: e.titulo,
-        subtitulo: `${e.fecha} · ${e.lugar}`,
-        Icono: IconoGorro,
-        to: '/app/eventos',
-        state: { highlightId: e.id },
-      }))
-    if (eventosMatch.length) grupos.push({ categoria: 'Eventos', items: eventosMatch })
-
-    if (esAdministrativo) {
-      const recursosMatch = recursos
-        .filter((r) => coincideAlguno([r.codigo, r.nombre, r.tipo, r.ubicacion, r.estado], q))
-        .slice(0, 4)
-        .map((r) => ({
-          id: `recurso-${r.codigo}`,
-          categoria: 'Recursos',
-          titulo: `${r.codigo} · ${r.nombre}`,
-          subtitulo: `${r.tipo} · ${r.ubicacion}`,
-          Icono: IconoHerramientas,
-          to: '/app/recursos',
-          state: { highlightId: r.codigo },
-        }))
-      if (recursosMatch.length) grupos.push({ categoria: 'Recursos', items: recursosMatch })
+    if (modulos.length) {
+      grupos.push({
+        categoria: 'Módulos',
+        items: modulos.slice(0, 5).map((m) => ({ id: m.id, titulo: m.titulo, subtitulo: null, Icono: m.Icono, to: m.to })),
+      })
     }
 
-    if (esAdmin) {
-      const usuariosMatch = usuarios
-        .filter((u) => coincideAlguno([u.nombre, u.correo, u.rol, u.programa], q))
-        .slice(0, 4)
-        .map((u) => ({
-          id: `usuario-${u.id}`,
-          categoria: 'Usuarios',
-          titulo: u.nombre,
-          subtitulo: `${u.correo} · ${u.rol}`,
-          Icono: IconoUsuarios,
-          to: '/app/usuarios',
-          state: { highlightId: u.id },
-        }))
-      if (usuariosMatch.length) grupos.push({ categoria: 'Usuarios', items: usuariosMatch })
+    const porCategoria = new Map()
+    for (const doc of resultadosBusqueda) {
+      const categoria = CATEGORIA_POR_TIPO[doc.tipo]
+      if (!categoria) continue
+      if (!porCategoria.has(categoria)) porCategoria.set(categoria, [])
+      porCategoria.get(categoria).push({
+        id: `${doc.tipo}-${doc.entidadId}`,
+        titulo: doc.titulo,
+        subtitulo: doc.subtitulo,
+        Icono: ICONO_POR_TIPO[doc.tipo] || IconoLupa,
+        to: doc.ruta,
+        // Solicitudes tiene pagina de detalle propia; el resto navega al
+        // modulo y resalta la fila/tarjeta exacta (useHighlightRow).
+        state: doc.tipo === 'solicitud' ? undefined : { highlightId: doc.entidadId },
+      })
+    }
+    for (const [categoria, items] of porCategoria) {
+      grupos.push({ categoria, items: items.slice(0, 6) })
     }
 
     return grupos
-  }, [query, catalogoModulos, solicitudes, pqrs, reservas, eventos, recursos, usuarios, esAdministrativo, esAdmin])
+  }, [query, catalogoModulos, resultadosBusqueda])
 
   const planos = useMemo(() => resultados.flatMap((g) => g.items), [resultados])
 
@@ -223,7 +174,7 @@ export default function TopbarSearch() {
 
       {abierto && query.trim() && (
         <div className="topbar__search-results">
-          {planos.length === 0 && (
+          {!buscando && planos.length === 0 && (
             <p className="topbar__search-empty">Sin resultados para “{query}”.</p>
           )}
           {resultados.map((grupo) => (

@@ -1,8 +1,12 @@
 import { Pqrs, PqrsHistorial } from '../models/index.js'
+import { indexarPqrs } from '../utils/busquedaClient.js'
 
 async function siguienteId() {
-  const total = await Pqrs.count()
-  return `PQRS-${String(1100 + total + 1).padStart(4, '0')}`
+  // Basado en el maximo id existente, no en el conteo de filas (ver la
+  // misma nota en solicitudes.controller.js).
+  const ultima = await Pqrs.findOne({ order: [['id', 'DESC']] })
+  const ultimoNumero = ultima ? parseInt(ultima.id.split('-')[1], 10) : 1100
+  return `PQRS-${String(ultimoNumero + 1).padStart(4, '0')}`
 }
 
 function hoy() {
@@ -46,6 +50,7 @@ export async function crear(req, res) {
     fecha,
   })
   await PqrsHistorial.create({ pqrsId: id, estado: 'Registrada', fecha, por: req.user.nombre })
+  indexarPqrs(nueva)
 
   res.status(201).json(nueva)
 }
@@ -74,6 +79,7 @@ export async function responder(req, res) {
   if (pqrs.estado !== estadoAnterior) {
     await PqrsHistorial.create({ pqrsId: pqrs.id, estado: pqrs.estado, fecha, por: req.user.nombre })
   }
+  indexarPqrs(pqrs)
 
   res.json(pqrs)
 }
@@ -96,6 +102,7 @@ export async function asignar(req, res) {
   if (pqrs.estado !== estadoAnterior) {
     await PqrsHistorial.create({ pqrsId: pqrs.id, estado: pqrs.estado, fecha, por: req.user.nombre })
   }
+  indexarPqrs(pqrs)
 
   res.json(pqrs)
 }

@@ -1,5 +1,6 @@
 import { Recurso } from '../models/index.js'
 import { sincronizarEquipoEnReservas } from '../utils/reservasClient.js'
+import { indexarRecurso, eliminarRecursoDelIndice } from '../utils/busquedaClient.js'
 
 // Solo estos tipos de recurso se pueden reservar (ver "Laboratorios y
 // equipos" en el modulo de Reservas); mobiliario, instrumentos de
@@ -7,8 +8,11 @@ import { sincronizarEquipoEnReservas } from '../utils/reservasClient.js'
 const TIPOS_RESERVABLES = ['Audiovisual', 'Equipo de cómputo']
 
 async function siguienteCodigo() {
-  const total = await Recurso.count()
-  return `REC-${String(100 + total + 1).padStart(3, '0')}`
+  // Basado en el maximo codigo existente, no en el conteo de filas (ver la
+  // misma nota en solicitudes.controller.js).
+  const ultimo = await Recurso.findOne({ order: [['codigo', 'DESC']] })
+  const ultimoNumero = ultimo ? parseInt(ultimo.codigo.split('-')[1], 10) : 100
+  return `REC-${String(ultimoNumero + 1).padStart(3, '0')}`
 }
 
 export async function listar(req, res) {
@@ -30,6 +34,7 @@ export async function crear(req, res) {
   if (TIPOS_RESERVABLES.includes(tipo)) {
     sincronizarEquipoEnReservas({ codigo, nombre, tipo, delta: 1 })
   }
+  indexarRecurso(recurso)
 
   res.status(201).json(recurso)
 }
@@ -56,6 +61,7 @@ export async function actualizarEstado(req, res) {
       sincronizarEquipoEnReservas({ codigo: recurso.codigo, nombre: recurso.nombre, tipo: recurso.tipo, delta: 1 })
     }
   }
+  indexarRecurso(recurso)
 
   res.json(recurso)
 }
@@ -88,6 +94,7 @@ export async function eliminar(req, res) {
       })
     }
   }
+  eliminarRecursoDelIndice(recurso.codigo)
 
   res.status(204).send()
 }

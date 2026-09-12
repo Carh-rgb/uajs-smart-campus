@@ -486,23 +486,6 @@
   font-weight: 500;
 }
 
-.login-card__submit {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-.login-card__submit svg {
-  width: 17px;
-  height: 17px;
-  transition: transform 0.15s ease;
-}
-
-.login-card__submit:hover svg {
-  transform: translateX(2px);
-}
-
 @media (prefers-reduced-motion: reduce) {
   .login-card {
     animation: none;

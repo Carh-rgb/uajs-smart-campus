@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { Usuario } from '../models/index.js'
 import { enviarCorreoReset } from '../utils/mailer.js'
+import { indexarUsuario } from '../utils/busquedaClient.js'
 
 function firmarToken(usuario) {
   return jwt.sign(
@@ -119,6 +120,7 @@ export async function registrar(req, res) {
     programa: programa || null,
     ...registroInstitucional,
   })
+  indexarUsuario(usuario)
 
   const token = firmarToken(usuario)
   res.status(201).json({ token, usuario: serializar(usuario) })

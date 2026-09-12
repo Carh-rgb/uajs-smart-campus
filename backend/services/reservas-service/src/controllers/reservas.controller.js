@@ -1,9 +1,13 @@
 import { Op } from 'sequelize'
 import { Reserva, ReservaHistorial, Equipo } from '../models/index.js'
+import { indexarReserva, eliminarReservaDelIndice } from '../utils/busquedaClient.js'
 
 async function siguienteId() {
-  const total = await Reserva.count()
-  return `RES-${String(150 + total + 1).padStart(4, '0')}`
+  // Basado en el maximo id existente, no en el conteo de filas (ver la
+  // misma nota en solicitudes.controller.js).
+  const ultima = await Reserva.findOne({ order: [['id', 'DESC']] })
+  const ultimoNumero = ultima ? parseInt(ultima.id.split('-')[1], 10) : 150
+  return `RES-${String(ultimoNumero + 1).padStart(4, '0')}`
 }
 
 function hoy() {
@@ -48,6 +52,7 @@ export async function crear(req, res) {
     rolSolicitante: req.user.rol,
   })
   await ReservaHistorial.create({ reservaId: id, estado: 'Pendiente', fecha: hoy(), por: req.user.nombre })
+  indexarReserva(reserva)
 
   res.status(201).json(reserva)
 }
@@ -80,6 +85,7 @@ export async function actualizarEstado(req, res) {
   if (estado !== estadoAnterior) {
     await ReservaHistorial.create({ reservaId: reserva.id, estado, fecha: hoy(), por: req.user.nombre })
   }
+  indexarReserva(reserva)
 
   res.json(reserva)
 }
@@ -107,6 +113,7 @@ export async function eliminar(req, res) {
 
   await ReservaHistorial.destroy({ where: { reservaId: reserva.id } })
   await reserva.destroy()
+  eliminarReservaDelIndice(reserva.id)
 
   res.status(204).send()
 }

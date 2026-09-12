@@ -1,4 +1,5 @@
 import { Evento, Inscripcion } from '../models/index.js'
+import { indexarEvento, eliminarEventoDelIndice } from '../utils/busquedaClient.js'
 
 export async function listar(req, res) {
   const eventos = await Evento.findAll({ order: [['fecha', 'ASC']] })
@@ -14,6 +15,7 @@ export async function crear(req, res) {
     return res.status(400).json({ error: 'titulo, fecha, hora, lugar y ponente son obligatorios.' })
   }
   const evento = await Evento.create({ titulo, fecha, hora, lugar, ponente, descripcion })
+  indexarEvento(evento)
   res.status(201).json(evento)
 }
 
@@ -46,6 +48,7 @@ export async function eliminar(req, res) {
 
   await Inscripcion.destroy({ where: { eventoId: evento.id } })
   await evento.destroy()
+  eliminarEventoDelIndice(evento.id)
 
   res.status(204).send()
 }

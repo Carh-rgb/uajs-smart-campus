@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
 import { esCorreoInstitucional } from '../utils/validation.js'
 import LoadingButton from '../components/LoadingButton.jsx'
+import EntradaAnimada from '../components/EntradaAnimada.jsx'
 import { IconoDocumento, IconoCalendario, IconoCampana } from '../components/icons.jsx'
 
 export default function Login() {
@@ -15,6 +16,7 @@ export default function Login() {
   const [error, setError] = useState('')
   const [enviando, setEnviando] = useState(false)
   const [camposInvalidos, setCamposInvalidos] = useState({})
+  const [usuarioIngresado, setUsuarioIngresado] = useState(null)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -37,11 +39,10 @@ export default function Login() {
     setError('')
     setEnviando(true)
     try {
-      await login({ correo, password })
-      navigate('/app')
+      const usuario = await login({ correo, password })
+      setUsuarioIngresado(usuario)
     } catch (err) {
       setError(err.message || 'No se pudo iniciar sesión.')
-    } finally {
       setEnviando(false)
     }
   }
@@ -212,20 +213,11 @@ export default function Login() {
 
           <LoadingButton
             type="submit"
-            className="btn btn--primary login-card__submit"
+            className="btn btn--primary"
             loading={enviando}
             loadingText="Ingresando..."
           >
-            <span>Iniciar sesión</span>
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <path
-                d="M5 12h14M13 6l6 6-6 6"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+            Iniciar sesión
           </LoadingButton>
         </form>
 
@@ -233,6 +225,10 @@ export default function Login() {
           © {new Date().getFullYear()} Corporación Universitaria Antonio José de Sucre
         </p>
       </div>
+
+      {usuarioIngresado && (
+        <EntradaAnimada nombre={usuarioIngresado.nombre} onFinish={() => navigate('/app')} />
+      )}
     </div>
   )
 }

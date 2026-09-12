@@ -162,3 +162,181 @@ button.btn--loading {
   cursor: progress;
   opacity: 0.85;
 }
+
+/* ============================================================
+   Secuencia de entrada al sistema (post-login). Insignia de la
+   universidad con un anillo de progreso que se llena en ~1.6s,
+   pulso de luz y texto de bienvenida escalonado. Maximo 2s antes
+   de navegar al dashboard (ver EntradaAnimada.jsx).
+   ============================================================ */
+.entrada-animada {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 900px 700px at 15% -10%, var(--color-navy-light) 0%, transparent 60%),
+    radial-gradient(ellipse 800px 600px at 105% 110%, var(--color-navy-hover) 0%, transparent 55%),
+    var(--color-navy);
+  animation: entradaFadeIn 0.35s ease;
+  transition: opacity 0.25s ease;
+}
+
+.entrada-animada--saliendo {
+  opacity: 0;
+}
+
+.entrada-animada__orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  pointer-events: none;
+  opacity: 0.3;
+}
+
+.entrada-animada__orb--a {
+  width: 360px;
+  height: 360px;
+  top: -100px;
+  right: -80px;
+  background: var(--color-navy-light);
+}
+
+.entrada-animada__orb--b {
+  width: 300px;
+  height: 300px;
+  bottom: -100px;
+  left: -80px;
+  background: var(--color-sidebar-accent);
+  opacity: 0.16;
+}
+
+.entrada-animada__content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  animation: entradaContenidoIn 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.entrada-animada__ring {
+  position: relative;
+  width: 128px;
+  height: 128px;
+  margin-bottom: 30px;
+}
+
+.entrada-animada__progress {
+  position: absolute;
+  inset: 0;
+  transform: rotate(-90deg);
+}
+
+.entrada-animada__track {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.16);
+  stroke-width: 3;
+}
+
+.entrada-animada__fill {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 339.3;
+  stroke-dashoffset: 339.3;
+  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.55));
+  animation: entradaProgreso 2.2s cubic-bezier(0.65, 0, 0.35, 1) 0.3s forwards;
+}
+
+.entrada-animada__badge {
+  position: absolute;
+  inset: 15px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  animation:
+    entradaBadgeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.05s forwards,
+    entradaPulso 1.8s ease-in-out 0.8s infinite;
+}
+
+.entrada-animada__badge img {
+  width: 46px;
+  height: 46px;
+  object-fit: contain;
+}
+
+.entrada-animada__title {
+  color: #fff;
+  font-family: var(--font-heading);
+  font-size: 21px;
+  font-weight: 600;
+  margin: 0 0 6px;
+  opacity: 0;
+  animation: entradaTextoIn 0.6s ease 1.4s forwards;
+}
+
+.entrada-animada__subtitle {
+  color: #cbdcef;
+  font-size: 13.5px;
+  margin: 0;
+  opacity: 0;
+  animation: entradaTextoIn 0.6s ease 1.7s forwards;
+}
+
+@keyframes entradaFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes entradaContenidoIn {
+  from { opacity: 0; transform: scale(0.94); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes entradaBadgeIn {
+  from { opacity: 0; transform: scale(0.7); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes entradaPulso {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.25); }
+  50% { box-shadow: 0 0 0 14px rgba(255, 255, 255, 0); }
+}
+
+@keyframes entradaProgreso {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes entradaTextoIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .entrada-animada,
+  .entrada-animada__content,
+  .entrada-animada__badge,
+  .entrada-animada__fill {
+    animation: none;
+  }
+  .entrada-animada__badge {
+    opacity: 1;
+  }
+  .entrada-animada__fill {
+    stroke-dashoffset: 0;
+  }
+  .entrada-animada__title,
+  .entrada-animada__subtitle {
+    opacity: 1;
+    animation: none;
+  }
+}

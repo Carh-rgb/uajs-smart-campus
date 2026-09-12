@@ -24,6 +24,7 @@ const rutas = [
   { prefijo: '/api/recursos', destino: process.env.RECURSOS_SERVICE_URL || 'http://localhost:4004' },
   { prefijo: '/api/eventos', destino: process.env.EVENTOS_SERVICE_URL || 'http://localhost:4005' },
   { prefijo: '/api/notificaciones', destino: process.env.NOTIFICACIONES_SERVICE_URL || 'http://localhost:4006' },
+  { prefijo: '/api/buscar', destino: process.env.BUSQUEDA_SERVICE_URL || 'http://localhost:4007' },
 ]
 
 for (const { prefijo, destino } of rutas) {

@@ -1,8 +1,13 @@
 import { Solicitud, SolicitudHistorial } from '../models/index.js'
+import { indexarSolicitud, eliminarDelIndice } from '../utils/busquedaClient.js'
 
 async function siguienteId() {
-  const total = await Solicitud.count()
-  return `SOL-${String(300 + total + 1).padStart(4, '0')}`
+  // Basado en el maximo id existente (no en el conteo de filas): si alguna
+  // vez se elimina una solicitud, contar filas puede volver a calcular un id
+  // ya usado por el seed y chocar con la restriccion de llave primaria.
+  const ultima = await Solicitud.findOne({ order: [['id', 'DESC']] })
+  const ultimoNumero = ultima ? parseInt(ultima.id.split('-')[1], 10) : 300
+  return `SOL-${String(ultimoNumero + 1).padStart(4, '0')}`
 }
 
 function hoy() {
@@ -53,6 +58,7 @@ export async function crear(req, res) {
     rolSolicitante: req.user.rol,
   })
   await SolicitudHistorial.create({ solicitudId: id, estado: 'Registrada', fecha, por: req.user.nombre })
+  indexarSolicitud(solicitud)
 
   res.status(201).json(solicitud)
 }
@@ -77,6 +83,7 @@ export async function responder(req, res) {
   if (solicitud.estado !== estadoAnterior) {
     await SolicitudHistorial.create({ solicitudId: solicitud.id, estado: solicitud.estado, fecha, por: req.user.nombre })
   }
+  indexarSolicitud(solicitud)
 
   res.json(solicitud)
 }
@@ -95,6 +102,7 @@ export async function eliminar(req, res) {
 
   await SolicitudHistorial.destroy({ where: { solicitudId: solicitud.id } })
   await solicitud.destroy()
+  eliminarDelIndice('solicitud', solicitud.id)
 
   res.status(204).send()
 }

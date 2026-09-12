@@ -1,4 +1,5 @@
 import { Usuario } from '../models/index.js'
+import { indexarUsuario, eliminarUsuarioDelIndice } from '../utils/busquedaClient.js'
 
 function serializar(usuario) {
   return {
@@ -46,6 +47,7 @@ export async function actualizarEstado(req, res) {
   if (!usuario) return res.status(404).json({ error: 'Usuario no encontrado.' })
   usuario.activo = !usuario.activo
   await usuario.save()
+  indexarUsuario(usuario)
   res.json(serializar(usuario))
 }
 
@@ -55,6 +57,7 @@ export async function actualizarRol(req, res) {
   if (!usuario) return res.status(404).json({ error: 'Usuario no encontrado.' })
   usuario.rol = rol
   await usuario.save()
+  indexarUsuario(usuario)
   res.json(serializar(usuario))
 }
 
@@ -67,5 +70,6 @@ export async function eliminar(req, res) {
   }
 
   await usuario.destroy()
+  eliminarUsuarioDelIndice(usuario.id)
   res.status(204).send()
 }

@@ -9,10 +9,11 @@
     "services/reservas-service",
     "services/recursos-service",
     "services/eventos-service",
-    "services/notificaciones-service"
+    "services/notificaciones-service",
+    "services/busqueda-service"
   ],
   "scripts": {
-    "dev": "concurrently -k -n gateway,usuarios,solicitudes,reservas,recursos,eventos,notif -c blue,green,yellow,magenta,cyan,red,white \"npm run dev -w gateway\" \"npm run dev -w services/usuarios-service\" \"npm run dev -w services/solicitudes-service\" \"npm run dev -w services/reservas-service\" \"npm run dev -w services/recursos-service\" \"npm run dev -w services/eventos-service\" \"npm run dev -w services/notificaciones-service\"",
+    "dev": "concurrently -k -n gateway,usuarios,solicitudes,reservas,recursos,eventos,notif,buscar -c blue,green,yellow,magenta,cyan,red,white,gray \"npm run dev -w gateway\" \"npm run dev -w services/usuarios-service\" \"npm run dev -w services/solicitudes-service\" \"npm run dev -w services/reservas-service\" \"npm run dev -w services/recursos-service\" \"npm run dev -w services/eventos-service\" \"npm run dev -w services/notificaciones-service\" \"npm run dev -w services/busqueda-service\"",
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
     "db:logs": "docker compose logs -f postgres"

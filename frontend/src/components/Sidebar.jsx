@@ -2,17 +2,29 @@ import React, { useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
 import { usePermissions, MODULOS } from '../context/PermissionsContext.jsx'
+import {
+  IconoCasa,
+  IconoUsuario,
+  IconoUsuarios,
+  IconoDocumento,
+  IconoCalendario,
+  IconoHerramientas,
+  IconoGorro,
+  IconoCampana,
+  IconoChat,
+  IconoGrafico,
+} from './icons.jsx'
 
 export const INFO_POR_MODULO = {
-  inicio: { to: '/app', end: true, icono: '🏠' },
-  perfil: { to: '/app/perfil', icono: '👤' },
-  solicitudes: { to: '/app/solicitudes', icono: '📄' },
-  reservas: { to: '/app/reservas', icono: '📅' },
-  recursos: { to: '/app/recursos', icono: '🧰' },
-  eventos: { to: '/app/eventos', icono: '🎓' },
-  notificaciones: { to: '/app/notificaciones', icono: '🔔' },
-  pqrs: { to: '/app/pqrs', icono: '📝' },
-  reportes: { to: '/app/reportes', icono: '📊' },
+  inicio: { to: '/app', end: true, Icono: IconoCasa },
+  perfil: { to: '/app/perfil', Icono: IconoUsuario },
+  solicitudes: { to: '/app/solicitudes', Icono: IconoDocumento },
+  reservas: { to: '/app/reservas', Icono: IconoCalendario },
+  recursos: { to: '/app/recursos', Icono: IconoHerramientas },
+  eventos: { to: '/app/eventos', Icono: IconoGorro },
+  notificaciones: { to: '/app/notificaciones', Icono: IconoCampana },
+  pqrs: { to: '/app/pqrs', Icono: IconoChat },
+  reportes: { to: '/app/reportes', Icono: IconoGrafico },
 }
 
 function ChevronIcon() {
@@ -84,7 +96,9 @@ export default function Sidebar({ mobileOpen, onCloseMobile }) {
                 `sidebar__item${isActive ? ' sidebar__item--active' : ''}`
               }
             >
-              <span className="sidebar__item-icon">{m.icono}</span>
+              <span className="sidebar__item-icon">
+                <m.Icono />
+              </span>
               <span className="sidebar__label">{m.label}</span>
             </NavLink>
           ))}
@@ -98,7 +112,9 @@ export default function Sidebar({ mobileOpen, onCloseMobile }) {
                 `sidebar__item${isActive ? ' sidebar__item--active' : ''}`
               }
             >
-              <span className="sidebar__item-icon">👥</span>
+              <span className="sidebar__item-icon">
+                <IconoUsuarios />
+              </span>
               <span className="sidebar__label">Usuarios</span>
             </NavLink>
           )}

@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
 import { esCorreoInstitucional } from '../utils/validation.js'
 import LoadingButton from '../components/LoadingButton.jsx'
+import { IconoDocumento, IconoCalendario, IconoCampana } from '../components/icons.jsx'
 
 export default function Login() {
   const { login } = useAuth()
@@ -45,9 +46,20 @@ export default function Login() {
     }
   }
 
+  const destacados = [
+    { Icono: IconoDocumento, texto: 'Solicitudes y trámites en línea' },
+    { Icono: IconoCalendario, texto: 'Reservas de espacios y equipos' },
+    { Icono: IconoCampana, texto: 'Notificaciones en tiempo real' },
+  ]
+
   return (
     <div className="login-wrap">
       <div className="login-side">
+        <div className="login-side__orb login-side__orb--a" aria-hidden="true" />
+        <div className="login-side__orb login-side__orb--b" aria-hidden="true" />
+        <div className="login-side__mark-bg" aria-hidden="true" />
+        <div className="login-side__grid" aria-hidden="true" />
+
         <div className="login-side__main">
           <div className="login-side__brand">
             <img src="/logo-blanco.png" alt="UAJS" className="login-side__logo" />
@@ -57,38 +69,39 @@ export default function Login() {
           </div>
 
           <div className="login-side__text">
-            <h2 className="login-side__title">
-              Bienvenido de vuelta a tu
-              <br />
-              Campus UAJS
-            </h2>
+            <span className="login-side__kicker">Plataforma institucional</span>
+            <h2 className="login-side__title">Todo tu campus, en un solo lugar.</h2>
             <p className="login-side__text-body">
-              Accede con tu correo institucional para unirte a tus clases,
-              gestionar solicitudes y conectar con tu comunidad.
+              Un único acceso para tus trámites, reservas y comunicación con
+              la comunidad UAJS.
             </p>
+
+            <ul className="login-side__features">
+              {destacados.map((d) => (
+                <li key={d.texto} className="login-side__feature">
+                  <span className="login-side__feature-icon">
+                    <d.Icono />
+                  </span>
+                  {d.texto}
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
 
         <div className="login-side__footer">
-          <span className="login-side__footer-icon">
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path
-                d="M12 3 2 8l10 5 8-4.36V15h1.5V8L12 3Z"
-                fill="currentColor"
-              />
-              <path
-                d="M6 11.18V15c0 1.5 2.7 3 6 3s6-1.5 6-3v-3.82l-6 3-6-3Z"
-                fill="currentColor"
-                opacity="0.75"
-              />
-            </svg>
-          </span>
-          <span>Comprometidos con tu futuro.</span>
+          Sitio oficial de la Corporación Universitaria Antonio José de Sucre.
         </div>
       </div>
 
       <div className="login-form-col">
+        <div className="login-form-col__mark" aria-hidden="true" />
         <form className="login-card" onSubmit={handleSubmit} noValidate>
+          <div className="login-card__mobile-brand">
+            <img src="/logo.png" alt="UAJS" />
+            <span>UAJS Smart Campus</span>
+          </div>
+
           <div className="login-card__eyebrow">Acceso institucional</div>
           <h1 className="login-card__title">Iniciar sesión</h1>
           <p className="login-card__subtitle">
@@ -99,23 +112,61 @@ export default function Login() {
 
           <div className="field">
             <label className="field__label">Correo institucional</label>
-            <input
-              className={`field__input ${camposInvalidos.correo ? 'field__input--error' : ''}`}
-              type="email"
-              placeholder="nombre.apellido@uajs.edu.co"
-              value={correo}
-              onChange={(e) => {
-                setCorreo(e.target.value)
-                if (camposInvalidos.correo) setCamposInvalidos({ ...camposInvalidos, correo: false })
-              }}
-            />
+            <div className="field__input-wrap">
+              <span className="field__input-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path
+                    d="M3.5 6.5h17a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1h-17a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1Z"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="m3 7 9 6.2L21 7"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </span>
+              <input
+                className={`field__input field__input--icon ${camposInvalidos.correo ? 'field__input--error' : ''}`}
+                type="email"
+                placeholder="nombre.apellido@uajs.edu.co"
+                value={correo}
+                onChange={(e) => {
+                  setCorreo(e.target.value)
+                  if (camposInvalidos.correo) setCamposInvalidos({ ...camposInvalidos, correo: false })
+                }}
+              />
+            </div>
           </div>
 
           <div className="field">
             <label className="field__label">Contraseña</label>
             <div className="field__input-wrap">
+              <span className="field__input-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect
+                    x="4.5"
+                    y="10.5"
+                    width="15"
+                    height="9.5"
+                    rx="2"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                  />
+                  <path
+                    d="M7.5 10.5V7.8a4.5 4.5 0 0 1 9 0v2.7"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </span>
               <input
-                className={`field__input ${camposInvalidos.password ? 'field__input--error' : ''}`}
+                className={`field__input field__input--icon ${camposInvalidos.password ? 'field__input--error' : ''}`}
                 type={verPassword ? 'text' : 'password'}
                 placeholder="••••••••"
                 value={password}
@@ -154,23 +205,33 @@ export default function Login() {
                 )}
               </button>
             </div>
-            <Link
-              to="/forgot-password"
-              style={{ display: 'inline-block', marginTop: 8, fontSize: 12.5, color: 'var(--color-navy)' }}
-            >
+            <Link to="/forgot-password" className="login-card__forgot">
               ¿Olvidaste tu contraseña?
             </Link>
           </div>
 
           <LoadingButton
             type="submit"
-            className="btn btn--primary"
+            className="btn btn--primary login-card__submit"
             loading={enviando}
             loadingText="Ingresando..."
           >
-            Iniciar sesión
+            <span>Iniciar sesión</span>
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path
+                d="M5 12h14M13 6l6 6-6 6"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
           </LoadingButton>
         </form>
+
+        <p className="login-form-col__footnote">
+          © {new Date().getFullYear()} Corporación Universitaria Antonio José de Sucre
+        </p>
       </div>
     </div>
   )

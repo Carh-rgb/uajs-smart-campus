@@ -9,6 +9,7 @@ import { useEventos } from '../context/EventosContext.jsx'
 import { useUsers } from '../context/UsersContext.jsx'
 import { api } from '../api/client.js'
 import { INFO_POR_MODULO } from './Sidebar.jsx'
+import { IconoLupa, IconoDocumento, IconoChat, IconoCalendario, IconoGorro, IconoHerramientas, IconoUsuarios } from './icons.jsx'
 
 const incluye = (valor, q) => typeof valor === 'string' && valor.toLowerCase().includes(q)
 const coincideAlguno = (campos, q) => campos.some((c) => incluye(c, q))
@@ -53,10 +54,10 @@ export default function TopbarSearch() {
       titulo: m.label,
       subtitulo: null,
       to: INFO_POR_MODULO[m.id]?.to || '/app',
-      icono: INFO_POR_MODULO[m.id]?.icono || '🔎',
+      Icono: INFO_POR_MODULO[m.id]?.Icono || IconoLupa,
     }))
     if (esAdmin) {
-      base.push({ id: 'modulo-usuarios', categoria: 'Módulos', titulo: 'Usuarios', subtitulo: null, to: '/app/usuarios', icono: '👥' })
+      base.push({ id: 'modulo-usuarios', categoria: 'Módulos', titulo: 'Usuarios', subtitulo: null, to: '/app/usuarios', Icono: IconoUsuarios })
     }
     return base
   }, [activos, esAdmin])
@@ -78,7 +79,7 @@ export default function TopbarSearch() {
         categoria: 'Solicitudes',
         titulo: `${s.id} · ${s.tipo}`,
         subtitulo: s.descripcion || s.dependencia,
-        icono: '📄',
+        Icono: IconoDocumento,
         to: `/app/solicitudes/${s.id}`,
       }))
     if (solicitudesMatch.length) grupos.push({ categoria: 'Solicitudes', items: solicitudesMatch })
@@ -91,7 +92,7 @@ export default function TopbarSearch() {
         categoria: 'PQRS',
         titulo: `${p.id} · ${p.asunto || p.tipo}`,
         subtitulo: p.descripcion,
-        icono: '📝',
+        Icono: IconoChat,
         to: '/app/pqrs',
         state: { highlightId: p.id },
       }))
@@ -105,7 +106,7 @@ export default function TopbarSearch() {
         categoria: 'Reservas',
         titulo: `${r.id} · ${r.espacio}`,
         subtitulo: `${r.fecha} · ${r.estado}`,
-        icono: '📅',
+        Icono: IconoCalendario,
         to: '/app/reservas',
         state: { highlightId: r.id },
       }))
@@ -119,7 +120,7 @@ export default function TopbarSearch() {
         categoria: 'Eventos',
         titulo: e.titulo,
         subtitulo: `${e.fecha} · ${e.lugar}`,
-        icono: '🎓',
+        Icono: IconoGorro,
         to: '/app/eventos',
         state: { highlightId: e.id },
       }))
@@ -134,7 +135,7 @@ export default function TopbarSearch() {
           categoria: 'Recursos',
           titulo: `${r.codigo} · ${r.nombre}`,
           subtitulo: `${r.tipo} · ${r.ubicacion}`,
-          icono: '🧰',
+          Icono: IconoHerramientas,
           to: '/app/recursos',
           state: { highlightId: r.codigo },
         }))
@@ -150,7 +151,7 @@ export default function TopbarSearch() {
           categoria: 'Usuarios',
           titulo: u.nombre,
           subtitulo: `${u.correo} · ${u.rol}`,
-          icono: '👥',
+          Icono: IconoUsuarios,
           to: '/app/usuarios',
           state: { highlightId: u.id },
         }))
@@ -204,7 +205,7 @@ export default function TopbarSearch() {
   return (
     <div className="topbar__search" ref={wrapRef}>
       <span className="topbar__search-icon" aria-hidden="true">
-        🔍
+        <IconoLupa />
       </span>
       <input
         className="topbar__search-input"
@@ -239,7 +240,9 @@ export default function TopbarSearch() {
                     onMouseEnter={() => setActiveIndex(i)}
                     onClick={() => irA(item)}
                   >
-                    <span className="topbar__search-result-icon">{item.icono}</span>
+                    <span className="topbar__search-result-icon">
+                      <item.Icono />
+                    </span>
                     <span className="topbar__search-result-text">
                       <span className="topbar__search-result-titulo">{item.titulo}</span>
                       {item.subtitulo && (

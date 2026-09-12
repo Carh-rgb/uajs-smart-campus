@@ -5,6 +5,7 @@ import { useTheme } from '../context/ThemeContext.jsx'
 import { useNotifications } from '../context/NotificationsContext.jsx'
 import { rutaDeNotificacion } from '../utils/notificaciones.js'
 import TopbarSearch from './TopbarSearch.jsx'
+import { IconoCampana, IconoUsuario } from './icons.jsx'
 
 function getIniciales(nombre) {
   return nombre
@@ -69,7 +70,7 @@ export default function Topbar({ onToggleMobileMenu }) {
             onClick={() => setPreviewAbierto((v) => !v)}
             aria-label="Ver notificaciones"
           >
-            🔔
+            <IconoCampana />
             {noLeidasCount > 0 && <span className="topbar__bell-badge">{noLeidasCount}</span>}
           </button>
 
@@ -134,7 +135,9 @@ export default function Topbar({ onToggleMobileMenu }) {
               </div>
 
               <Link to="/app/perfil" className="user-menu__item" onClick={() => setMenuAbierto(false)}>
-                <span className="user-menu__item-icon">👤</span>
+                <span className="user-menu__item-icon">
+                  <IconoUsuario />
+                </span>
                 Ver perfil
               </Link>
 

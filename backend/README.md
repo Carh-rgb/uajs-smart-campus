@@ -32,7 +32,7 @@ Cada servicio sigue el patrón MVC (`models/`, `controllers/`, `routes/`) con Se
 ## Cómo levantar todo
 
 ```bash
-cd server
+cd backend
 
 # 1) Base de datos (Postgres con las 6 bases, vía Docker)
 npm run db:up
@@ -87,14 +87,14 @@ npm run db:down   # detiene y borra el contenedor (el volumen de datos persiste)
 
 ## Frontend
 
-El frontend React (carpeta `uajs-smart-campus/`) ya está conectado a este backend: todos sus `Context` hacen `fetch` al Gateway a través de `src/api/client.js`, usando la URL de `uajs-smart-campus/.env` (`VITE_API_URL=http://localhost:4000/api`). Para probar todo junto:
+El frontend React (carpeta `frontend/`) ya está conectado a este backend: todos sus `Context` hacen `fetch` al Gateway a través de `src/api/client.js`, usando la URL de `frontend/.env` (`VITE_API_URL=http://localhost:4000/api`). Para probar todo junto:
 
 ```bash
 # Terminal 1
-cd server && npm run db:up && npm run dev
+cd backend && npm run db:up && npm run dev
 
 # Terminal 2
-cd uajs-smart-campus && npm run dev
+cd frontend && npm run dev
 ```
 
 Inicia sesión con cualquiera de los usuarios de prueba de la tabla de arriba (contraseña `uajs2026`).

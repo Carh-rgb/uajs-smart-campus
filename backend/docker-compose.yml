@@ -20,3 +20,4 @@ services:
 
 volumes:
   uajs_pgdata:
+    name: uajs_pgdata

@@ -23,7 +23,7 @@ yarn-debug.log*
 yarn-error.log*
 
 # Docker
-server/db/pgdata/
+backend/db/pgdata/
 
 # Estado de sesion local de Claude Code
 .claude/scheduled_tasks.lock

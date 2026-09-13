@@ -70,8 +70,48 @@ for (const { prefijo, destino } of rutas) {
   )
 }
 
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', servicios: rutas.map((r) => r.prefijo) })
+// Lista de microservicios unicos (varios prefijos de "rutas" pueden apuntar
+// al mismo microservicio, ej. /api/auth y /api/usuarios van los dos a
+// usuarios-service) para poder chequear la salud de cada uno una sola vez.
+const microservicios = [
+  { nombre: 'usuarios', url: process.env.USUARIOS_SERVICE_URL || 'http://localhost:4001' },
+  { nombre: 'solicitudes', url: process.env.SOLICITUDES_SERVICE_URL || 'http://localhost:4002' },
+  { nombre: 'reservas', url: process.env.RESERVAS_SERVICE_URL || 'http://localhost:4003' },
+  { nombre: 'recursos', url: process.env.RECURSOS_SERVICE_URL || 'http://localhost:4004' },
+  { nombre: 'eventos', url: process.env.EVENTOS_SERVICE_URL || 'http://localhost:4005' },
+  { nombre: 'notificaciones', url: process.env.NOTIFICACIONES_SERVICE_URL || 'http://localhost:4006' },
+  { nombre: 'busqueda', url: process.env.BUSQUEDA_SERVICE_URL || 'http://localhost:4007' },
+]
+
+// Tiempo maximo de espera para cada chequeo individual, para que un
+// microservicio colgado no deje /health del gateway esperando indefinido.
+const HEALTH_CHECK_TIMEOUT_MS = 2000
+
+async function chequearServicio({ nombre, url }) {
+  const inicio = Date.now()
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), HEALTH_CHECK_TIMEOUT_MS)
+  try {
+    const respuesta = await fetch(`${url}/health`, { signal: controller.signal })
+    return { servicio: nombre, ok: respuesta.ok, ms: Date.now() - inicio }
+  } catch (err) {
+    return { servicio: nombre, ok: false, error: err.message, ms: Date.now() - inicio }
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+
+// /health ya no es un simple "estoy vivo": pregunta el /health real de cada
+// uno de los 7 microservicios en paralelo y arma un reporte agregado. Con
+// esto se puede confirmar de un vistazo si todos estan respondiendo, sin
+// tener que golpear puerto por puerto a mano.
+app.get('/health', async (req, res) => {
+  const resultados = await Promise.all(microservicios.map(chequearServicio))
+  const todosOk = resultados.every((r) => r.ok)
+  res.status(todosOk ? 200 : 503).json({
+    status: todosOk ? 'ok' : 'degradado',
+    microservicios: resultados,
+  })
 })
 
 // Cualquier ruta /api/* que no haya calzado con ninguno de los prefijos de

@@ -225,7 +225,7 @@ export default function Reportes() {
                       <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
                       <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
                       <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
-                      <Tooltip />
+                      <Tooltip contentStyle={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 8, color: 'var(--color-text)' }} labelStyle={{ color: 'var(--color-text)' }} />
                       <Legend wrapperStyle={{ fontSize: 12 }} />
                       <Area type="monotone" dataKey="solicitudes" name="Solicitudes" stroke="#013467" fill="url(#gradSolicitudes)" strokeWidth={2} />
                       <Area type="monotone" dataKey="reservas" name="Reservas" stroke="#0261bd" fill="url(#gradReservas)" strokeWidth={2} />
@@ -250,7 +250,7 @@ export default function Reportes() {
                         ))}
                       </Pie>
                       <Legend verticalAlign="bottom" height={30} wrapperStyle={{ fontSize: 12 }} />
-                      <Tooltip />
+                      <Tooltip contentStyle={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 8, color: 'var(--color-text)' }} labelStyle={{ color: 'var(--color-text)' }} />
                     </PieChart>
                   </ResponsiveContainer>
                 )}
@@ -271,7 +271,7 @@ export default function Reportes() {
                       <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
                       <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11 }} />
                       <YAxis type="category" dataKey="categoria" width={150} tick={{ fontSize: 10.5 }} />
-                      <Tooltip />
+                      <Tooltip contentStyle={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 8, color: 'var(--color-text)' }} labelStyle={{ color: 'var(--color-text)' }} />
                       <Bar dataKey="total" fill="var(--color-navy)" radius={[0, 4, 4, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
@@ -286,7 +286,7 @@ export default function Reportes() {
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
                     <XAxis dataKey="categoria" tick={{ fontSize: 10.5 }} interval={0} angle={-15} textAnchor="end" height={60} />
                     <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
-                    <Tooltip />
+                    <Tooltip contentStyle={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 8, color: 'var(--color-text)' }} labelStyle={{ color: 'var(--color-text)' }} />
                     <Bar dataKey="total" fill="var(--color-navy)" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
@@ -307,7 +307,7 @@ export default function Reportes() {
                       <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
                       <XAxis dataKey="categoria" tick={{ fontSize: 11 }} />
                       <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
-                      <Tooltip />
+                      <Tooltip contentStyle={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 8, color: 'var(--color-text)' }} labelStyle={{ color: 'var(--color-text)' }} />
                       <Bar dataKey="total" fill="#2e8b57" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
@@ -322,7 +322,7 @@ export default function Reportes() {
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
                     <XAxis dataKey="categoria" tick={{ fontSize: 11 }} />
                     <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
-                    <Tooltip />
+                    <Tooltip contentStyle={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 8, color: 'var(--color-text)' }} labelStyle={{ color: 'var(--color-text)' }} />
                     <Bar dataKey="total" fill="#2e8b57" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
@@ -343,7 +343,7 @@ export default function Reportes() {
                       <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
                       <XAxis dataKey="categoria" tick={{ fontSize: 11 }} />
                       <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
-                      <Tooltip />
+                      <Tooltip contentStyle={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 8, color: 'var(--color-text)' }} labelStyle={{ color: 'var(--color-text)' }} />
                       <Bar dataKey="total" fill="var(--color-navy-light)" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
@@ -364,7 +364,7 @@ export default function Reportes() {
                         ))}
                       </Pie>
                       <Legend verticalAlign="bottom" height={30} wrapperStyle={{ fontSize: 12 }} />
-                      <Tooltip />
+                      <Tooltip contentStyle={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 8, color: 'var(--color-text)' }} labelStyle={{ color: 'var(--color-text)' }} />
                     </PieChart>
                   </ResponsiveContainer>
                 )}
@@ -386,7 +386,7 @@ export default function Reportes() {
                         <Cell fill="#c0392b" />
                       </Pie>
                       <Legend verticalAlign="bottom" height={30} wrapperStyle={{ fontSize: 12 }} />
-                      <Tooltip />
+                      <Tooltip contentStyle={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 8, color: 'var(--color-text)' }} labelStyle={{ color: 'var(--color-text)' }} />
                     </PieChart>
                   </ResponsiveContainer>
                 )}
@@ -403,7 +403,7 @@ export default function Reportes() {
                       <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
                       <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
                       <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
-                      <Tooltip />
+                      <Tooltip contentStyle={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 8, color: 'var(--color-text)' }} labelStyle={{ color: 'var(--color-text)' }} />
                       <Bar dataKey="total" fill="#b87e00" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
@@ -429,7 +429,7 @@ export default function Reportes() {
                           <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
                           <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11 }} />
                           <YAxis type="category" dataKey="categoria" width={140} tick={{ fontSize: 10.5 }} />
-                          <Tooltip />
+                          <Tooltip contentStyle={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 8, color: 'var(--color-text)' }} labelStyle={{ color: 'var(--color-text)' }} />
                           <Bar dataKey="total" fill="var(--color-navy)" radius={[0, 4, 4, 0]} />
                         </BarChart>
                       </ResponsiveContainer>
@@ -449,7 +449,7 @@ export default function Reportes() {
                             <Cell fill="#c0392b" />
                           </Pie>
                           <Legend verticalAlign="bottom" height={30} wrapperStyle={{ fontSize: 12 }} />
-                          <Tooltip />
+                          <Tooltip contentStyle={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 8, color: 'var(--color-text)' }} labelStyle={{ color: 'var(--color-text)' }} />
                         </PieChart>
                       </ResponsiveContainer>
                     )}

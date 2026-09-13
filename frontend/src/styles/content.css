@@ -23,7 +23,7 @@
   font-family: var(--font-heading);
   font-size: 26px;
   font-weight: 600;
-  color: var(--color-navy);
+  color: var(--color-text-accent);
   margin: 0;
 }
 
@@ -32,7 +32,7 @@
   height: 34px;
   border-radius: var(--radius-sm);
   background: var(--color-navy-tint);
-  color: var(--color-navy);
+  color: var(--color-text-accent);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -165,7 +165,7 @@ tr.row--highlight td,
 
 .filtro-pill__count {
   background: var(--color-navy-tint);
-  color: var(--color-navy);
+  color: var(--color-text-accent);
   border-radius: 999px;
   padding: 1px 7px;
   font-size: 11px;
@@ -324,7 +324,7 @@ tr.row--highlight td,
   height: 64px;
   border-radius: 50%;
   background: var(--color-navy-tint);
-  color: var(--color-navy);
+  color: var(--color-text-accent);
   font-family: var(--font-heading);
   font-weight: 600;
   font-size: 22px;
@@ -401,7 +401,7 @@ tr.row--highlight td,
 
 .stepper__step--done .stepper__label,
 .stepper__step--current .stepper__label {
-  color: var(--color-navy);
+  color: var(--color-text-accent);
   font-weight: 600;
 }
 
@@ -452,7 +452,7 @@ tr.row--highlight td,
 .event-card__tag {
   display: inline-block;
   background: var(--color-navy-tint);
-  color: var(--color-navy);
+  color: var(--color-text-accent);
   border-radius: 999px;
   padding: 3px 10px;
   font-size: 10.5px;

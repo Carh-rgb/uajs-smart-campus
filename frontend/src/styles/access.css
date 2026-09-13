@@ -174,7 +174,7 @@
   height: 42px;
   border-radius: var(--radius-sm);
   background: var(--color-navy-tint);
-  color: var(--color-navy);
+  color: var(--color-text-accent);
   margin-bottom: 16px;
 }
 
@@ -482,7 +482,7 @@
   display: inline-block;
   margin-top: 10px;
   font-size: 12.5px;
-  color: var(--color-navy);
+  color: var(--color-text-accent);
   font-weight: 500;
 }
 
@@ -569,7 +569,7 @@
 }
 
 .field__input-toggle:hover {
-  color: var(--color-navy);
+  color: var(--color-text-accent);
 }
 
 .field__input-toggle svg {

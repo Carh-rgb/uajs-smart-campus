@@ -61,3 +61,8 @@ para que el listado de gestión se comporte igual que en `solicitudes-service`
 | 4 | Volver a `Disponible` | Stock repuesto a 1 | ✅ OK |
 | 5 | Renombrar el recurso mientras está `Disponible` (`PATCH /recursos/:codigo`) | El stock se mueve del nombre viejo al nuevo, sin duplicar ni perder unidades | ✅ OK |
 | 6 | Eliminar el recurso (única unidad) | El equipo desaparece del catálogo de reservas | ✅ OK |
+
+## 5. Nota de documentación
+
+El endpoint para editar nombre/tipo/ubicación de un recurso es
+`PATCH /recursos/:codigo` (no `PUT`, que no existe y responde `404`).

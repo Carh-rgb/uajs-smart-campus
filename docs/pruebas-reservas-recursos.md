@@ -50,3 +50,14 @@ para que el listado de gestión se comporte igual que en `solicitudes-service`
 (`where = {}` para roles administrativos). Se verificó que:
 - Las reservas de un Administrativo ahora sí aparecen para todos los roles de gestión.
 - Los estudiantes/docentes siguen viendo únicamente sus propias reservas (sin regresión).
+
+## 4. Sincronización de stock desde recursos-service
+
+| Paso | Acción | Resultado esperado | Resultado obtenido |
+|---|---|---|---|
+| 1 | Crear un recurso reservable (`Audiovisual` / `Equipo de cómputo`) | Aparece en `GET /reservas/catalogo` con stock 1 | ✅ OK |
+| 2 | Pasarlo a `En mantenimiento` | Stock baja a 0 en el catálogo de reservas | ✅ OK |
+| 3 | Pasar directo de `En mantenimiento` a `Fuera de servicio` | No se descuenta doble (sigue en 0) | ✅ OK |
+| 4 | Volver a `Disponible` | Stock repuesto a 1 | ✅ OK |
+| 5 | Renombrar el recurso mientras está `Disponible` (`PATCH /recursos/:codigo`) | El stock se mueve del nombre viejo al nuevo, sin duplicar ni perder unidades | ✅ OK |
+| 6 | Eliminar el recurso (única unidad) | El equipo desaparece del catálogo de reservas | ✅ OK |

@@ -50,4 +50,3 @@ app.get('/health', (req, res) => {
 app.listen(PORT, () => {
   console.log(`[gateway] escuchando en http://localhost:${PORT}`)
 })
-// prueba de commit - Arnovis

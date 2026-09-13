@@ -12,6 +12,19 @@ app.use(
   }),
 )
 
+// Logging simple de cada peticion que entra al gateway. No se agrega una
+// dependencia extra (ej. morgan) porque el proyecto ya no la usa en ningun
+// otro servicio y esto cubre lo que necesitamos: metodo, ruta, status y
+// tiempo de respuesta.
+app.use((req, res, next) => {
+  const inicio = Date.now()
+  res.on('finish', () => {
+    const ms = Date.now() - inicio
+    console.log(`[gateway] ${req.method} ${req.originalUrl} -> ${res.statusCode} (${ms}ms)`)
+  })
+  next()
+})
+
 // El Gateway es un enrutador puro: no valida JWT ni contiene logica de
 // negocio. Cada microservicio protege sus propias rutas.
 const rutas = [
@@ -39,12 +52,41 @@ for (const { prefijo, destino } of rutas) {
       changeOrigin: true,
       pathFilter: prefijo,
       pathRewrite: { '^/api': '' },
+      on: {
+        // Sin esto, si un microservicio esta caido o tarda demasiado, la
+        // peticion se queda colgada hasta que el cliente hace timeout y el
+        // error solo queda en la consola del gateway. Respondemos 502 para
+        // que el frontend pueda mostrar algo util en vez de esperar.
+        error: (err, req, res) => {
+          console.error(`[gateway] error de proxy hacia ${destino} (${prefijo}):`, err.message)
+          if (!res.headersSent) {
+            res.status(502).json({
+              error: `El servicio detras de ${prefijo} no esta disponible en este momento.`,
+            })
+          }
+        },
+      },
     }),
   )
 }
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', servicios: rutas.map((r) => r.prefijo) })
+})
+
+// Cualquier ruta /api/* que no haya calzado con ninguno de los prefijos de
+// arriba (ej. un typo) cae aqui en vez de devolver el HTML por defecto de
+// Express o quedarse sin respuesta.
+app.use('/api', (req, res) => {
+  res.status(404).json({ error: `Ruta no reconocida: ${req.originalUrl}` })
+})
+
+// Manejador de errores general. Cualquier excepcion sincrona lanzada en un
+// middleware anterior (fuera del proxy, que ya maneja los suyos arriba)
+// termina aqui en vez de tumbar el proceso.
+app.use((err, req, res, next) => {
+  console.error('[gateway] error no manejado:', err)
+  res.status(500).json({ error: 'Error interno del gateway.' })
 })
 
 app.listen(PORT, () => {

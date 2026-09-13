@@ -761,6 +761,12 @@
     align-items: center;
   }
 
+  .notif-preview {
+    width: calc(100vw - 32px) !important;
+    right: -8px !important;
+    max-width: 320px;
+  }
+
   .sidebar {
     position: fixed;
     top: 0;

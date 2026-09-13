@@ -1,4 +1,3 @@
-import { Op } from 'sequelize'
 import { Reserva, ReservaHistorial, Equipo } from '../models/index.js'
 import { indexarReserva, eliminarReservaDelIndice } from '../utils/busquedaClient.js'
 
@@ -25,8 +24,14 @@ async function ajustarStockEquipo(nombreEquipo, delta) {
 }
 
 export async function listar(req, res) {
+  // Antes se excluian del listado las reservas cuyo rolSolicitante era
+  // "Administrativo", lo que las volvia invisibles para todos, incluido
+  // el propio Administrador del sistema y el solicitante mismo (no habia
+  // forma de verlas, confirmarlas ni cancelarlas). Se alinea con el mismo
+  // patron de solicitudes.controller.js: los roles administrativos ven
+  // todas las reservas sin excepcion.
   const esAdministrativo = req.user.rol === 'Administrativo' || req.user.rol === 'Administrador del sistema'
-  const where = esAdministrativo ? { rolSolicitante: { [Op.ne]: 'Administrativo' } } : { solicitanteId: req.user.id }
+  const where = esAdministrativo ? {} : { solicitanteId: req.user.id }
   const reservas = await Reserva.findAll({ where, order: [['createdAt', 'DESC']] })
   res.json(reservas)
 }

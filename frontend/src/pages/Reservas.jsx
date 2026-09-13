@@ -112,7 +112,7 @@ function FormularioReserva({ user, catalogo, onCrear }) {
               style={{
                 width: 'auto',
                 background: pestana === p ? 'var(--color-navy)' : 'transparent',
-                color: pestana === p ? '#fff' : 'var(--color-navy)',
+                color: pestana === p ? '#fff' : 'var(--color-text-accent)',
                 border: '1px solid var(--color-border)',
               }}
               onClick={() => setPestana(p)}
@@ -157,7 +157,7 @@ function FormularioReserva({ user, catalogo, onCrear }) {
                   style={{
                     width: 'auto',
                     background: salaEspecialId === s.id ? 'var(--color-navy)' : 'transparent',
-                    color: salaEspecialId === s.id ? '#fff' : 'var(--color-navy)',
+                    color: salaEspecialId === s.id ? '#fff' : 'var(--color-text-accent)',
                     border: '1px solid var(--color-border)',
                   }}
                   onClick={() => setSalaEspecialId(s.id)}
@@ -181,7 +181,7 @@ function FormularioReserva({ user, catalogo, onCrear }) {
                   style={{
                     width: 'auto',
                     background: salaBibliotecaId === s.id ? 'var(--color-navy)' : 'transparent',
-                    color: salaBibliotecaId === s.id ? '#fff' : 'var(--color-navy)',
+                    color: salaBibliotecaId === s.id ? '#fff' : 'var(--color-text-accent)',
                     border: '1px solid var(--color-border)',
                   }}
                   onClick={() => setSalaBibliotecaId(s.id)}

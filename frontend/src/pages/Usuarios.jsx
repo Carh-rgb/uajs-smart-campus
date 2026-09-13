@@ -175,6 +175,7 @@ export default function Usuarios() {
             <BrandSpinner size="md" label="Cargando usuarios..." />
           </div>
         ) : (
+        <div className="table-responsive">
         <table className="data-table">
           <thead>
             <tr>
@@ -207,7 +208,7 @@ export default function Usuarios() {
                 <td>
                   <button
                     className="btn btn--sm"
-                    style={{ width: 'auto', background: 'transparent', border: '1px solid var(--color-border)', color: 'var(--color-navy)', marginRight: 6 }}
+                    style={{ width: 'auto', background: 'transparent', border: '1px solid var(--color-border)', color: 'var(--color-text-accent)', marginRight: 6 }}
                     disabled={cargandoEstadoId === u.id}
                     onClick={() => handleToggleActivo(u.id)}
                   >
@@ -235,6 +236,7 @@ export default function Usuarios() {
             )}
           </tbody>
         </table>
+        </div>
         )}
       </div>
 

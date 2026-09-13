@@ -46,7 +46,7 @@ export default function Notificaciones() {
             style={{
               width: 'auto',
               background: filtro === f ? 'var(--color-navy)' : 'transparent',
-              color: filtro === f ? '#fff' : 'var(--color-navy)',
+              color: filtro === f ? '#fff' : 'var(--color-text-accent)',
               border: '1px solid var(--color-border)',
             }}
             onClick={() => setFiltro(f)}
@@ -58,7 +58,7 @@ export default function Notificaciones() {
         {noLeidasCount > 0 && (
           <button
             className="btn btn--sm"
-            style={{ width: 'auto', marginLeft: 'auto', background: 'transparent', border: '1px solid var(--color-border)', color: 'var(--color-navy)' }}
+            style={{ width: 'auto', marginLeft: 'auto', background: 'transparent', border: '1px solid var(--color-border)', color: 'var(--color-text-accent)' }}
             onClick={marcarTodasLeidas}
           >
             Marcar todas como leídas

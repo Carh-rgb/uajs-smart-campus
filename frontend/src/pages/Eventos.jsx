@@ -367,7 +367,7 @@ export default function Eventos() {
                 <div style={{ display: 'flex', gap: 6, marginTop: 12, flexWrap: 'wrap' }}>
                   <button
                     className="btn btn--sm"
-                    style={{ width: 'auto', background: 'transparent', border: '1px solid var(--color-border)', color: 'var(--color-navy)' }}
+                    style={{ width: 'auto', background: 'transparent', border: '1px solid var(--color-border)', color: 'var(--color-text-accent)' }}
                     disabled={cargandoInscritosId === e.id}
                     onClick={() => verInscritos(e.id)}
                   >

@@ -105,6 +105,7 @@ export default function Solicitudes() {
             <BrandSpinner size="md" label="Cargando solicitudes..." />
           </div>
         ) : (
+          <div className="table-responsive">
           <table className="data-table">
             <thead>
               <tr>
@@ -134,7 +135,7 @@ export default function Solicitudes() {
                       style={{
                         background: 'transparent',
                         border: '1px solid var(--color-border)',
-                        color: 'var(--color-navy)',
+                        color: 'var(--color-text-accent)',
                       }}
                       onClick={() => navigate(`/app/solicitudes/${s.id}`)}
                     >
@@ -152,6 +153,7 @@ export default function Solicitudes() {
               )}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 

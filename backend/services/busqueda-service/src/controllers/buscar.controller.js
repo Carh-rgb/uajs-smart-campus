@@ -1,3 +1,4 @@
+// Controlador encargado de gestionar la logica de busqueda mediante Elasticsearch
 import { es, INDICE } from '../config/elastic.js'
 
 function esStaff(user) {

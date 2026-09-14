@@ -1,3 +1,4 @@
+// Modelo que representa un evento del campus, incluyendo su informacion y estado (Activo, Cancelado, etc.)
 import { DataTypes } from 'sequelize'
 import { sequelize } from '../config/database.js'
 

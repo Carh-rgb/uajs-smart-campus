@@ -1,3 +1,4 @@
+// Controlador encargado de gestionar la logica de notificaciones: creación, listado y envío
 import { Notificacion } from '../models/index.js'
 
 export async function listar(req, res) {

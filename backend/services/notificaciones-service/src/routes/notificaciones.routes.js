@@ -1,3 +1,4 @@
+// Define los endpoints disponibles para el servicio de notificaciones
 import { Router } from 'express'
 import { listar, crear, marcarLeida, marcarTodasLeidas, eliminar } from '../controllers/notificaciones.controller.js'
 import { requireAuth } from '../middlewares/auth.js'

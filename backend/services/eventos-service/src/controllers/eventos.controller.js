@@ -1,10 +1,11 @@
+   // Controlador encargado de gestionar la logica de eventos: creacion, listado y consulta
 import { Evento, Inscripcion } from '../models/index.js'
 import { indexarEvento, eliminarEventoDelIndice } from '../utils/busquedaClient.js'
-
+  // Verifica si el usuario tiene permisos administrativos para ver el catalogo completo
 function puedeAdministrar(user) {
   return user.rol === 'Administrativo' || user.rol === 'Administrador del sistema'
 }
-
+  // Cuenta cuantas inscripciones tiene cada evento
 async function conteoInscritos(eventoIds) {
   const inscripciones = await Inscripcion.findAll({ where: { eventoId: eventoIds } })
   const mapa = new Map()

@@ -81,8 +81,3 @@ Contraseña para todos: `uajs2026`
 | `andres.gomez@uajs.edu.co` | Administrativo |
 | `admin@uajs.edu.co` | Administrador del sistema |
 
-## Documentación del Entregable 1
-
-- [Análisis funcional](docs/analisis-funcional.html) — problemática, actores, servicios, casos de uso, entradas/procesos/salidas.
-- [Diagrama de arquitectura](docs/diagrama-arquitectura.html) — Frontend → Gateway → microservicios → bases de datos.
-- [Diseño de frontend](docs/diseno-frontend.html) — identidad visual, navegación, wireframes, componentes.

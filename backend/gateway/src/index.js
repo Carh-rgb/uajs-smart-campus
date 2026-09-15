@@ -1,3 +1,23 @@
+/**
+ * API Gateway — UAJS Smart Campus
+ * ================================
+ * Punto de entrada unico para el frontend (puerto 5183). Todo lo que el
+ * frontend llama bajo /api/* pasa por aqui y se reenvia (proxy) al
+ * microservicio que corresponda segun el prefijo de la ruta.
+ *
+ * Que SI hace este archivo:
+ *  - Enrutar cada prefijo /api/<algo> hacia el microservicio dueño de ese
+ *    dominio (ver el arreglo "rutas" mas abajo).
+ *  - Manejar errores de conexion hacia los microservicios (502 en vez de
+ *    dejar la peticion colgada).
+ *  - Exponer /health, que ahora chequea en vivo los 7 microservicios.
+ *  - Loggear cada peticion que pasa por el gateway.
+ *
+ * Que NO hace (a proposito):
+ *  - No valida JWT ni sesiones: cada microservicio protege sus propias
+ *    rutas de forma independiente.
+ *  - No contiene logica de negocio: es solo enrutamiento.
+ */
 import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
@@ -5,6 +25,32 @@ import { createProxyMiddleware } from 'http-proxy-middleware'
 
 const app = express()
 const PORT = process.env.PORT || 4000
+
+// Variables que se esperan en el .env (ver gateway/.env.example). Si falta
+// alguna, el gateway igual arranca (usa localhost:<puerto> por defecto),
+// pero avisamos por consola para que no sea una sorpresa mas adelante si
+// alguien despliega en un servidor real donde localhost no sirve.
+const VARIABLES_ESPERADAS = [
+  'PORT',
+  'FRONTEND_ORIGIN',
+  'USUARIOS_SERVICE_URL',
+  'SOLICITUDES_SERVICE_URL',
+  'RESERVAS_SERVICE_URL',
+  'RECURSOS_SERVICE_URL',
+  'EVENTOS_SERVICE_URL',
+  'NOTIFICACIONES_SERVICE_URL',
+  'BUSQUEDA_SERVICE_URL',
+]
+
+function validarVariablesDeEntorno() {
+  const faltantes = VARIABLES_ESPERADAS.filter((nombre) => !process.env[nombre])
+  if (faltantes.length > 0) {
+    console.warn(
+      `[gateway] Aviso: faltan estas variables en tu .env (se usara un valor por defecto de localhost): ${faltantes.join(', ')}`,
+    )
+  }
+}
+validarVariablesDeEntorno()
 
 app.use(
   cors({
@@ -129,6 +175,26 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Error interno del gateway.' })
 })
 
-app.listen(PORT, () => {
+// Apagado ordenado: al recibir Ctrl+C (SIGINT) o una señal de terminacion
+// (SIGTERM, la que manda Docker/un orquestador al detener el contenedor),
+// dejamos de aceptar conexiones nuevas y cerramos las que ya estaban en
+// curso antes de salir, en vez de cortar todo de golpe a mitad de una
+// peticion. Si algo no cierra en 5s, forzamos la salida igual.
+const servidor = app.listen(PORT, () => {
   console.log(`[gateway] escuchando en http://localhost:${PORT}`)
 })
+
+function apagarOrdenadamente(señal) {
+  console.log(`[gateway] recibido ${señal}, cerrando ordenadamente...`)
+  servidor.close(() => {
+    console.log('[gateway] servidor cerrado correctamente.')
+    process.exit(0)
+  })
+  setTimeout(() => {
+    console.warn('[gateway] no cerro a tiempo, forzando salida.')
+    process.exit(1)
+  }, 5000).unref()
+}
+
+process.on('SIGINT', () => apagarOrdenadamente('SIGINT'))
+process.on('SIGTERM', () => apagarOrdenadamente('SIGTERM'))

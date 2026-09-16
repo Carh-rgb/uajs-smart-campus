@@ -32,6 +32,7 @@ function TablaActividad({ actividad }) {
   return (
     <div className="panel">
       <h3 className="panel__title">Actividad reciente</h3>
+      <div className="table-responsive">
       <table className="data-table">
         <thead>
           <tr>
@@ -61,6 +62,7 @@ function TablaActividad({ actividad }) {
           )}
         </tbody>
       </table>
+      </div>
     </div>
   )
 }

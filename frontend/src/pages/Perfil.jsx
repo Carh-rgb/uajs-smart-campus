@@ -172,7 +172,7 @@ export default function Perfil() {
             onChange={handleSeleccionarFoto}
           />
         </div>
-        <div>
+        <div className="profile-card__info">
           <h3 style={{ marginBottom: 4 }}>{user?.nombre}</h3>
           <p style={{ margin: 0, color: 'var(--color-text-secondary)', fontSize: 13 }}>
             {rol} · Estado de cuenta activo

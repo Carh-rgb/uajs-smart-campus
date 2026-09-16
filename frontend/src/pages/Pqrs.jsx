@@ -118,6 +118,7 @@ function VistaEstudiante({ highlightId }) {
         ) : (
           <>
             <FiltrosEstado valor={filtro} onChange={setFiltro} items={misPqrs} />
+            <div className="table-responsive">
             <table className="data-table">
               <thead>
                 <tr><th>ID</th><th>Tipo</th><th>Asunto</th><th>Estado</th><th>Respuesta</th><th>Adjunto</th></tr>
@@ -140,6 +141,7 @@ function VistaEstudiante({ highlightId }) {
                 )}
               </tbody>
             </table>
+            </div>
           </>
         )}
       </div>
@@ -307,6 +309,7 @@ function VistaDocente({ highlightId }) {
     <div className="panel">
       <h3 className="panel__title">PQRS asignadas a ti</h3>
       <FiltrosEstado valor={filtro} onChange={setFiltro} items={asignadas} />
+      <div className="table-responsive">
       <table className="data-table">
         <thead>
           <tr><th>ID</th><th>Tipo</th><th>Asunto</th><th>Solicitante</th><th>Estado</th><th>Descripción</th><th></th></tr>
@@ -338,6 +341,7 @@ function VistaDocente({ highlightId }) {
           )}
         </tbody>
       </table>
+      </div>
 
       {respondiendoId && (
         <ResponderPqrsModal
@@ -422,6 +426,7 @@ function VistaAdministrativo({ highlightId }) {
           style={{ minWidth: 260 }}
         />
       </div>
+      <div className="table-responsive">
       <table className="data-table" style={{ tableLayout: 'fixed' }}>
         <colgroup>
           <col style={{ width: '7%' }} />
@@ -483,6 +488,7 @@ function VistaAdministrativo({ highlightId }) {
           )}
         </tbody>
       </table>
+      </div>
 
       {respondiendoId && (
         <ResponderPqrsModal

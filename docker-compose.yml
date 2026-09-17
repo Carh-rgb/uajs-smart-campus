@@ -20,8 +20,9 @@ services:
       POSTGRES_USER: uajs
       POSTGRES_PASSWORD: uajs_dev_pass
       POSTGRES_DB: uajs_usuarios
-    ports:
-      - "5432:5432"
+    # Sin "ports:" a proposito: nadie fuera de la red interna de Docker
+    # necesita hablarle directo a Postgres. Los microservicios lo alcanzan
+    # igual por el nombre "postgres" dentro de la red de docker compose.
     volumes:
       - uajs_pgdata:/var/lib/postgresql/data
       - ./backend/db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
@@ -40,8 +41,10 @@ services:
       xpack.security.enabled: "false"
       xpack.security.http.ssl.enabled: "false"
       ES_JAVA_OPTS: "-Xms512m -Xmx512m"
-    ports:
-      - "9200:9200"
+    # Igual que postgres: sin exponer el puerto al host. Elasticsearch
+    # corre aqui con la seguridad desactivada (xpack.security.enabled),
+    # asi que publicarlo directo a la red seria un riesgo serio si esto
+    # llega a correr en un VPS con IP publica.
     volumes:
       - uajs_esdata:/usr/share/elasticsearch/data
     healthcheck:

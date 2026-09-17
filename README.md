@@ -70,6 +70,38 @@ npm run dev
 
 La aplicación queda disponible en `http://localhost:5183`. Instrucciones más detalladas de cada lado en [`backend/README.md`](backend/README.md) y [`frontend/README.md`](frontend/README.md).
 
+## Despliegue con Docker (recomendado para un servidor)
+
+Para levantar TODO (gateway, los 7 microservicios, el frontend, PostgreSQL y
+Elasticsearch) con un solo comando, en cualquier servidor con Docker y
+Docker Compose instalados:
+
+```bash
+git clone git@github.com:Carh-rgb/uajs-smart-campus.git
+cd uajs-smart-campus
+./setup.sh              # crea los .env necesarios (solo la primera vez)
+docker compose up -d --build
+```
+
+El sistema queda disponible en `http://<ip-o-dominio-del-servidor>` (puerto 80),
+tanto desde el mismo servidor como desde cualquier otro dispositivo en la
+misma red (o en internet, si el servidor es un VPS con el puerto abierto).
+
+`setup.sh` te pregunta la URL pública (por defecto detecta la IP local del
+servidor) y crea los `.env` de cada microservicio a partir de sus
+`.env.example` — no pisa ninguno que ya exista. Si quieres que funcione el
+correo de recuperación de contraseña, después de correr `setup.sh` edita
+`backend/services/usuarios-service/.env` y coloca un `EMAIL_USER` real y un
+`EMAIL_PASS` (contraseña de aplicación de Google, no la contraseña normal
+de la cuenta — se genera en myaccount.google.com → Seguridad → Contraseñas
+de aplicaciones, con la verificación en 2 pasos activada).
+
+Para actualizar un servidor ya desplegado con cambios nuevos:
+```bash
+git pull
+docker compose up -d --build
+```
+
 ## Usuarios de prueba
 
 Contraseña para todos: `uajs2026`

@@ -8,10 +8,13 @@ import LoadingButton from '../components/LoadingButton.jsx'
 import { BrandSpinner, ButtonSpinner } from '../components/BrandSpinner.jsx'
 import { esCorreoInstitucional } from '../utils/validation.js'
 import { useHighlightRow } from '../hooks/useHighlightRow.js'
+import { facultadesEventos } from '../data/mockData.js'
 
 const ROLES_DISPONIBLES = [...ROLES_GESTIONABLES, 'Administrador del sistema']
 const TIPOS_DOCUMENTO = ['Cédula de ciudadanía', 'Tarjeta de identidad', 'Cédula de extranjería', 'Pasaporte']
 const GENEROS = ['Femenino', 'Masculino', 'Prefiero no decirlo', 'Otro']
+// Reutiliza las facultades ya definidas para Eventos, para no duplicar la lista.
+const PROGRAMAS_DISPONIBLES = facultadesEventos
 
 const FORM_INICIAL = {
   nombre: '',
@@ -279,7 +282,10 @@ export default function Usuarios() {
               </div>
               <div className="field">
                 <label className="field__label">Programa / Dependencia</label>
-                <input className="field__input" value={form.programa} onChange={(e) => setForm({ ...form, programa: e.target.value })} />
+                <select className="field__input" value={form.programa} onChange={(e) => setForm({ ...form, programa: e.target.value })}>
+                  <option value="">Selecciona una facultad...</option>
+                  {PROGRAMAS_DISPONIBLES.map((p) => <option key={p}>{p}</option>)}
+                </select>
               </div>
             </div>
 

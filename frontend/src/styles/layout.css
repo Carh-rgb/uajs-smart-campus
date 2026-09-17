@@ -813,6 +813,17 @@
 
 @media (max-width: 560px) {
   .topbar__search {
+    flex: 1;
+    min-width: 0;
+    max-width: none;
+  }
+
+  .topbar__user-name,
+  .topbar__user-role {
+    display: none;
+  }
+
+  .topbar__user-caret {
     display: none;
   }
 }

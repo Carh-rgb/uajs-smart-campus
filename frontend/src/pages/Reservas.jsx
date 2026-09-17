@@ -259,6 +259,7 @@ function StockEquipos({ equipos, subtitulo }) {
       <p style={{ fontSize: 12, color: 'var(--color-text-muted)', marginTop: -8, marginBottom: 16 }}>
         {subtitulo || 'Unidades totales disponibles por equipo. Solo lo ve el personal administrativo.'}
       </p>
+      <div className="table-responsive">
       <table className="data-table">
         <thead>
           <tr>
@@ -292,6 +293,7 @@ function StockEquipos({ equipos, subtitulo }) {
           )}
         </tbody>
       </table>
+      </div>
     </div>
   )
 }
@@ -314,6 +316,7 @@ function GestionReservas({ reservas, actualizarEstado, onVerHistorial, cargandoH
       {errorEstado && (
         <p style={{ fontSize: 12.5, color: 'var(--color-danger)', marginTop: -8, marginBottom: 14 }}>{errorEstado}</p>
       )}
+      <div className="table-responsive">
       <table className="data-table">
         <thead>
           <tr>
@@ -378,6 +381,7 @@ function GestionReservas({ reservas, actualizarEstado, onVerHistorial, cargandoH
           )}
         </tbody>
       </table>
+      </div>
     </div>
   )
 }
@@ -474,6 +478,7 @@ export default function Reservas() {
 
           <div className="panel">
             <h3 className="panel__title">Mis reservas</h3>
+            <div className="table-responsive">
             <table className="data-table">
               <thead>
                 <tr>
@@ -526,6 +531,7 @@ export default function Reservas() {
                 )}
               </tbody>
             </table>
+            </div>
           </div>
         </>
       )}

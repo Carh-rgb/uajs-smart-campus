@@ -27,3 +27,7 @@ backend/db/pgdata/
 
 # Estado de sesion local de Claude Code
 .claude/scheduled_tasks.lock
+
+# Documentacion del entregable (analisis, diagramas, evidencia): se entrega
+# aparte del repositorio, no vive en GitHub
+docs/

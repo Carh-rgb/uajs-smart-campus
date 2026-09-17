@@ -23,6 +23,8 @@
   --color-info-bg: #e9f2fc;
 
   --color-sidebar-accent: #5fa8f0;
+  --color-text-accent: var(--color-navy);
+  --color-loader-overlay: rgba(244, 246, 249, 0.85);
   --sidebar-w: 264px;
   --sidebar-w-collapsed: 80px;
 
@@ -47,6 +49,8 @@
   --color-text-secondary: #a9b6c2;
   --color-text-muted: #7c8a97;
 
+  --color-text-accent: var(--color-sidebar-accent);
+  --color-loader-overlay: rgba(16, 22, 29, 0.85);
   --color-success-bg: #16302199;
   --color-warning-bg: #3a2c0d99;
   --color-danger-bg: #3a191599;

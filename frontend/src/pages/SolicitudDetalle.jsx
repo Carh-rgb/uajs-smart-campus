@@ -169,7 +169,7 @@ export default function SolicitudDetalle() {
           <h3 className="panel__title">Respuesta</h3>
           <p style={{ marginBottom: 8 }}>{solicitud.respuesta}</p>
           {solicitud.adjuntoRespuesta && (
-            <p style={{ fontSize: 12.5, color: 'var(--color-navy)' }}>
+            <p style={{ fontSize: 12.5, color: 'var(--color-text-accent)' }}>
               📎 Adjunto: {solicitud.adjuntoRespuesta}
             </p>
           )}
@@ -213,7 +213,7 @@ export default function SolicitudDetalle() {
         </div>
       </div>
 
-      <Link to="/app/solicitudes" style={{ fontSize: 13, color: 'var(--color-navy)' }}>
+      <Link to="/app/solicitudes" style={{ fontSize: 13, color: 'var(--color-text-accent)' }}>
         ← Volver a solicitudes
       </Link>
     </div>

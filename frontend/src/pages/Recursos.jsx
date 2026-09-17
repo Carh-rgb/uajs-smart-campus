@@ -290,6 +290,7 @@ export default function Recursos() {
             <BrandSpinner size="md" label="Cargando recursos..." />
           </div>
         ) : (
+          <div className="table-responsive">
           <table className="data-table">
             <thead>
               <tr>
@@ -331,6 +332,7 @@ export default function Recursos() {
               )}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 

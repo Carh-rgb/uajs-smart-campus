@@ -1,3 +1,4 @@
+// Define los endpoints disponibles para el servicio de busqueda
 import { Router } from 'express'
 import { requireAuth } from '../middlewares/auth.js'
 import { buscar, indexar, eliminarDocumento } from '../controllers/buscar.controller.js'

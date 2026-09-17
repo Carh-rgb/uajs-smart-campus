@@ -70,18 +70,26 @@ export async function actualizar(req, res) {
   // por nombre (ver catalogo.controller.js alla). Si este recurso estaba
   // aportando una unidad y cambia de nombre o tipo, hay que mover esa
   // unidad del equipo viejo al nuevo para no desincronizar el stock.
-  if (cambioDeIdentidad && recurso.estado === 'Disponible') {
+  //
+  // Esto debe correr aunque el recurso NO este Disponible: si solo se
+  // sincronizara en ese caso, renombrar un recurso en mantenimiento deja
+  // el nombre viejo huerfano para siempre en reservas-service (con 0
+  // unidades, sin nada que despues lo limpie ni lo renombre). Lo que si
+  // depende del estado es cuanto stock se mueve (0 si no esta Disponible,
+  // porque este recurso no estaba aportando ninguna unidad real).
+  if (cambioDeIdentidad) {
+    const unidadesQueAporta = recurso.estado === 'Disponible' ? 1 : 0
     if (TIPOS_RESERVABLES.includes(tipoAnterior)) {
       sincronizarEquipoEnReservas({
         codigo: recurso.codigo,
         nombre: nombreAnterior,
         tipo: tipoAnterior,
-        delta: -1,
+        delta: -unidadesQueAporta,
         eliminarSiVacio: true,
       })
     }
-    if (TIPOS_RESERVABLES.includes(tipo)) {
-      sincronizarEquipoEnReservas({ codigo: recurso.codigo, nombre, tipo, delta: 1 })
+    if (TIPOS_RESERVABLES.includes(tipo) && unidadesQueAporta > 0) {
+      sincronizarEquipoEnReservas({ codigo: recurso.codigo, nombre, tipo, delta: unidadesQueAporta })
     }
   }
   indexarRecurso(recurso)

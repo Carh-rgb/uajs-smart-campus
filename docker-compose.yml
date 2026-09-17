@@ -1,0 +1,215 @@
+# Stack completo de UAJS Smart Campus: base de datos, buscador, los 7
+# microservicios, el gateway y el frontend. Pensado para levantar TODO con
+# un solo comando en un servidor (ej. el servidor local Debian):
+#
+#   docker compose up -d --build
+#
+# Luego el proyecto queda disponible en http://<ip-del-servidor>/  (puerto 80)
+# desde cualquier dispositivo en la misma red WiFi.
+#
+# Nota: para desarrollo local sin Docker (como antes), backend/docker-compose.yml
+# sigue disponible por separado y solo levanta postgres + elasticsearch.
+
+services:
+  # ---------- Infraestructura ----------
+  postgres:
+    image: postgres:16-alpine
+    container_name: uajs-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: uajs
+      POSTGRES_PASSWORD: uajs_dev_pass
+      POSTGRES_DB: uajs_usuarios
+    ports:
+      - "5432:5432"
+    volumes:
+      - uajs_pgdata:/var/lib/postgresql/data
+      - ./backend/db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U uajs"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.0
+    container_name: uajs-elasticsearch
+    restart: unless-stopped
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+      xpack.security.http.ssl.enabled: "false"
+      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - uajs_esdata:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  # ---------- Microservicios ----------
+  usuarios-service:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      args:
+        SERVICE_DIR: services/usuarios-service
+    restart: unless-stopped
+    env_file: ./backend/services/usuarios-service/.env
+    environment:
+      DATABASE_URL: postgres://uajs:uajs_dev_pass@postgres:5432/uajs_usuarios
+      FRONTEND_ORIGIN: "*"
+      FRONTEND_URL: ${PUBLIC_URL}
+      BUSQUEDA_SERVICE_URL: http://busqueda-service:4007
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  solicitudes-service:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      args:
+        SERVICE_DIR: services/solicitudes-service
+    restart: unless-stopped
+    env_file: ./backend/services/solicitudes-service/.env
+    environment:
+      DATABASE_URL: postgres://uajs:uajs_dev_pass@postgres:5432/uajs_solicitudes
+      FRONTEND_ORIGIN: "*"
+      BUSQUEDA_SERVICE_URL: http://busqueda-service:4007
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  reservas-service:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      args:
+        SERVICE_DIR: services/reservas-service
+    restart: unless-stopped
+    env_file: ./backend/services/reservas-service/.env
+    environment:
+      DATABASE_URL: postgres://uajs:uajs_dev_pass@postgres:5432/uajs_reservas
+      FRONTEND_ORIGIN: "*"
+      BUSQUEDA_SERVICE_URL: http://busqueda-service:4007
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  recursos-service:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      args:
+        SERVICE_DIR: services/recursos-service
+    restart: unless-stopped
+    env_file: ./backend/services/recursos-service/.env
+    environment:
+      DATABASE_URL: postgres://uajs:uajs_dev_pass@postgres:5432/uajs_recursos
+      FRONTEND_ORIGIN: "*"
+      RESERVAS_SERVICE_URL: http://reservas-service:4003
+      BUSQUEDA_SERVICE_URL: http://busqueda-service:4007
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  eventos-service:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      args:
+        SERVICE_DIR: services/eventos-service
+    restart: unless-stopped
+    env_file: ./backend/services/eventos-service/.env
+    environment:
+      DATABASE_URL: postgres://uajs:uajs_dev_pass@postgres:5432/uajs_eventos
+      FRONTEND_ORIGIN: "*"
+      BUSQUEDA_SERVICE_URL: http://busqueda-service:4007
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  notificaciones-service:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      args:
+        SERVICE_DIR: services/notificaciones-service
+    restart: unless-stopped
+    env_file: ./backend/services/notificaciones-service/.env
+    environment:
+      DATABASE_URL: postgres://uajs:uajs_dev_pass@postgres:5432/uajs_notificaciones
+      FRONTEND_ORIGIN: "*"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  busqueda-service:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      args:
+        SERVICE_DIR: services/busqueda-service
+    restart: unless-stopped
+    env_file: ./backend/services/busqueda-service/.env
+    environment:
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+      FRONTEND_ORIGIN: "*"
+      USUARIOS_SERVICE_URL: http://usuarios-service:4001
+      SOLICITUDES_SERVICE_URL: http://solicitudes-service:4002
+      RESERVAS_SERVICE_URL: http://reservas-service:4003
+      RECURSOS_SERVICE_URL: http://recursos-service:4004
+      EVENTOS_SERVICE_URL: http://eventos-service:4005
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+
+  # ---------- Gateway ----------
+  gateway:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      args:
+        SERVICE_DIR: gateway
+    restart: unless-stopped
+    env_file: ./backend/gateway/.env
+    environment:
+      FRONTEND_ORIGIN: "*"
+      USUARIOS_SERVICE_URL: http://usuarios-service:4001
+      SOLICITUDES_SERVICE_URL: http://solicitudes-service:4002
+      RESERVAS_SERVICE_URL: http://reservas-service:4003
+      RECURSOS_SERVICE_URL: http://recursos-service:4004
+      EVENTOS_SERVICE_URL: http://eventos-service:4005
+      NOTIFICACIONES_SERVICE_URL: http://notificaciones-service:4006
+      BUSQUEDA_SERVICE_URL: http://busqueda-service:4007
+    ports:
+      - "4000:4000"
+    depends_on:
+      - usuarios-service
+      - solicitudes-service
+      - reservas-service
+      - recursos-service
+      - eventos-service
+      - notificaciones-service
+      - busqueda-service
+
+  # ---------- Frontend ----------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - gateway
+
+volumes:
+  uajs_pgdata:
+    name: uajs_pgdata
+  uajs_esdata:
+    name: uajs_esdata

@@ -26,6 +26,8 @@ export const Usuario = sequelize.define(
     numeroDocumento: { type: DataTypes.STRING, allowNull: true },
     // Registro academico/laboral: lo fija el Administrador del sistema al
     // crear la cuenta, segun el rol. No es autoeditable desde el perfil.
+    // Ver PENDIENTES-EQUIPO.md: idea para generarlo automaticamente a partir
+    // del documento de identidad + programa + año de ingreso.
     codigoEstudiantil: { type: DataTypes.STRING, allowNull: true },
     semestre: { type: DataTypes.STRING, allowNull: true },
     area: { type: DataTypes.STRING, allowNull: true },

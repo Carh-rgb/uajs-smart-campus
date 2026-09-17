@@ -1,3 +1,4 @@
+// Define los endpoints disponibles para el servicio de reservas
 import { Router } from 'express'
 import { obtenerCatalogo, sincronizarEquipo } from '../controllers/catalogo.controller.js'
 import { listar, crear, actualizarEstado, historial, eliminar } from '../controllers/reservas.controller.js'

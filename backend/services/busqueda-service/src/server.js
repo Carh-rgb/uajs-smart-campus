@@ -1,24 +1,27 @@
 import 'dotenv/config'
 import express from 'express'
+// Lleva los errores de los controladores async al manejador central en vez
+// de dejar la promesa rechazada (en Express 4 eso tumbaba el servicio).
+import 'express-async-errors'
 import cors from 'cors'
 import { asegurarIndice } from './config/elastic.js'
 import { buscarRouter } from './routes/buscar.routes.js'
 import { backfill } from './seed/backfill.js'
+import { normalizarErrores, rutaNoEncontrada, manejadorDeErrores } from './middlewares/errores.js'
 
 const app = express()
 const PORT = process.env.PORT || 4007
 
 app.use(cors({ origin: process.env.FRONTEND_ORIGIN || 'http://localhost:5183' }))
+app.use(normalizarErrores)
 app.use(express.json())
 
 app.get('/health', (req, res) => res.json({ status: 'ok', service: 'busqueda-service' }))
 
 app.use('/buscar', buscarRouter)
 
-app.use((err, req, res, next) => {
-  console.error('[busqueda-service]', err)
-  res.status(500).json({ error: 'Error interno del servicio de busqueda.' })
-})
+app.use(rutaNoEncontrada)
+app.use(manejadorDeErrores('busqueda-service'))
 
 async function start() {
   await asegurarIndice()

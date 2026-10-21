@@ -12,6 +12,11 @@ el sábado en la mañana para revisar y armar el ZIP. Cada tarea ya está creada
 ClickUp (lista del espacio SISTEMAS DISTRIBUIDOS, etiqueta `entregable 2`) con su
 responsable y criterio de aceptación; el enlace está en la columna ID.
 
+El reparto sigue los roles del README del repositorio: Arnovis (líder,
+arquitectura y backend base), Camilo (usuarios y solicitudes), Simón
+(reservas y recursos), Diego (eventos, notificaciones y búsqueda), David
+(frontend/UX) y Maicol (QA, DevOps y documentación).
+
 ## Reglas para todos
 
 1. **Antes de crear tu rama, actualiza `develop`** (`git checkout develop && git pull`)
@@ -55,7 +60,6 @@ exitosas no cambian.
 | [E2-02](https://app.clickup.com/t/17tjyy3mx8e) | Scripts de base de datos | Vie 23, 6 p.m. | `database/schema.sql` y `database/seed.sql` por cada base, orden de ejecución documentado, `.env.example` en la raíz y justificación de PostgreSQL. La base se puede crear desde cero siguiendo el README. |
 | [E2-03](https://app.clickup.com/t/17tjyy3mx8f) | Modelo de datos | Vie 23, 6 p.m. | Diagrama entidad-relación de las 6 bases, diccionario de datos y tabla de qué servicio es dueño de cada dato (con los modelos ya finales). |
 | [E2-04](https://app.clickup.com/t/17tjyy3mx8g) | Diagramas de arquitectura y secuencia | Vie 23, 6 p.m. | Arquitectura actualizada y secuencias de: crear reserva con validación remota, y cambio de estado de solicitud con notificación. |
-| [E2-05](https://app.clickup.com/t/17tjyy3mx8j) | Catálogo de endpoints y documento técnico | Sáb 24, 12 m. | Método, ruta, parámetros, cuerpo, respuesta y errores de cada endpoint; README final; PDF técnico consolidado con la matriz de aportes. |
 
 ## Camilo — Usuarios y Solicitudes
 
@@ -93,7 +97,7 @@ exitosas no cambian.
 | [E2-42](https://app.clickup.com/t/17tjyy3mx91) | Eventos y notificaciones | Vie 23, 6 p.m. | Campo hora fin en el formulario de eventos; mostrar el título de la notificación; dejar de crear notificaciones desde el frontend cuando el backend ya las genere (coordinar con Diego). |
 | [E2-43](https://app.clickup.com/t/17tjyy3mx92) | Estados de interfaz y evidencias | Vie 23, 11 p.m. | Revisar cargando, éxito, error, lista vacía y no encontrado en todas las vistas (sección 8.3). Capturas del flujo React → Gateway → base de datos para cada módulo. |
 
-## Maicol — QA y despliegue
+## Maicol — QA, DevOps y documentación
 
 | ID | Tarea | Fecha | Criterio de aceptación |
 |---|---|---|---|
@@ -101,6 +105,7 @@ exitosas no cambian.
 | [E2-51](https://app.clickup.com/t/17tjyy3mx94) | Colección Postman | Vie 23, 6 p.m. | Exportada en `postman/` con su entorno: CRUD de los 6 dominios y casos de error (400, 401, 403, 404, 409). |
 | [E2-52](https://app.clickup.com/t/17tjyy3mx95) | Matriz de pruebas T01–T15 | Vie 23, 11 p.m. | Ejecutada con evidencia, incluyendo T12 (persistencia tras reiniciar) y T14 (servicio caído). |
 | [E2-53](https://app.clickup.com/t/17tjyy3mx96) | Defectos y paquete final | Sáb 24, 12 m. | Cada defecto registrado en ClickUp con el formato 9.4 (pasos, esperado, observado, severidad, responsable) y el ZIP final con la estructura de la sección 11.1. |
+| [E2-05](https://app.clickup.com/t/17tjyy3mx8j) | Catálogo de endpoints, README y documento técnico | Sáb 24, 12 m. | Método, ruta, parámetros, cuerpo, respuesta y errores de cada endpoint; README final; PDF técnico consolidado con la matriz de aportes. Insumos: `database/README.md` y `database/MODELO-DATOS.md` (Arnovis), diagramas de E2-04 y capturas de E2-43. |
 
 ---
 

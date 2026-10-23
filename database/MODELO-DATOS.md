@@ -391,6 +391,7 @@ erDiagram
     varchar nombre
     varchar tipo
     varchar ubicacion
+    text descripcion
     enum estado
     timestamptz createdAt
     timestamptz updatedAt
@@ -414,6 +415,7 @@ Inventario de recursos físicos y tecnológicos con su ubicación y estado.
 | `nombre` | VARCHAR(255) | No |  |  |
 | `tipo` | VARCHAR(255) | No |  |  |
 | `ubicacion` | VARCHAR(255) | No |  |  |
+| `descripcion` | TEXT | Sí |  |  |
 | `estado` | ENUM | No | 'Disponible' | Valores: Disponible, En mantenimiento, Fuera de servicio |
 | `createdAt` | TIMESTAMPTZ | No |  |  |
 | `updatedAt` | TIMESTAMPTZ | No |  |  |
@@ -440,6 +442,7 @@ erDiagram
     varchar titulo
     date fecha
     varchar hora
+    varchar horaFin
     varchar lugar
     varchar ponente
     text descripcion
@@ -470,6 +473,7 @@ Agenda institucional: eventos por facultad, con cupo máximo opcional y estado.
 | `titulo` | VARCHAR(255) | No |  |  |
 | `fecha` | DATE | No |  |  |
 | `hora` | VARCHAR(255) | No |  |  |
+| `horaFin` | VARCHAR(255) | Sí |  |  |
 | `lugar` | VARCHAR(255) | No |  |  |
 | `ponente` | VARCHAR(255) | No |  |  |
 | `descripcion` | TEXT | Sí |  |  |
@@ -503,9 +507,12 @@ erDiagram
     integer id PK
     integer usuarioId
     varchar categoria
+    varchar titulo
     varchar mensaje
     date fecha
     boolean leida
+    varchar entidadRelacionada
+    varchar entidadId
     timestamptz createdAt
     timestamptz updatedAt
   }
@@ -520,9 +527,12 @@ Avisos para un usuario, con su categoría y si ya fueron leídos.
 | `id` | INTEGER | No | autoincremental | PK |
 | `usuarioId` | INTEGER | No |  |  |
 | `categoria` | VARCHAR(255) | No |  |  |
+| `titulo` | VARCHAR(255) | Sí |  |  |
 | `mensaje` | VARCHAR(255) | No |  |  |
 | `fecha` | DATE | No |  |  |
 | `leida` | BOOLEAN | No | false |  |
+| `entidadRelacionada` | VARCHAR(255) | Sí |  |  |
+| `entidadId` | VARCHAR(255) | Sí |  |  |
 | `createdAt` | TIMESTAMPTZ | No |  |  |
 | `updatedAt` | TIMESTAMPTZ | No |  |  |
 

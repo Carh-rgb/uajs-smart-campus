@@ -80,11 +80,11 @@ su registro padre.
 | `Users` + `Roles` (`role_id`) | `usuarios.rol` es un ENUM con los 4 roles de la guía (Estudiante, Docente, Administrativo, Administrador del sistema). Los módulos que ve cada rol están en `permisos`. | Los roles son fijos (no se crean desde la aplicación) y el ENUM garantiza que solo existan esos valores, sin un join. Lo administrable (los módulos de cada rol) sí está en una tabla. |
 | `Users.status` | `usuarios.activo` (BOOLEAN) | Solo hay dos estados: activo o inactivo. |
 | `Users.password` | `usuarios.passwordHash` | Solo se guarda el hash bcrypt; nunca la contraseña. |
-| `Resources.code`, `.id` | `recursos.codigo` es la llave primaria (`REC-001`) | El código ya es único y es lo que ve el usuario; un id numérico extra no aporta. |
+| `Resources.code`, `.id`, `description` | `recursos.codigo` es la llave primaria (`REC-001`); `recursos.descripcion` | El código ya es único y es lo que ve el usuario; un id numérico extra no aporta. |
 | `Requests.code`, `service_type`, `department`, `assigned_to` | `solicitudes.id` (`SOL-0301`), `tipo`, `dependencia`, `asignadoA` | Mismos datos con nombres en español. |
-| `Reservations.resource_id`, `start_at`, `end_at` | `tipoEspacio` + `espacio`, y `fecha` + `horaInicio` + `horaFin` | Una reserva puede ser de un salón, una sala especial, una sala de biblioteca o un equipo (4 tablas distintas), así que se guarda el tipo y el identificador del espacio. La validación de que el espacio exista va en la tarea E2-21. |
-| `events.start_time`, `end_time` | `eventos.hora` | Falta la hora de fin: tarea E2-30. |
-| `notifications.title`, `type`, `related_entity`, `related_id` | `notificaciones.categoria`, `mensaje` | Faltan título y entidad relacionada: tarea E2-31. |
+| `Reservations.resource_id`, `start_at`, `end_at` | `tipoEspacio` + `espacio`, y `fecha` + `horaInicio` + `horaFin` | Una reserva puede ser de un salón, una sala especial, una sala de biblioteca o un equipo (4 tablas distintas), así que se guarda el tipo y el nombre del espacio. reservas-service valida que exista antes de guardar y, para equipos, consulta a recursos-service las unidades disponibles. |
+| `events.start_time`, `end_time` | `eventos.hora`, `eventos.horaFin` | Mismos datos. `horaFin` admite nulos en la base solo por compatibilidad con registros anteriores; la API la exige y valida que sea posterior a `hora`. |
+| `notifications.title`, `type`, `related_entity`, `related_id` | `titulo`, `categoria`, `entidadRelacionada`, `entidadId` | `categoria` cumple el papel de tipo (Solicitudes, PQRS, Reservas, Eventos, Institucional). `titulo` admite nulos solo por compatibilidad; la API lo exige. |
 
 Las validaciones de reglas de negocio (transiciones de estado, choques de
 horario, formatos) se hacen en el backend de cada servicio antes de guardar;

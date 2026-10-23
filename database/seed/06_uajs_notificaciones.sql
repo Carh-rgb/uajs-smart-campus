@@ -19,10 +19,10 @@ SET row_security = off;
 -- Data for Name: notificaciones; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-INSERT INTO public.notificaciones (id, "usuarioId", categoria, mensaje, fecha, leida, "createdAt", "updatedAt") VALUES (1, 1, 'Solicitudes', 'Tu solicitud SOL-0229 cambió a estado Asignada.', '2026-08-20', false, '2026-10-21 15:44:26.502-05', '2026-10-21 15:44:26.502-05');
-INSERT INTO public.notificaciones (id, "usuarioId", categoria, mensaje, fecha, leida, "createdAt", "updatedAt") VALUES (2, 1, 'Reservas', 'Reserva aprobada para Salón B05 el 19 de agosto.', '2026-08-18', false, '2026-10-21 15:44:26.502-05', '2026-10-21 15:44:26.502-05');
-INSERT INTO public.notificaciones (id, "usuarioId", categoria, mensaje, fecha, leida, "createdAt", "updatedAt") VALUES (3, 1, 'Institucional', 'Recuerda inscribirte a la Semana de la Ingeniería.', '2026-08-17', true, '2026-10-21 15:44:26.502-05', '2026-10-21 15:44:26.502-05');
-INSERT INTO public.notificaciones (id, "usuarioId", categoria, mensaje, fecha, leida, "createdAt", "updatedAt") VALUES (4, 1, 'Solicitudes', 'Tu solicitud SOL-0214 fue resuelta.', '2026-08-11', true, '2026-10-21 15:44:26.502-05', '2026-10-21 15:44:26.502-05');
+INSERT INTO public.notificaciones (id, "usuarioId", categoria, titulo, mensaje, fecha, leida, "entidadRelacionada", "entidadId", "createdAt", "updatedAt") VALUES (1, 1, 'Solicitudes', 'Solicitud actualizada', 'Tu solicitud SOL-0229 cambió a estado Asignada.', '2026-08-20', false, NULL, NULL, '2026-10-23 16:00:45.84-05', '2026-10-23 16:00:45.84-05');
+INSERT INTO public.notificaciones (id, "usuarioId", categoria, titulo, mensaje, fecha, leida, "entidadRelacionada", "entidadId", "createdAt", "updatedAt") VALUES (2, 1, 'Reservas', 'Reserva confirmada', 'Reserva aprobada para Salón B05 el 19 de agosto.', '2026-08-18', false, NULL, NULL, '2026-10-23 16:00:45.84-05', '2026-10-23 16:00:45.84-05');
+INSERT INTO public.notificaciones (id, "usuarioId", categoria, titulo, mensaje, fecha, leida, "entidadRelacionada", "entidadId", "createdAt", "updatedAt") VALUES (3, 1, 'Institucional', 'Semana de la Ingeniería', 'Recuerda inscribirte a la Semana de la Ingeniería.', '2026-08-17', true, NULL, NULL, '2026-10-23 16:00:45.84-05', '2026-10-23 16:00:45.84-05');
+INSERT INTO public.notificaciones (id, "usuarioId", categoria, titulo, mensaje, fecha, leida, "entidadRelacionada", "entidadId", "createdAt", "updatedAt") VALUES (4, 1, 'Solicitudes', 'Solicitud resuelta', 'Tu solicitud SOL-0214 fue resuelta.', '2026-08-11', true, NULL, NULL, '2026-10-23 16:00:45.84-05', '2026-10-23 16:00:45.84-05');
 
 
 --

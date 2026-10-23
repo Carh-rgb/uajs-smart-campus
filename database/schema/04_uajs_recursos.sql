@@ -39,6 +39,7 @@ CREATE TABLE public.recursos (
     nombre character varying(255) NOT NULL,
     tipo character varying(255) NOT NULL,
     ubicacion character varying(255) NOT NULL,
+    descripcion text,
     estado public.enum_recursos_estado DEFAULT 'Disponible'::public.enum_recursos_estado NOT NULL,
     "createdAt" timestamp with time zone NOT NULL,
     "updatedAt" timestamp with time zone NOT NULL

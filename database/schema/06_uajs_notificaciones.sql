@@ -27,9 +27,12 @@ CREATE TABLE public.notificaciones (
     id integer NOT NULL,
     "usuarioId" integer NOT NULL,
     categoria character varying(255) NOT NULL,
+    titulo character varying(255),
     mensaje character varying(255) NOT NULL,
     fecha date NOT NULL,
     leida boolean DEFAULT false NOT NULL,
+    "entidadRelacionada" character varying(255),
+    "entidadId" character varying(255),
     "createdAt" timestamp with time zone NOT NULL,
     "updatedAt" timestamp with time zone NOT NULL
 );

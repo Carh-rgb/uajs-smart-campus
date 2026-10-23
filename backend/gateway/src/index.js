@@ -107,7 +107,11 @@ for (const { prefijo, destino } of rutas) {
           console.error(`[gateway] error de proxy hacia ${destino} (${prefijo}):`, err.message)
           if (!res.headersSent) {
             res.status(502).json({
-              error: `El servicio detras de ${prefijo} no esta disponible en este momento.`,
+              success: false,
+              error: {
+                code: 'SERVICE_UNAVAILABLE',
+                message: `El servicio detras de ${prefijo} no esta disponible en este momento.`,
+              },
             })
           }
         },
@@ -164,7 +168,10 @@ app.get('/health', async (req, res) => {
 // arriba (ej. un typo) cae aqui en vez de devolver el HTML por defecto de
 // Express o quedarse sin respuesta.
 app.use('/api', (req, res) => {
-  res.status(404).json({ error: `Ruta no reconocida: ${req.originalUrl}` })
+  res.status(404).json({
+    success: false,
+    error: { code: 'ROUTE_NOT_FOUND', message: `Ruta no reconocida: ${req.originalUrl}` },
+  })
 })
 
 // Manejador de errores general. Cualquier excepcion sincrona lanzada en un
@@ -172,7 +179,7 @@ app.use('/api', (req, res) => {
 // termina aqui en vez de tumbar el proceso.
 app.use((err, req, res, next) => {
   console.error('[gateway] error no manejado:', err)
-  res.status(500).json({ error: 'Error interno del gateway.' })
+  res.status(500).json({ success: false, error: { code: 'INTERNAL_ERROR', message: 'Error interno del gateway.' } })
 })
 
 // Apagado ordenado: al recibir Ctrl+C (SIGINT) o una señal de terminacion

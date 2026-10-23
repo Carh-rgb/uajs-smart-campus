@@ -1,24 +1,27 @@
 import 'dotenv/config'
 import express from 'express'
+// Lleva los errores de los controladores async al manejador central en vez
+// de dejar la promesa rechazada (en Express 4 eso tumbaba el servicio).
+import 'express-async-errors'
 import cors from 'cors'
 import { sequelize } from './config/database.js'
 import { notificacionesRouter } from './routes/notificaciones.routes.js'
 import { seed } from './seed/seed.js'
+import { normalizarErrores, rutaNoEncontrada, manejadorDeErrores } from './middlewares/errores.js'
 
 const app = express()
 const PORT = process.env.PORT || 4006
 
 app.use(cors({ origin: process.env.FRONTEND_ORIGIN || 'http://localhost:5183' }))
+app.use(normalizarErrores)
 app.use(express.json())
 
 app.get('/health', (req, res) => res.json({ status: 'ok', service: 'notificaciones-service' }))
 
 app.use('/notificaciones', notificacionesRouter)
 
-app.use((err, req, res, next) => {
-  console.error('[notificaciones-service]', err)
-  res.status(500).json({ error: 'Error interno del servicio de notificaciones.' })
-})
+app.use(rutaNoEncontrada)
+app.use(manejadorDeErrores('notificaciones-service'))
 
 async function start() {
   await sequelize.authenticate()

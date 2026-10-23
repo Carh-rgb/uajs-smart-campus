@@ -25,7 +25,16 @@ async function request(method, path, body) {
   const data = contentType.includes('application/json') ? await res.json() : null
 
   if (!res.ok) {
-    throw new Error(data?.error || `Error ${res.status} al comunicarse con el servidor.`)
+    // Formato de error del backend: { success: false, error: { code, message } }.
+    // Se acepta tambien el formato viejo { error: 'texto' } por compatibilidad.
+    const mensaje =
+      data?.error?.message ||
+      (typeof data?.error === 'string' ? data.error : null) ||
+      `Error ${res.status} al comunicarse con el servidor.`
+    const error = new Error(mensaje)
+    error.status = res.status
+    error.code = data?.error?.code || null
+    throw error
   }
 
   return data

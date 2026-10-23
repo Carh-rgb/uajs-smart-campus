@@ -183,7 +183,7 @@ export default function Solicitudes() {
                   value={form.dependencia}
                   onChange={(e) => setForm({ ...form, dependencia: e.target.value })}
                 >
-                  {dependencias.map((d) => (
+                  {dependencias.filter((d) => d !== 'Sin asignar').map((d) => (
                     <option key={d}>{d}</option>
                   ))}
                 </select>

@@ -47,6 +47,16 @@ export const estadosSolicitud = [
   'Cerrada',
 ]
 
+// Transiciones permitidas (las mismas que valida solicitudes-service, E2-12).
+export const transicionesSolicitud = {
+  Registrada: ['En revisión'],
+  'En revisión': ['Asignada'],
+  Asignada: ['En proceso'],
+  'En proceso': ['Resuelta'],
+  Resuelta: ['Cerrada'],
+  Cerrada: [],
+}
+
 export const tiposSolicitud = [
   'Certificado académico',
   'Cambio de horario',
@@ -97,6 +107,13 @@ export const facultadesEventos = [
 export const estadosEvento = ['Activo', 'Inactivo', 'Cancelado']
 
 export const estadosReserva = ['Pendiente', 'Confirmada', 'Cancelada', 'Denegada']
+// Transiciones permitidas (las mismas que valida reservas-service, E2-22).
+export const transicionesReserva = {
+  Pendiente: ['Confirmada', 'Denegada', 'Cancelada'],
+  Confirmada: ['Cancelada'],
+  Denegada: [],
+  Cancelada: [],
+}
 
 export const reservasIniciales = [
   { id: 'RES-0118', tipoEspacio: 'espacio', espacio: 'Salón B05', fecha: '2026-08-19', horaInicio: '08:00', horaFin: '10:00', motivo: 'Clase de Bases de Datos', estado: 'Confirmada', solicitante: 'Laura Pérez', rolSolicitante: 'Docente', historial: [{ estado: 'Pendiente', fecha: '2026-08-17', por: 'Laura Pérez' }, { estado: 'Confirmada', fecha: '2026-08-17', por: 'Andrés Gómez' }] },

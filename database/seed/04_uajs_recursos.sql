@@ -19,9 +19,9 @@ SET row_security = off;
 -- Data for Name: recursos; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-INSERT INTO public.recursos (codigo, nombre, tipo, ubicacion, estado, "createdAt", "updatedAt") VALUES ('REC-001', 'Videobeam Epson X400', 'Audiovisual', 'Almacén Pabellón A', 'Disponible', '2026-10-21 15:44:26.599-05', '2026-10-21 15:44:26.599-05');
-INSERT INTO public.recursos (codigo, nombre, tipo, ubicacion, estado, "createdAt", "updatedAt") VALUES ('REC-014', 'Portátil Dell Latitude', 'Equipo de cómputo', 'Sala S03', 'En mantenimiento', '2026-10-21 15:44:26.599-05', '2026-10-21 15:44:26.599-05');
-INSERT INTO public.recursos (codigo, nombre, tipo, ubicacion, estado, "createdAt", "updatedAt") VALUES ('REC-031', 'Amplificador portátil', 'Audiovisual', 'Sala S01', 'Disponible', '2026-10-21 15:44:26.599-05', '2026-10-21 15:44:26.599-05');
+INSERT INTO public.recursos (codigo, nombre, tipo, ubicacion, descripcion, estado, "createdAt", "updatedAt") VALUES ('REC-001', 'Videobeam Epson X400', 'Audiovisual', 'Almacén Pabellón A', NULL, 'Disponible', '2026-10-23 16:00:45.978-05', '2026-10-23 16:00:45.978-05');
+INSERT INTO public.recursos (codigo, nombre, tipo, ubicacion, descripcion, estado, "createdAt", "updatedAt") VALUES ('REC-014', 'Portátil Dell Latitude', 'Equipo de cómputo', 'Sala S03', NULL, 'En mantenimiento', '2026-10-23 16:00:45.978-05', '2026-10-23 16:00:45.978-05');
+INSERT INTO public.recursos (codigo, nombre, tipo, ubicacion, descripcion, estado, "createdAt", "updatedAt") VALUES ('REC-031', 'Amplificador portátil', 'Audiovisual', 'Sala S01', NULL, 'Disponible', '2026-10-23 16:00:45.978-05', '2026-10-23 16:00:45.978-05');
 
 
 --

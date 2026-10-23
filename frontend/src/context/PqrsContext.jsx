@@ -9,7 +9,10 @@ export function PqrsProvider({ children }) {
   const [pqrs, setPqrs] = useState([])
   const [cargando, setCargando] = useState(true)
   const { user } = useAuth()
-  const { agregarNotificacion } = useNotifications()
+  const { recargarNotificaciones } = useNotifications()
+  // Las notificaciones las genera el backend (E2-32); aqui solo se refresca
+  // la campana un momento despues para mostrar las del propio usuario.
+  const refrescarAvisos = () => setTimeout(recargarNotificaciones, 800)
 
   const cargar = useCallback(async () => {
     if (!user) {
@@ -35,18 +38,13 @@ export function PqrsProvider({ children }) {
   const radicar = async ({ tipo, dirigidoA, asunto, descripcion, adjunto }) => {
     const nueva = await api.post('/pqrs', { tipo, dirigidoA, asunto, descripcion, adjunto })
     setPqrs((prev) => [nueva, ...prev])
-    agregarNotificacion('PQRS', `Se radicó ${nueva.id}: ${asunto}.`, nueva.solicitanteId)
+    refrescarAvisos()
     return nueva
   }
 
   const responder = async (id, { respuesta, adjunto, estado }) => {
     const actualizada = await api.patch(`/pqrs/${id}/responder`, { respuesta, adjunto, estado })
     setPqrs((prev) => prev.map((p) => (p.id === id ? actualizada : p)))
-    agregarNotificacion(
-      'PQRS',
-      `Tu PQRS ${id} fue marcada como ${actualizada.estado.toLowerCase()}.`,
-      actualizada.solicitanteId,
-    )
     return actualizada
   }
 

@@ -6,7 +6,7 @@ import LoadingButton from '../components/LoadingButton.jsx'
 import { BrandSpinner, ButtonSpinner } from '../components/BrandSpinner.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useReservas } from '../context/ReservasContext.jsx'
-import { estadosReserva } from '../data/mockData.js'
+import { transicionesReserva } from '../data/mockData.js'
 import { useHighlightRow } from '../hooks/useHighlightRow.js'
 
 const PESTANAS_DOCENTE = ['Pabellones / Salones', 'Salas especiales', 'Salas de biblioteca', 'Laboratorios y equipos']
@@ -100,7 +100,7 @@ function FormularioReserva({ user, catalogo, onCrear }) {
   return (
     <div className="panel">
       <h3 className="panel__title">Formulario de reserva</h3>
-      {error && <p style={{ fontSize: 12.5, color: 'var(--color-danger)', marginBottom: 14 }}>{error}</p>}
+      {error && <p role="alert" style={{ fontSize: 12.5, color: 'var(--color-danger)', marginBottom: 14 }}>{error}</p>}
 
       {pestanas.length > 1 && (
         <div className="toolbar">
@@ -298,6 +298,68 @@ function StockEquipos({ equipos, subtitulo }) {
   )
 }
 
+// E2-41: modificar fecha, horas o motivo de una reserva Pendiente. El
+// backend revalida la franja y responde 409 si choca con otra reserva.
+function ModificarReservaModal({ reserva, onClose, onGuardar }) {
+  const [form, setForm] = useState({
+    fecha: reserva.fecha,
+    horaInicio: reserva.horaInicio,
+    horaFin: reserva.horaFin,
+    motivo: reserva.motivo,
+  })
+  const [guardando, setGuardando] = useState(false)
+  const [error, setError] = useState('')
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    if (form.horaFin <= form.horaInicio) {
+      setError('La hora de fin debe ser posterior a la hora de inicio.')
+      return
+    }
+    setGuardando(true)
+    setError('')
+    try {
+      await onGuardar(reserva.id, form)
+      onClose()
+    } catch (err) {
+      setError(err.message || 'No se pudo modificar la reserva.')
+    } finally {
+      setGuardando(false)
+    }
+  }
+
+  return (
+    <Modal title={`Modificar ${reserva.id} — ${reserva.espacio}`} onClose={onClose}>
+      <form onSubmit={handleSubmit}>
+        {error && (
+          <p role="alert" style={{ fontSize: 12.5, color: 'var(--color-danger)', marginBottom: 12 }}>{error}</p>
+        )}
+        <div className="field-grid">
+          <div className="field">
+            <label className="field__label">Fecha</label>
+            <input className="field__input" type="date" required value={form.fecha} onChange={(e) => setForm({ ...form, fecha: e.target.value })} />
+          </div>
+          <div className="field">
+            <label className="field__label">Hora de inicio</label>
+            <input className="field__input" type="time" required value={form.horaInicio} onChange={(e) => setForm({ ...form, horaInicio: e.target.value })} />
+          </div>
+          <div className="field">
+            <label className="field__label">Hora de fin</label>
+            <input className="field__input" type="time" required value={form.horaFin} onChange={(e) => setForm({ ...form, horaFin: e.target.value })} />
+          </div>
+        </div>
+        <div className="field">
+          <label className="field__label">Motivo</label>
+          <input className="field__input" required value={form.motivo} onChange={(e) => setForm({ ...form, motivo: e.target.value })} />
+        </div>
+        <LoadingButton type="submit" className="btn btn--primary" loading={guardando} loadingText="Guardando...">
+          Guardar cambios
+        </LoadingButton>
+      </form>
+    </Modal>
+  )
+}
+
 function GestionReservas({ reservas, actualizarEstado, onVerHistorial, cargandoHistorialId, onEliminar, highlightId }) {
   const [errorEstado, setErrorEstado] = useState('')
 
@@ -347,7 +409,7 @@ function GestionReservas({ reservas, actualizarEstado, onVerHistorial, cargandoH
                   value={r.estado}
                   onChange={(e) => handleCambiarEstado(r.id, e.target.value)}
                 >
-                  {estadosReserva.map((estado) => (
+                  {[r.estado, ...(transicionesReserva[r.estado] || [])].map((estado) => (
                     <option key={estado} value={estado}>{estado}</option>
                   ))}
                 </select>
@@ -394,6 +456,7 @@ export default function Reservas() {
     cargando,
     actualizarEstado,
     crearReserva,
+    modificarReserva,
     obtenerHistorial,
     eliminarReserva,
     recargar,
@@ -403,6 +466,7 @@ export default function Reservas() {
   const [historial, setHistorial] = useState([])
   const [cargandoHistorialId, setCargandoHistorialId] = useState(null)
   const [reservaAEliminar, setReservaAEliminar] = useState(null)
+  const [reservaAModificar, setReservaAModificar] = useState(null)
   const [eliminando, setEliminando] = useState(false)
   const highlightId = useHighlightRow()
 
@@ -511,13 +575,22 @@ export default function Reservas() {
                         Historial
                       </button>
                       {r.estado === 'Pendiente' && (
-                        <button
-                          className="btn btn--sm"
-                          style={{ width: 'auto', background: 'transparent', border: '1px solid var(--color-danger)', color: 'var(--color-danger)' }}
-                          onClick={() => setReservaAEliminar(r)}
-                        >
-                          Eliminar
-                        </button>
+                        <>
+                          <button
+                            className="btn btn--sm"
+                            style={{ width: 'auto', background: 'transparent', border: '1px solid var(--color-border)', color: 'var(--color-text-accent)', marginRight: 6 }}
+                            onClick={() => setReservaAModificar(r)}
+                          >
+                            Modificar
+                          </button>
+                          <button
+                            className="btn btn--sm"
+                            style={{ width: 'auto', background: 'transparent', border: '1px solid var(--color-danger)', color: 'var(--color-danger)' }}
+                            onClick={() => setReservaAEliminar(r)}
+                          >
+                            Eliminar
+                          </button>
+                        </>
                       )}
                     </td>
                   </tr>
@@ -547,6 +620,14 @@ export default function Reservas() {
             ))}
           </div>
         </Modal>
+      )}
+
+      {reservaAModificar && (
+        <ModificarReservaModal
+          reserva={reservaAModificar}
+          onClose={() => setReservaAModificar(null)}
+          onGuardar={modificarReserva}
+        />
       )}
 
       {reservaAEliminar && (

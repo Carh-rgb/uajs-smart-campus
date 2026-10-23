@@ -8,7 +8,7 @@ const RESERVAS_SERVICE_URL = process.env.RESERVAS_SERVICE_URL || 'http://localho
 // usuario). No representa a ningun usuario real.
 function firmarTokenServicio() {
   return jwt.sign(
-    { id: 0, nombre: 'recursos-service', rol: 'Administrador del sistema' },
+    { id: 0, nombre: 'recursos-service', rol: 'Administrador del sistema', servicio: true },
     process.env.JWT_SECRET,
     { expiresIn: '1m' },
   )

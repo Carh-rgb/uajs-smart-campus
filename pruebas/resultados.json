@@ -1,0 +1,1481 @@
+{
+  "fecha": "2026-10-23 15:59 (hora de Colombia)",
+  "casos": [
+    {
+      "corrida": "corrida1",
+      "carpeta": "01 · Recursos (CRUD)",
+      "nombre": "[T01] Listar recursos",
+      "metodo": "GET",
+      "ruta": "/api/recursos",
+      "status": 200,
+      "tiempo_ms": 10,
+      "aserciones": [
+        {
+          "nombre": "HTTP 200",
+          "ok": true
+        },
+        {
+          "nombre": "Devuelve una coleccion",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "01 · Recursos (CRUD)",
+      "nombre": "[T02] Crear recurso válido",
+      "metodo": "POST",
+      "ruta": "/api/recursos",
+      "status": 201,
+      "tiempo_ms": 66,
+      "aserciones": [
+        {
+          "nombre": "HTTP 201",
+          "ok": true
+        },
+        {
+          "nombre": "Queda Disponible y con codigo",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "01 · Recursos (CRUD)",
+      "nombre": "[T03] Crear recurso sin nombre",
+      "metodo": "POST",
+      "ruta": "/api/recursos",
+      "status": 400,
+      "tiempo_ms": 20,
+      "aserciones": [
+        {
+          "nombre": "HTTP 400",
+          "ok": true
+        },
+        {
+          "nombre": "Formato de error unico",
+          "ok": true
+        },
+        {
+          "nombre": "error.code = VALIDATION_ERROR",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "01 · Recursos (CRUD)",
+      "nombre": "Crear recurso con tipo inválido",
+      "metodo": "POST",
+      "ruta": "/api/recursos",
+      "status": 400,
+      "tiempo_ms": 9,
+      "aserciones": [
+        {
+          "nombre": "HTTP 400",
+          "ok": true
+        },
+        {
+          "nombre": "Formato de error unico",
+          "ok": true
+        },
+        {
+          "nombre": "error.code = VALIDATION_ERROR",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "01 · Recursos (CRUD)",
+      "nombre": "[T04] Consultar recurso existente",
+      "metodo": "GET",
+      "ruta": "/api/recursos/REC-032",
+      "status": 200,
+      "tiempo_ms": 10,
+      "aserciones": [
+        {
+          "nombre": "HTTP 200",
+          "ok": true
+        },
+        {
+          "nombre": "Datos correctos",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "01 · Recursos (CRUD)",
+      "nombre": "[T05] Consultar recurso inexistente",
+      "metodo": "GET",
+      "ruta": "/api/recursos/REC-999",
+      "status": 404,
+      "tiempo_ms": 6,
+      "aserciones": [
+        {
+          "nombre": "HTTP 404",
+          "ok": true
+        },
+        {
+          "nombre": "Formato de error unico",
+          "ok": true
+        },
+        {
+          "nombre": "error.code = RESOURCE_NOT_FOUND",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "01 · Recursos (CRUD)",
+      "nombre": "[T06] Actualizar ubicación",
+      "metodo": "PATCH",
+      "ruta": "/api/recursos/REC-032",
+      "status": 200,
+      "tiempo_ms": 11,
+      "aserciones": [
+        {
+          "nombre": "HTTP 200",
+          "ok": true
+        },
+        {
+          "nombre": "Cambio persistido",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "01 · Recursos (CRUD)",
+      "nombre": "Cambiar estado a uno inválido",
+      "metodo": "PATCH",
+      "ruta": "/api/recursos/REC-032/estado",
+      "status": 400,
+      "tiempo_ms": 8,
+      "aserciones": [
+        {
+          "nombre": "HTTP 400",
+          "ok": true
+        },
+        {
+          "nombre": "Formato de error unico",
+          "ok": true
+        },
+        {
+          "nombre": "error.code = VALIDATION_ERROR",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "01 · Recursos (CRUD)",
+      "nombre": "Cambiar estado a En mantenimiento",
+      "metodo": "PATCH",
+      "ruta": "/api/recursos/REC-032/estado",
+      "status": 200,
+      "tiempo_ms": 22,
+      "aserciones": [
+        {
+          "nombre": "HTTP 200",
+          "ok": true
+        },
+        {
+          "nombre": "Estado nuevo",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "01 · Recursos (CRUD)",
+      "nombre": "[T07] Eliminar recurso",
+      "metodo": "DELETE",
+      "ruta": "/api/recursos/REC-032",
+      "status": 204,
+      "tiempo_ms": 13,
+      "aserciones": [
+        {
+          "nombre": "HTTP 204",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "01 · Recursos (CRUD)",
+      "nombre": "Estudiante intenta crear recurso",
+      "metodo": "POST",
+      "ruta": "/api/recursos",
+      "status": 403,
+      "tiempo_ms": 5,
+      "aserciones": [
+        {
+          "nombre": "HTTP 403",
+          "ok": true
+        },
+        {
+          "nombre": "Formato de error unico",
+          "ok": true
+        },
+        {
+          "nombre": "error.code = FORBIDDEN",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "02 · Solicitudes (ciclo de vida)",
+      "nombre": "[T08] Crear solicitud válida",
+      "metodo": "POST",
+      "ruta": "/api/solicitudes",
+      "status": 201,
+      "tiempo_ms": 54,
+      "aserciones": [
+        {
+          "nombre": "HTTP 201",
+          "ok": true
+        },
+        {
+          "nombre": "Estado inicial Registrada",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "02 · Solicitudes (ciclo de vida)",
+      "nombre": "Crear solicitud con tipo inválido",
+      "metodo": "POST",
+      "ruta": "/api/solicitudes",
+      "status": 400,
+      "tiempo_ms": 14,
+      "aserciones": [
+        {
+          "nombre": "HTTP 400",
+          "ok": true
+        },
+        {
+          "nombre": "Formato de error unico",
+          "ok": true
+        },
+        {
+          "nombre": "error.code = VALIDATION_ERROR",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "02 · Solicitudes (ciclo de vida)",
+      "nombre": "[T09] Transición inválida Registrada → Cerrada",
+      "metodo": "PATCH",
+      "ruta": "/api/solicitudes/SOL-0232/responder",
+      "status": 409,
+      "tiempo_ms": 15,
+      "aserciones": [
+        {
+          "nombre": "HTTP 409",
+          "ok": true
+        },
+        {
+          "nombre": "Formato de error unico",
+          "ok": true
+        },
+        {
+          "nombre": "error.code = INVALID_TRANSITION",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "02 · Solicitudes (ciclo de vida)",
+      "nombre": "Verificar que el estado no cambió",
+      "metodo": "GET",
+      "ruta": "/api/solicitudes/SOL-0232",
+      "status": 200,
+      "tiempo_ms": 8,
+      "aserciones": [
+        {
+          "nombre": "HTTP 200",
+          "ok": true
+        },
+        {
+          "nombre": "Sigue Registrada",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "02 · Solicitudes (ciclo de vida)",
+      "nombre": "Registrada → En revisión",
+      "metodo": "PATCH",
+      "ruta": "/api/solicitudes/SOL-0232/responder",
+      "status": 200,
+      "tiempo_ms": 15,
+      "aserciones": [
+        {
+          "nombre": "HTTP 200",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "02 · Solicitudes (ciclo de vida)",
+      "nombre": "En revisión → Asignada sin responsable",
+      "metodo": "PATCH",
+      "ruta": "/api/solicitudes/SOL-0232/responder",
+      "status": 400,
+      "tiempo_ms": 13,
+      "aserciones": [
+        {
+          "nombre": "HTTP 400",
+          "ok": true
+        },
+        {
+          "nombre": "Formato de error unico",
+          "ok": true
+        },
+        {
+          "nombre": "error.code = VALIDATION_ERROR",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "02 · Solicitudes (ciclo de vida)",
+      "nombre": "En revisión → Asignada con responsable",
+      "metodo": "PATCH",
+      "ruta": "/api/solicitudes/SOL-0232/responder",
+      "status": 200,
+      "tiempo_ms": 14,
+      "aserciones": [
+        {
+          "nombre": "HTTP 200",
+          "ok": true
+        },
+        {
+          "nombre": "Asignada a Laura",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "02 · Solicitudes (ciclo de vida)",
+      "nombre": "Retroceso Asignada → Registrada",
+      "metodo": "PATCH",
+      "ruta": "/api/solicitudes/SOL-0232/responder",
+      "status": 409,
+      "tiempo_ms": 7,
+      "aserciones": [
+        {
+          "nombre": "HTTP 409",
+          "ok": true
+        },
+        {
+          "nombre": "Formato de error unico",
+          "ok": true
+        },
+        {
+          "nombre": "error.code = INVALID_TRANSITION",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "02 · Solicitudes (ciclo de vida)",
+      "nombre": "Asignada → En proceso",
+      "metodo": "PATCH",
+      "ruta": "/api/solicitudes/SOL-0232/responder",
+      "status": 200,
+      "tiempo_ms": 14,
+      "aserciones": [
+        {
+          "nombre": "HTTP 200",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "02 · Solicitudes (ciclo de vida)",
+      "nombre": "En proceso → Resuelta",
+      "metodo": "PATCH",
+      "ruta": "/api/solicitudes/SOL-0232/responder",
+      "status": 200,
+      "tiempo_ms": 11,
+      "aserciones": [
+        {
+          "nombre": "HTTP 200",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "02 · Solicitudes (ciclo de vida)",
+      "nombre": "Resuelta → Cerrada",
+      "metodo": "PATCH",
+      "ruta": "/api/solicitudes/SOL-0232/responder",
+      "status": 200,
+      "tiempo_ms": 8,
+      "aserciones": [
+        {
+          "nombre": "HTTP 200",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "02 · Solicitudes (ciclo de vida)",
+      "nombre": "Detalle con historial completo",
+      "metodo": "GET",
+      "ruta": "/api/solicitudes/SOL-0232",
+      "status": 200,
+      "tiempo_ms": 6,
+      "aserciones": [
+        {
+          "nombre": "HTTP 200",
+          "ok": true
+        },
+        {
+          "nombre": "Historial con los 6 estados en orden",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "02 · Solicitudes (ciclo de vida)",
+      "nombre": "Docente intenta ver la solicitud del estudiante",
+      "metodo": "GET",
+      "ruta": "/api/solicitudes/SOL-0232",
+      "status": 403,
+      "tiempo_ms": 4,
+      "aserciones": [
+        {
+          "nombre": "HTTP 403",
+          "ok": true
+        },
+        {
+          "nombre": "Formato de error unico",
+          "ok": true
+        },
+        {
+          "nombre": "error.code = FORBIDDEN",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "02 · Solicitudes (ciclo de vida)",
+      "nombre": "Solicitud inexistente",
+      "metodo": "GET",
+      "ruta": "/api/solicitudes/SOL-9999",
+      "status": 404,
+      "tiempo_ms": 5,
+      "aserciones": [
+        {
+          "nombre": "HTTP 404",
+          "ok": true
+        },
+        {
+          "nombre": "Formato de error unico",
+          "ok": true
+        },
+        {
+          "nombre": "error.code = REQUEST_NOT_FOUND",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "03 · Reservas (reglas de negocio)",
+      "nombre": "[T10] Crear reserva válida",
+      "metodo": "POST",
+      "ruta": "/api/reservas",
+      "status": 201,
+      "tiempo_ms": 55,
+      "aserciones": [
+        {
+          "nombre": "HTTP 201",
+          "ok": true
+        },
+        {
+          "nombre": "Queda Pendiente",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "03 · Reservas (reglas de negocio)",
+      "nombre": "[T11] Reserva solapada en el mismo espacio",
+      "metodo": "POST",
+      "ruta": "/api/reservas",
+      "status": 409,
+      "tiempo_ms": 10,
+      "aserciones": [
+        {
+          "nombre": "HTTP 409",
+          "ok": true
+        },
+        {
+          "nombre": "Formato de error unico",
+          "ok": true
+        },
+        {
+          "nombre": "error.code = RESERVATION_CONFLICT",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "03 · Reservas (reglas de negocio)",
+      "nombre": "Franja contigua sí se permite",
+      "metodo": "POST",
+      "ruta": "/api/reservas",
+      "status": 201,
+      "tiempo_ms": 14,
+      "aserciones": [
+        {
+          "nombre": "HTTP 201",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "03 · Reservas (reglas de negocio)",
+      "nombre": "Hora de fin antes del inicio",
+      "metodo": "POST",
+      "ruta": "/api/reservas",
+      "status": 400,
+      "tiempo_ms": 4,
+      "aserciones": [
+        {
+          "nombre": "HTTP 400",
+          "ok": true
+        },
+        {
+          "nombre": "Formato de error unico",
+          "ok": true
+        },
+        {
+          "nombre": "error.code = VALIDATION_ERROR",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "03 · Reservas (reglas de negocio)",
+      "nombre": "Fecha pasada",
+      "metodo": "POST",
+      "ruta": "/api/reservas",
+      "status": 400,
+      "tiempo_ms": 6,
+      "aserciones": [
+        {
+          "nombre": "HTTP 400",
+          "ok": true
+        },
+        {
+          "nombre": "Formato de error unico",
+          "ok": true
+        },
+        {
+          "nombre": "error.code = VALIDATION_ERROR",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "03 · Reservas (reglas de negocio)",
+      "nombre": "Espacio inexistente",
+      "metodo": "POST",
+      "ruta": "/api/reservas",
+      "status": 400,
+      "tiempo_ms": 10,
+      "aserciones": [
+        {
+          "nombre": "HTTP 400",
+          "ok": true
+        },
+        {
+          "nombre": "Formato de error unico",
+          "ok": true
+        },
+        {
+          "nombre": "error.code = SPACE_NOT_FOUND",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "03 · Reservas (reglas de negocio)",
+      "nombre": "Reserva de equipo (consulta recursos-service)",
+      "metodo": "POST",
+      "ruta": "/api/reservas",
+      "status": 201,
+      "tiempo_ms": 23,
+      "aserciones": [
+        {
+          "nombre": "HTTP 201",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "03 · Reservas (reglas de negocio)",
+      "nombre": "Modificar a una franja ocupada",
+      "metodo": "PATCH",
+      "ruta": "/api/reservas/RES-0131",
+      "status": 409,
+      "tiempo_ms": 7,
+      "aserciones": [
+        {
+          "nombre": "HTTP 409",
+          "ok": true
+        },
+        {
+          "nombre": "Formato de error unico",
+          "ok": true
+        },
+        {
+          "nombre": "error.code = RESERVATION_CONFLICT",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "03 · Reservas (reglas de negocio)",
+      "nombre": "Modificar a otra fecha libre",
+      "metodo": "PATCH",
+      "ruta": "/api/reservas/RES-0131",
+      "status": 200,
+      "tiempo_ms": 12,
+      "aserciones": [
+        {
+          "nombre": "HTTP 200",
+          "ok": true
+        },
+        {
+          "nombre": "Fecha nueva",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "03 · Reservas (reglas de negocio)",
+      "nombre": "Otro usuario consulta la reserva",
+      "metodo": "GET",
+      "ruta": "/api/reservas/RES-0131",
+      "status": 403,
+      "tiempo_ms": 4,
+      "aserciones": [
+        {
+          "nombre": "HTTP 403",
+          "ok": true
+        },
+        {
+          "nombre": "Formato de error unico",
+          "ok": true
+        },
+        {
+          "nombre": "error.code = FORBIDDEN",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "03 · Reservas (reglas de negocio)",
+      "nombre": "Confirmar reserva",
+      "metodo": "PATCH",
+      "ruta": "/api/reservas/RES-0131/estado",
+      "status": 200,
+      "tiempo_ms": 15,
+      "aserciones": [
+        {
+          "nombre": "HTTP 200",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "03 · Reservas (reglas de negocio)",
+      "nombre": "Confirmada → Pendiente (no permitido)",
+      "metodo": "PATCH",
+      "ruta": "/api/reservas/RES-0131/estado",
+      "status": 409,
+      "tiempo_ms": 5,
+      "aserciones": [
+        {
+          "nombre": "HTTP 409",
+          "ok": true
+        },
+        {
+          "nombre": "Formato de error unico",
+          "ok": true
+        },
+        {
+          "nombre": "error.code = INVALID_TRANSITION",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "03 · Reservas (reglas de negocio)",
+      "nombre": "Cancelar reserva",
+      "metodo": "PATCH",
+      "ruta": "/api/reservas/RES-0131/estado",
+      "status": 200,
+      "tiempo_ms": 9,
+      "aserciones": [
+        {
+          "nombre": "HTTP 200",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "03 · Reservas (reglas de negocio)",
+      "nombre": "Historial de la reserva",
+      "metodo": "GET",
+      "ruta": "/api/reservas/RES-0131/historial",
+      "status": 200,
+      "tiempo_ms": 6,
+      "aserciones": [
+        {
+          "nombre": "HTTP 200",
+          "ok": true
+        },
+        {
+          "nombre": "Pendiente → Confirmada → Cancelada",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "04 · Usuarios",
+      "nombre": "Registro público con rol Administrador queda Estudiante",
+      "metodo": "POST",
+      "ruta": "/api/auth/register",
+      "status": 201,
+      "tiempo_ms": 117,
+      "aserciones": [
+        {
+          "nombre": "HTTP 201",
+          "ok": true
+        },
+        {
+          "nombre": "Rol forzado a Estudiante",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "04 · Usuarios",
+      "nombre": "Admin crea un Docente",
+      "metodo": "POST",
+      "ruta": "/api/usuarios",
+      "status": 201,
+      "tiempo_ms": 111,
+      "aserciones": [
+        {
+          "nombre": "HTTP 201",
+          "ok": true
+        },
+        {
+          "nombre": "No expone passwordHash",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "04 · Usuarios",
+      "nombre": "Admin crea con rol inválido",
+      "metodo": "POST",
+      "ruta": "/api/usuarios",
+      "status": 400,
+      "tiempo_ms": 5,
+      "aserciones": [
+        {
+          "nombre": "HTTP 400",
+          "ok": true
+        },
+        {
+          "nombre": "Formato de error unico",
+          "ok": true
+        },
+        {
+          "nombre": "error.code = INVALID_ROLE",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "04 · Usuarios",
+      "nombre": "Consultar usuario por ID",
+      "metodo": "GET",
+      "ruta": "/api/usuarios/6",
+      "status": 200,
+      "tiempo_ms": 7,
+      "aserciones": [
+        {
+          "nombre": "HTTP 200",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "04 · Usuarios",
+      "nombre": "Editar usuario",
+      "metodo": "PATCH",
+      "ruta": "/api/usuarios/6",
+      "status": 200,
+      "tiempo_ms": 11,
+      "aserciones": [
+        {
+          "nombre": "HTTP 200",
+          "ok": true
+        },
+        {
+          "nombre": "Nombre actualizado",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "04 · Usuarios",
+      "nombre": "Estudiante consulta otro usuario",
+      "metodo": "GET",
+      "ruta": "/api/usuarios/6",
+      "status": 403,
+      "tiempo_ms": 4,
+      "aserciones": [
+        {
+          "nombre": "HTTP 403",
+          "ok": true
+        },
+        {
+          "nombre": "Formato de error unico",
+          "ok": true
+        },
+        {
+          "nombre": "error.code = FORBIDDEN",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "04 · Usuarios",
+      "nombre": "Eliminar usuario",
+      "metodo": "DELETE",
+      "ruta": "/api/usuarios/6",
+      "status": 204,
+      "tiempo_ms": 11,
+      "aserciones": [
+        {
+          "nombre": "HTTP 204",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "05 · Eventos",
+      "nombre": "Crear evento",
+      "metodo": "POST",
+      "ruta": "/api/eventos",
+      "status": 201,
+      "tiempo_ms": 38,
+      "aserciones": [
+        {
+          "nombre": "HTTP 201",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "05 · Eventos",
+      "nombre": "Crear evento con hora de fin inválida",
+      "metodo": "POST",
+      "ruta": "/api/eventos",
+      "status": 400,
+      "tiempo_ms": 17,
+      "aserciones": [
+        {
+          "nombre": "HTTP 400",
+          "ok": true
+        },
+        {
+          "nombre": "Formato de error unico",
+          "ok": true
+        },
+        {
+          "nombre": "error.code = VALIDATION_ERROR",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "05 · Eventos",
+      "nombre": "Consultar evento por ID",
+      "metodo": "GET",
+      "ruta": "/api/eventos/4",
+      "status": 200,
+      "tiempo_ms": 10,
+      "aserciones": [
+        {
+          "nombre": "HTTP 200",
+          "ok": true
+        },
+        {
+          "nombre": "Incluye horaFin",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "05 · Eventos",
+      "nombre": "Editar evento",
+      "metodo": "PATCH",
+      "ruta": "/api/eventos/4",
+      "status": 200,
+      "tiempo_ms": 12,
+      "aserciones": [
+        {
+          "nombre": "HTTP 200",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "05 · Eventos",
+      "nombre": "Estudiante se inscribe",
+      "metodo": "POST",
+      "ruta": "/api/eventos/4/inscribir",
+      "status": 201,
+      "tiempo_ms": 12,
+      "aserciones": [
+        {
+          "nombre": "HTTP 201",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "05 · Eventos",
+      "nombre": "Inscripción duplicada",
+      "metodo": "POST",
+      "ruta": "/api/eventos/4/inscribir",
+      "status": 409,
+      "tiempo_ms": 8,
+      "aserciones": [
+        {
+          "nombre": "HTTP 409",
+          "ok": true
+        },
+        {
+          "nombre": "Formato de error unico",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "05 · Eventos",
+      "nombre": "Evento inexistente",
+      "metodo": "GET",
+      "ruta": "/api/eventos/99999",
+      "status": 404,
+      "tiempo_ms": 11,
+      "aserciones": [
+        {
+          "nombre": "HTTP 404",
+          "ok": true
+        },
+        {
+          "nombre": "Formato de error unico",
+          "ok": true
+        },
+        {
+          "nombre": "error.code = EVENT_NOT_FOUND",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "06 · Notificaciones",
+      "nombre": "Listar mis notificaciones",
+      "metodo": "GET",
+      "ruta": "/api/notificaciones",
+      "status": 200,
+      "tiempo_ms": 12,
+      "aserciones": [
+        {
+          "nombre": "HTTP 200",
+          "ok": true
+        },
+        {
+          "nombre": "Hay notificaciones generadas por los servicios",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "06 · Notificaciones",
+      "nombre": "Consultar notificación propia",
+      "metodo": "GET",
+      "ruta": "/api/notificaciones/16",
+      "status": 200,
+      "tiempo_ms": 7,
+      "aserciones": [
+        {
+          "nombre": "HTTP 200",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "06 · Notificaciones",
+      "nombre": "Otro usuario consulta la notificación",
+      "metodo": "GET",
+      "ruta": "/api/notificaciones/16",
+      "status": 404,
+      "tiempo_ms": 6,
+      "aserciones": [
+        {
+          "nombre": "HTTP 404",
+          "ok": true
+        },
+        {
+          "nombre": "Formato de error unico",
+          "ok": true
+        },
+        {
+          "nombre": "error.code = NOTIFICATION_NOT_FOUND",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "06 · Notificaciones",
+      "nombre": "Marcar como leída",
+      "metodo": "PATCH",
+      "ruta": "/api/notificaciones/16/leida",
+      "status": 200,
+      "tiempo_ms": 9,
+      "aserciones": [
+        {
+          "nombre": "HTTP 200",
+          "ok": true
+        },
+        {
+          "nombre": "leida = true",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "06 · Notificaciones",
+      "nombre": "Crear notificación sin título",
+      "metodo": "POST",
+      "ruta": "/api/notificaciones",
+      "status": 400,
+      "tiempo_ms": 6,
+      "aserciones": [
+        {
+          "nombre": "HTTP 400",
+          "ok": true
+        },
+        {
+          "nombre": "Formato de error unico",
+          "ok": true
+        },
+        {
+          "nombre": "error.code = VALIDATION_ERROR",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "06 · Notificaciones",
+      "nombre": "Usuario normal en endpoint interno",
+      "metodo": "POST",
+      "ruta": "/api/notificaciones/interna",
+      "status": 403,
+      "tiempo_ms": 5,
+      "aserciones": [
+        {
+          "nombre": "HTTP 403",
+          "ok": true
+        },
+        {
+          "nombre": "Formato de error unico",
+          "ok": true
+        },
+        {
+          "nombre": "error.code = SERVICE_ONLY",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "07 · Errores y seguridad",
+      "nombre": "Sin token",
+      "metodo": "GET",
+      "ruta": "/api/recursos",
+      "status": 401,
+      "tiempo_ms": 5,
+      "aserciones": [
+        {
+          "nombre": "HTTP 401",
+          "ok": true
+        },
+        {
+          "nombre": "Formato de error unico",
+          "ok": true
+        },
+        {
+          "nombre": "error.code = UNAUTHORIZED",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "07 · Errores y seguridad",
+      "nombre": "Token inválido",
+      "metodo": "GET",
+      "ruta": "/api/recursos",
+      "status": 401,
+      "tiempo_ms": 4,
+      "aserciones": [
+        {
+          "nombre": "HTTP 401",
+          "ok": true
+        },
+        {
+          "nombre": "Formato de error unico",
+          "ok": true
+        },
+        {
+          "nombre": "error.code = UNAUTHORIZED",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "07 · Errores y seguridad",
+      "nombre": "JSON mal formado",
+      "metodo": "POST",
+      "ruta": "/api/recursos",
+      "status": 400,
+      "tiempo_ms": 12,
+      "aserciones": [
+        {
+          "nombre": "HTTP 400",
+          "ok": true
+        },
+        {
+          "nombre": "Formato de error unico",
+          "ok": true
+        },
+        {
+          "nombre": "error.code = INVALID_JSON",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "07 · Errores y seguridad",
+      "nombre": "Ruta inexistente en el Gateway",
+      "metodo": "GET",
+      "ruta": "/api/no-existe",
+      "status": 404,
+      "tiempo_ms": 3,
+      "aserciones": [
+        {
+          "nombre": "HTTP 404",
+          "ok": true
+        },
+        {
+          "nombre": "Formato de error unico",
+          "ok": true
+        },
+        {
+          "nombre": "error.code = ROUTE_NOT_FOUND",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "07 · Errores y seguridad",
+      "nombre": "Ruta inexistente en un servicio",
+      "metodo": "PUT",
+      "ruta": "/api/recursos/REC-001/xyz",
+      "status": 404,
+      "tiempo_ms": 4,
+      "aserciones": [
+        {
+          "nombre": "HTTP 404",
+          "ok": true
+        },
+        {
+          "nombre": "Formato de error unico",
+          "ok": true
+        },
+        {
+          "nombre": "error.code = ROUTE_NOT_FOUND",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "07 · Errores y seguridad",
+      "nombre": "Usuario intenta indexar en el buscador",
+      "metodo": "PUT",
+      "ruta": "/api/buscar/documento",
+      "status": 403,
+      "tiempo_ms": 4,
+      "aserciones": [
+        {
+          "nombre": "HTTP 403",
+          "ok": true
+        },
+        {
+          "nombre": "Formato de error unico",
+          "ok": true
+        },
+        {
+          "nombre": "error.code = SERVICE_ONLY",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "07 · Errores y seguridad",
+      "nombre": "Búsqueda global",
+      "metodo": "GET",
+      "ruta": "/api/buscar?q=Feria",
+      "status": 200,
+      "tiempo_ms": 7,
+      "aserciones": [
+        {
+          "nombre": "HTTP 200",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "08 · Health checks",
+      "nombre": "[T15] Health agregado del Gateway",
+      "metodo": "GET",
+      "ruta": "/health",
+      "status": 200,
+      "tiempo_ms": 13,
+      "aserciones": [
+        {
+          "nombre": "HTTP 200",
+          "ok": true
+        },
+        {
+          "nombre": "Los 7 microservicios responden",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida1",
+      "carpeta": "09 · Persistencia (antes de reiniciar)",
+      "nombre": "[T12] Crear recurso para la prueba de persistencia",
+      "metodo": "POST",
+      "ruta": "/api/recursos",
+      "status": 201,
+      "tiempo_ms": 9,
+      "aserciones": [
+        {
+          "nombre": "HTTP 201",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida2",
+      "carpeta": "10 · Persistencia (después de reiniciar)",
+      "nombre": "[T12] Consultar el recurso tras reiniciar",
+      "metodo": "GET",
+      "ruta": "/api/recursos?nombre=Recurso%20persistente",
+      "status": 200,
+      "tiempo_ms": 11,
+      "aserciones": [
+        {
+          "nombre": "HTTP 200",
+          "ok": true
+        },
+        {
+          "nombre": "El registro sigue disponible",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida3",
+      "carpeta": "11 · Servicio caído",
+      "nombre": "[T14] Eventos con el servicio detenido",
+      "metodo": "GET",
+      "ruta": "/api/eventos",
+      "status": 502,
+      "tiempo_ms": 5,
+      "aserciones": [
+        {
+          "nombre": "HTTP 502",
+          "ok": true
+        },
+        {
+          "nombre": "Formato de error unico",
+          "ok": true
+        },
+        {
+          "nombre": "error.code = SERVICE_UNAVAILABLE",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    {
+      "corrida": "corrida3",
+      "carpeta": "11 · Servicio caído",
+      "nombre": "[T14] Los demás servicios siguen respondiendo",
+      "metodo": "GET",
+      "ruta": "/api/recursos",
+      "status": 200,
+      "tiempo_ms": 6,
+      "aserciones": [
+        {
+          "nombre": "HTTP 200",
+          "ok": true
+        }
+      ],
+      "ok": true
+    }
+  ]
+}

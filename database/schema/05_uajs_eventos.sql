@@ -39,6 +39,7 @@ CREATE TABLE public.eventos (
     titulo character varying(255) NOT NULL,
     fecha date NOT NULL,
     hora character varying(255) NOT NULL,
+    "horaFin" character varying(255),
     lugar character varying(255) NOT NULL,
     ponente character varying(255) NOT NULL,
     descripcion text,

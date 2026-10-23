@@ -33,9 +33,12 @@ export function NotificationsProvider({ children }) {
   // usuarioId es opcional: si se omite, la notificacion es para el usuario
   // autenticado; el personal (Administrativo/Docente/Admin) puede indicar
   // el id de otro usuario (p. ej. avisarle al dueno de una solicitud).
-  const agregarNotificacion = async (categoria, mensaje, usuarioId) => {
+  // Desde el Entregable 2 las notificaciones de solicitudes, PQRS, reservas
+  // y eventos las crea el backend; esto queda para avisos manuales (por
+  // ejemplo, la nota al asignar una PQRS). El titulo es obligatorio.
+  const agregarNotificacion = async (categoria, mensaje, usuarioId, titulo = categoria) => {
     try {
-      const nueva = await api.post('/notificaciones', { categoria, mensaje, usuarioId })
+      const nueva = await api.post('/notificaciones', { categoria, titulo, mensaje, usuarioId })
       if (!usuarioId || usuarioId === user?.id) {
         setNotificaciones((prev) => [nueva, ...prev])
       }
@@ -82,6 +85,7 @@ export function NotificationsProvider({ children }) {
         notificaciones,
         cargando,
         agregarNotificacion,
+        recargarNotificaciones: cargar,
         marcarLeida,
         marcarTodasLeidas,
         eliminarNotificacion,

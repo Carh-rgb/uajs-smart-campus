@@ -1,6 +1,56 @@
    // Controlador encargado de gestionar la logica de eventos: creacion, listado y consulta
 import { Evento, Inscripcion } from '../models/index.js'
 import { indexarEvento, eliminarEventoDelIndice } from '../utils/busquedaClient.js'
+import { notificar } from '../utils/notificacionesClient.js'
+import { HttpError } from '../middlewares/errores.js'
+
+const ESTADOS = ['Activo', 'Inactivo', 'Cancelado']
+const HORA = /^([01]\d|2[0-3]):[0-5]\d$/
+const FECHA = /^\d{4}-\d{2}-\d{2}$/
+
+async function buscarOFallar(id) {
+  const evento = await Evento.findByPk(id)
+  if (!evento) throw new HttpError(404, 'Evento no encontrado.', 'EVENT_NOT_FOUND')
+  return evento
+}
+
+// E2-30: campos obligatorios, fecha real, horas HH:MM, fin posterior al
+// inicio y cupo entero positivo. Devuelve los datos listos para guardar.
+function validarEvento(body) {
+  const { titulo, fecha, hora, horaFin, lugar, ponente, descripcion, facultad, cupoMaximo } = body
+  const obligatorios = { titulo, fecha, hora, horaFin, lugar, ponente, facultad }
+  const faltantes = Object.entries(obligatorios).filter(([, v]) => !String(v ?? '').trim()).map(([k]) => k)
+  if (faltantes.length) {
+    throw new HttpError(400, `Campos obligatorios faltantes: ${faltantes.join(', ')}.`)
+  }
+  if (!FECHA.test(fecha) || Number.isNaN(Date.parse(`${fecha}T00:00:00Z`))) {
+    throw new HttpError(400, 'La fecha debe tener el formato AAAA-MM-DD y ser una fecha real.')
+  }
+  if (!HORA.test(hora) || !HORA.test(horaFin)) {
+    throw new HttpError(400, 'Las horas deben tener el formato HH:MM (24 horas).')
+  }
+  if (horaFin <= hora) {
+    throw new HttpError(400, 'La hora de fin debe ser posterior a la hora de inicio.')
+  }
+  let cupo = null
+  if (cupoMaximo !== undefined && cupoMaximo !== null && cupoMaximo !== '') {
+    cupo = Number(cupoMaximo)
+    if (!Number.isInteger(cupo) || cupo < 1) {
+      throw new HttpError(400, 'El cupo maximo debe ser un numero entero mayor que cero.')
+    }
+  }
+  return {
+    titulo: titulo.trim(),
+    fecha,
+    hora,
+    horaFin,
+    lugar: lugar.trim(),
+    ponente: ponente.trim(),
+    descripcion: descripcion || null,
+    facultad,
+    cupoMaximo: cupo,
+  }
+}
   // Verifica si el usuario tiene permisos administrativos para ver el catalogo completo
 function puedeAdministrar(user) {
   return user.rol === 'Administrativo' || user.rol === 'Administrador del sistema'
@@ -37,43 +87,29 @@ export async function listar(req, res) {
 }
 
 export async function crear(req, res) {
-  const { titulo, fecha, hora, lugar, ponente, descripcion, facultad, cupoMaximo } = req.body
-  if (!titulo || !fecha || !hora || !lugar || !ponente || !facultad) {
-    return res.status(400).json({ error: 'titulo, fecha, hora, lugar, ponente y facultad son obligatorios.' })
-  }
-  const evento = await Evento.create({
-    titulo,
-    fecha,
-    hora,
-    lugar,
-    ponente,
-    descripcion,
-    facultad,
-    cupoMaximo: cupoMaximo || null,
-  })
+  const evento = await Evento.create(validarEvento(req.body))
   indexarEvento(evento)
   res.status(201).json({ ...evento.toJSON(), inscrito: false, inscritosCount: 0 })
+}
+
+// GET /eventos/:id (E2-30). Estudiantes y docentes no ven borradores (Inactivo).
+export async function obtener(req, res) {
+  const evento = await buscarOFallar(req.params.id)
+  if (!puedeAdministrar(req.user) && evento.estado === 'Inactivo') {
+    throw new HttpError(404, 'Evento no encontrado.', 'EVENT_NOT_FOUND')
+  }
+  const [inscritosCount, inscripcion] = await Promise.all([
+    Inscripcion.count({ where: { eventoId: evento.id } }),
+    Inscripcion.findOne({ where: { eventoId: evento.id, usuarioId: req.user.id } }),
+  ])
+  res.json({ ...evento.toJSON(), inscrito: Boolean(inscripcion), inscritosCount })
 }
 
 // Edita los datos del evento (todo menos el estado, que tiene su propio
 // endpoint) — mismo patron usado en recursos.controller.js.
 export async function actualizar(req, res) {
-  const evento = await Evento.findByPk(req.params.id)
-  if (!evento) return res.status(404).json({ error: 'Evento no encontrado.' })
-
-  const { titulo, fecha, hora, lugar, ponente, descripcion, facultad, cupoMaximo } = req.body
-  if (!titulo || !fecha || !hora || !lugar || !ponente || !facultad) {
-    return res.status(400).json({ error: 'titulo, fecha, hora, lugar, ponente y facultad son obligatorios.' })
-  }
-
-  evento.titulo = titulo
-  evento.fecha = fecha
-  evento.hora = hora
-  evento.lugar = lugar
-  evento.ponente = ponente
-  evento.descripcion = descripcion
-  evento.facultad = facultad
-  evento.cupoMaximo = cupoMaximo || null
+  const evento = await buscarOFallar(req.params.id)
+  Object.assign(evento, validarEvento(req.body))
   await evento.save()
   indexarEvento(evento)
 
@@ -81,9 +117,10 @@ export async function actualizar(req, res) {
 }
 
 export async function actualizarEstado(req, res) {
-  const evento = await Evento.findByPk(req.params.id)
-  if (!evento) return res.status(404).json({ error: 'Evento no encontrado.' })
-
+  const evento = await buscarOFallar(req.params.id)
+  if (!ESTADOS.includes(req.body.estado)) {
+    throw new HttpError(400, `Estado invalido. Valores permitidos: ${ESTADOS.join(', ')}.`)
+  }
   evento.estado = req.body.estado
   await evento.save()
   indexarEvento(evento)
@@ -92,13 +129,13 @@ export async function actualizarEstado(req, res) {
 }
 
 export async function inscritos(req, res) {
+  await buscarOFallar(req.params.id)
   const items = await Inscripcion.findAll({ where: { eventoId: req.params.id }, order: [['createdAt', 'ASC']] })
   res.json(items)
 }
 
 export async function inscribir(req, res) {
-  const evento = await Evento.findByPk(req.params.id)
-  if (!evento) return res.status(404).json({ error: 'Evento no encontrado.' })
+  const evento = await buscarOFallar(req.params.id)
 
   if (evento.estado !== 'Activo') {
     return res.status(400).json({ error: 'Este evento no está disponible para inscripciones.' })
@@ -122,12 +159,20 @@ export async function inscribir(req, res) {
     nombre: req.user.nombre,
     rol: req.user.rol,
   })
+  // E2-32: la notificacion la genera el servicio, no el frontend.
+  notificar({
+    usuarioId: req.user.id,
+    categoria: 'Eventos',
+    titulo: 'Inscripción confirmada',
+    mensaje: `Quedaste inscrito en "${evento.titulo}" el ${evento.fecha} a las ${evento.hora}.`,
+    entidadRelacionada: 'evento',
+    entidadId: String(evento.id),
+  })
   res.status(201).json(inscripcion)
 }
 
 export async function eliminar(req, res) {
-  const evento = await Evento.findByPk(req.params.id)
-  if (!evento) return res.status(404).json({ error: 'Evento no encontrado.' })
+  const evento = await buscarOFallar(req.params.id)
 
   await Inscripcion.destroy({ where: { eventoId: evento.id } })
   await evento.destroy()

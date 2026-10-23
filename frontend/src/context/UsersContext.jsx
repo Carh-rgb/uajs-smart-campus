@@ -46,7 +46,7 @@ export function UsersProvider({ children }) {
   }, [user])
 
   const crearUsuario = async (datos) => {
-    const { usuario } = await api.post('/auth/register', datos)
+    const usuario = await api.post('/usuarios', datos)
     setUsuarios((prev) => [usuario, ...prev])
     return usuario
   }

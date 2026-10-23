@@ -9,7 +9,10 @@ export function SolicitudesProvider({ children }) {
   const [solicitudes, setSolicitudes] = useState([])
   const [cargando, setCargando] = useState(true)
   const { user } = useAuth()
-  const { agregarNotificacion } = useNotifications()
+  const { recargarNotificaciones } = useNotifications()
+  // Las notificaciones las genera el backend (E2-32); aqui solo se refresca
+  // la campana un momento despues para mostrar las del propio usuario.
+  const refrescarAvisos = () => setTimeout(recargarNotificaciones, 800)
 
   const cargar = useCallback(async () => {
     if (!user) {
@@ -35,14 +38,13 @@ export function SolicitudesProvider({ children }) {
   const crearSolicitud = async ({ tipo, dependencia, prioridad, descripcion }) => {
     const nueva = await api.post('/solicitudes', { tipo, dependencia, prioridad, descripcion })
     setSolicitudes((prev) => [nueva, ...prev])
-    agregarNotificacion('Solicitudes', `Se registró la solicitud ${nueva.id} (${tipo}).`, nueva.solicitanteId)
+    refrescarAvisos()
     return nueva
   }
 
-  const responderSolicitud = async (id, { respuesta, adjunto, nuevoEstado }) => {
-    const actualizada = await api.patch(`/solicitudes/${id}/responder`, { respuesta, adjunto, nuevoEstado })
+  const responderSolicitud = async (id, { respuesta, adjunto, nuevoEstado, asignadoA }) => {
+    const actualizada = await api.patch(`/solicitudes/${id}/responder`, { respuesta, adjunto, nuevoEstado, asignadoA })
     setSolicitudes((prev) => prev.map((s) => (s.id === id ? actualizada : s)))
-    agregarNotificacion('Solicitudes', `Tu solicitud ${id} recibió una respuesta.`, actualizada.solicitanteId)
     return actualizada
   }
 

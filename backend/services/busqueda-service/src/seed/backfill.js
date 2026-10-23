@@ -6,7 +6,7 @@ import { es, INDICE } from '../config/elastic.js'
 // para poder leer el catalogo completo de cada microservicio al arrancar.
 function tokenServicio() {
   return jwt.sign(
-    { id: 0, nombre: 'busqueda-service', rol: 'Administrador del sistema' },
+    { id: 0, nombre: 'busqueda-service', rol: 'Administrador del sistema', servicio: true },
     process.env.JWT_SECRET,
     { expiresIn: '2m' },
   )
@@ -106,7 +106,7 @@ export async function backfill() {
           tipo: 'evento',
           entidadId: e.id,
           titulo: e.titulo,
-          subtitulo: `${e.fecha} · ${e.lugar}`,
+          subtitulo: `${e.fecha} · ${e.hora}${e.horaFin ? '-' + e.horaFin : ''} · ${e.lugar}`,
           texto: [e.descripcion, e.ponente, e.facultad].filter(Boolean).join(' '),
           estado: e.estado,
           ownerId: null,

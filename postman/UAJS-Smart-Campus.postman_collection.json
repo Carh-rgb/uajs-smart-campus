@@ -1,0 +1,3484 @@
+{
+  "info": {
+    "name": "UAJS Smart Campus — Entregable 2",
+    "description": "Colección de pruebas del Entregable 2: CRUD de los 6 dominios, reglas de negocio, errores y seguridad, a través del API Gateway. Correr en orden (las peticiones guardan IDs en variables de la colección). Las carpetas 09/10 (T12) y 11 (T14) requieren reiniciar o detener servicios entre corridas: ver pruebas/README.md.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "00 · Preparación",
+      "description": "Inicia sesión con los 4 usuarios de prueba y calcula fechas futuras para las reservas.",
+      "item": [
+        {
+          "name": "Login Admin",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = (n) => { const f = new Date(Date.now() + n * 86400000); return f.toISOString().slice(0, 10); };",
+                  "pm.collectionVariables.set('fechaFutura', d(10));",
+                  "pm.collectionVariables.set('fechaFutura2', d(11));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set('tokenAdmin', pm.response.json().token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"correo\": \"admin@uajs.edu.co\", \"password\": \"{{passwordPrueba}}\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Login Administrativo",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = (n) => { const f = new Date(Date.now() + n * 86400000); return f.toISOString().slice(0, 10); };",
+                  "pm.collectionVariables.set('fechaFutura', d(10));",
+                  "pm.collectionVariables.set('fechaFutura2', d(11));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set('tokenAdministrativo', pm.response.json().token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"correo\": \"andres.gomez@uajs.edu.co\", \"password\": \"{{passwordPrueba}}\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Login Estudiante",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = (n) => { const f = new Date(Date.now() + n * 86400000); return f.toISOString().slice(0, 10); };",
+                  "pm.collectionVariables.set('fechaFutura', d(10));",
+                  "pm.collectionVariables.set('fechaFutura2', d(11));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set('tokenEstudiante', pm.response.json().token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"correo\": \"camilo.ramirez@uajs.edu.co\", \"password\": \"{{passwordPrueba}}\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Login Docente",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = (n) => { const f = new Date(Date.now() + n * 86400000); return f.toISOString().slice(0, 10); };",
+                  "pm.collectionVariables.set('fechaFutura', d(10));",
+                  "pm.collectionVariables.set('fechaFutura2', d(11));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set('tokenDocente', pm.response.json().token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"correo\": \"laura.perez@uajs.edu.co\", \"password\": \"{{passwordPrueba}}\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "01 · Recursos (CRUD)",
+      "description": "Pruebas T01 a T07 de la guía sobre recursos-service.",
+      "item": [
+        {
+          "name": "[T01] Listar recursos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Devuelve una coleccion', () => pm.expect(json).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdministrativo}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recursos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "recursos"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[T02] Crear recurso válido",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('recursoCodigo', json.codigo);",
+                  "pm.test('Queda Disponible y con codigo', () => { pm.expect(json.estado).to.eql('Disponible'); pm.expect(json.codigo).to.match(/^REC-/); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdministrativo}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recursos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "recursos"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Cámara Sony Alpha\",\n  \"tipo\": \"Audiovisual\",\n  \"ubicacion\": \"Almacén audiovisual\",\n  \"descripcion\": \"Incluye trípode\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[T03] Crear recurso sin nombre",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+                  "const err = pm.response.json();",
+                  "pm.test('Formato de error unico', () => { pm.expect(err.success).to.eql(false); pm.expect(err.error).to.have.property('message'); });",
+                  "pm.test('error.code = VALIDATION_ERROR', () => pm.expect(err.error.code).to.eql('VALIDATION_ERROR'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdministrativo}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recursos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "recursos"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"Audiovisual\",\n  \"ubicacion\": \"Almacén\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Crear recurso con tipo inválido",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+                  "const err = pm.response.json();",
+                  "pm.test('Formato de error unico', () => { pm.expect(err.success).to.eql(false); pm.expect(err.error).to.have.property('message'); });",
+                  "pm.test('error.code = VALIDATION_ERROR', () => pm.expect(err.error.code).to.eql('VALIDATION_ERROR'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdministrativo}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recursos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "recursos"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"X\",\n  \"tipo\": \"Nave espacial\",\n  \"ubicacion\": \"Almacén\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[T04] Consultar recurso existente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Datos correctos', () => pm.expect(json.nombre).to.eql('Cámara Sony Alpha'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdministrativo}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recursos/{{recursoCodigo}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "recursos",
+                "{{recursoCodigo}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[T05] Consultar recurso inexistente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404', () => pm.response.to.have.status(404));",
+                  "const err = pm.response.json();",
+                  "pm.test('Formato de error unico', () => { pm.expect(err.success).to.eql(false); pm.expect(err.error).to.have.property('message'); });",
+                  "pm.test('error.code = RESOURCE_NOT_FOUND', () => pm.expect(err.error.code).to.eql('RESOURCE_NOT_FOUND'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdministrativo}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recursos/REC-999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "recursos",
+                "REC-999"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[T06] Actualizar ubicación",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Cambio persistido', () => pm.expect(json.ubicacion).to.eql('Laboratorio 3'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdministrativo}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recursos/{{recursoCodigo}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "recursos",
+                "{{recursoCodigo}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Cámara Sony Alpha\",\n  \"tipo\": \"Audiovisual\",\n  \"ubicacion\": \"Laboratorio 3\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Cambiar estado a uno inválido",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+                  "const err = pm.response.json();",
+                  "pm.test('Formato de error unico', () => { pm.expect(err.success).to.eql(false); pm.expect(err.error).to.have.property('message'); });",
+                  "pm.test('error.code = VALIDATION_ERROR', () => pm.expect(err.error.code).to.eql('VALIDATION_ERROR'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdministrativo}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recursos/{{recursoCodigo}}/estado",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "recursos",
+                "{{recursoCodigo}}",
+                "estado"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"Roto\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Cambiar estado a En mantenimiento",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Estado nuevo', () => pm.expect(json.estado).to.eql('En mantenimiento'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdministrativo}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recursos/{{recursoCodigo}}/estado",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "recursos",
+                "{{recursoCodigo}}",
+                "estado"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"En mantenimiento\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[T07] Eliminar recurso",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 204', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdministrativo}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recursos/{{recursoCodigo}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "recursos",
+                "{{recursoCodigo}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Estudiante intenta crear recurso",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 403', () => pm.response.to.have.status(403));",
+                  "const err = pm.response.json();",
+                  "pm.test('Formato de error unico', () => { pm.expect(err.success).to.eql(false); pm.expect(err.error).to.have.property('message'); });",
+                  "pm.test('error.code = FORBIDDEN', () => pm.expect(err.error.code).to.eql('FORBIDDEN'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenEstudiante}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recursos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "recursos"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"X\",\n  \"tipo\": \"Audiovisual\",\n  \"ubicacion\": \"Y\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 · Solicitudes (ciclo de vida)",
+      "description": "Pruebas T08 y T09 más el ciclo completo de estados y los permisos de lectura.",
+      "item": [
+        {
+          "name": "[T08] Crear solicitud válida",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('solicitudId', json.id);",
+                  "pm.test('Estado inicial Registrada', () => pm.expect(json.estado).to.eql('Registrada'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenEstudiante}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/solicitudes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "solicitudes"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"Certificado académico\",\n  \"dependencia\": \"Registro Académico\",\n  \"prioridad\": \"Alta\",\n  \"descripcion\": \"Certificado de notas para beca\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Crear solicitud con tipo inválido",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+                  "const err = pm.response.json();",
+                  "pm.test('Formato de error unico', () => { pm.expect(err.success).to.eql(false); pm.expect(err.error).to.have.property('message'); });",
+                  "pm.test('error.code = VALIDATION_ERROR', () => pm.expect(err.error.code).to.eql('VALIDATION_ERROR'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenEstudiante}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/solicitudes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "solicitudes"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"Pizza\",\n  \"dependencia\": \"Registro Académico\",\n  \"descripcion\": \"x\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[T09] Transición inválida Registrada → Cerrada",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 409', () => pm.response.to.have.status(409));",
+                  "const err = pm.response.json();",
+                  "pm.test('Formato de error unico', () => { pm.expect(err.success).to.eql(false); pm.expect(err.error).to.have.property('message'); });",
+                  "pm.test('error.code = INVALID_TRANSITION', () => pm.expect(err.error.code).to.eql('INVALID_TRANSITION'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdministrativo}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/solicitudes/{{solicitudId}}/responder",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "solicitudes",
+                "{{solicitudId}}",
+                "responder"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nuevoEstado\": \"Cerrada\",\n  \"respuesta\": \"x\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Verificar que el estado no cambió",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Sigue Registrada', () => pm.expect(json.estado).to.eql('Registrada'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenEstudiante}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/solicitudes/{{solicitudId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "solicitudes",
+                "{{solicitudId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Registrada → En revisión",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdministrativo}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/solicitudes/{{solicitudId}}/responder",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "solicitudes",
+                "{{solicitudId}}",
+                "responder"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nuevoEstado\": \"En revisión\",\n  \"respuesta\": \"Estamos revisando tu solicitud.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "En revisión → Asignada sin responsable",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+                  "const err = pm.response.json();",
+                  "pm.test('Formato de error unico', () => { pm.expect(err.success).to.eql(false); pm.expect(err.error).to.have.property('message'); });",
+                  "pm.test('error.code = VALIDATION_ERROR', () => pm.expect(err.error.code).to.eql('VALIDATION_ERROR'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdministrativo}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/solicitudes/{{solicitudId}}/responder",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "solicitudes",
+                "{{solicitudId}}",
+                "responder"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nuevoEstado\": \"Asignada\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "En revisión → Asignada con responsable",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Asignada a Laura', () => pm.expect(json.asignadoA).to.eql('Laura Pérez'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdministrativo}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/solicitudes/{{solicitudId}}/responder",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "solicitudes",
+                "{{solicitudId}}",
+                "responder"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nuevoEstado\": \"Asignada\",\n  \"asignadoA\": \"Laura Pérez\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Retroceso Asignada → Registrada",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 409', () => pm.response.to.have.status(409));",
+                  "const err = pm.response.json();",
+                  "pm.test('Formato de error unico', () => { pm.expect(err.success).to.eql(false); pm.expect(err.error).to.have.property('message'); });",
+                  "pm.test('error.code = INVALID_TRANSITION', () => pm.expect(err.error.code).to.eql('INVALID_TRANSITION'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdministrativo}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/solicitudes/{{solicitudId}}/responder",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "solicitudes",
+                "{{solicitudId}}",
+                "responder"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nuevoEstado\": \"Registrada\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Asignada → En proceso",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdministrativo}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/solicitudes/{{solicitudId}}/responder",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "solicitudes",
+                "{{solicitudId}}",
+                "responder"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nuevoEstado\": \"En proceso\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "En proceso → Resuelta",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdministrativo}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/solicitudes/{{solicitudId}}/responder",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "solicitudes",
+                "{{solicitudId}}",
+                "responder"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nuevoEstado\": \"Resuelta\",\n  \"respuesta\": \"Certificado emitido.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Resuelta → Cerrada",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdministrativo}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/solicitudes/{{solicitudId}}/responder",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "solicitudes",
+                "{{solicitudId}}",
+                "responder"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nuevoEstado\": \"Cerrada\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Detalle con historial completo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Historial con los 6 estados en orden', () => pm.expect(json.historial.map(h => h.estado)).to.eql(['Registrada','En revisión','Asignada','En proceso','Resuelta','Cerrada']));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenEstudiante}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/solicitudes/{{solicitudId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "solicitudes",
+                "{{solicitudId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Docente intenta ver la solicitud del estudiante",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 403', () => pm.response.to.have.status(403));",
+                  "const err = pm.response.json();",
+                  "pm.test('Formato de error unico', () => { pm.expect(err.success).to.eql(false); pm.expect(err.error).to.have.property('message'); });",
+                  "pm.test('error.code = FORBIDDEN', () => pm.expect(err.error.code).to.eql('FORBIDDEN'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenDocente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/solicitudes/{{solicitudId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "solicitudes",
+                "{{solicitudId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Solicitud inexistente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404', () => pm.response.to.have.status(404));",
+                  "const err = pm.response.json();",
+                  "pm.test('Formato de error unico', () => { pm.expect(err.success).to.eql(false); pm.expect(err.error).to.have.property('message'); });",
+                  "pm.test('error.code = REQUEST_NOT_FOUND', () => pm.expect(err.error.code).to.eql('REQUEST_NOT_FOUND'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdministrativo}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/solicitudes/SOL-9999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "solicitudes",
+                "SOL-9999"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 · Reservas (reglas de negocio)",
+      "description": "Pruebas T10 y T11, validaciones de fecha y hora, existencia del espacio y modificación.",
+      "item": [
+        {
+          "name": "[T10] Crear reserva válida",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('reservaId', json.id);",
+                  "pm.test('Queda Pendiente', () => pm.expect(json.estado).to.eql('Pendiente'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenEstudiante}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reservas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reservas"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipoEspacio\": \"espacio\",\n  \"espacio\": \"Salón A01\",\n  \"fecha\": \"{{fechaFutura}}\",\n  \"horaInicio\": \"08:00\",\n  \"horaFin\": \"10:00\",\n  \"motivo\": \"Taller de programación\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "[T11] Reserva solapada en el mismo espacio",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 409', () => pm.response.to.have.status(409));",
+                  "const err = pm.response.json();",
+                  "pm.test('Formato de error unico', () => { pm.expect(err.success).to.eql(false); pm.expect(err.error).to.have.property('message'); });",
+                  "pm.test('error.code = RESERVATION_CONFLICT', () => pm.expect(err.error.code).to.eql('RESERVATION_CONFLICT'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenDocente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reservas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reservas"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipoEspacio\": \"espacio\",\n  \"espacio\": \"Salón A01\",\n  \"fecha\": \"{{fechaFutura}}\",\n  \"horaInicio\": \"09:00\",\n  \"horaFin\": \"11:00\",\n  \"motivo\": \"Clase\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Franja contigua sí se permite",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenDocente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reservas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reservas"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipoEspacio\": \"espacio\",\n  \"espacio\": \"Salón A01\",\n  \"fecha\": \"{{fechaFutura}}\",\n  \"horaInicio\": \"10:00\",\n  \"horaFin\": \"12:00\",\n  \"motivo\": \"Clase\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Hora de fin antes del inicio",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+                  "const err = pm.response.json();",
+                  "pm.test('Formato de error unico', () => { pm.expect(err.success).to.eql(false); pm.expect(err.error).to.have.property('message'); });",
+                  "pm.test('error.code = VALIDATION_ERROR', () => pm.expect(err.error.code).to.eql('VALIDATION_ERROR'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenEstudiante}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reservas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reservas"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipoEspacio\": \"espacio\",\n  \"espacio\": \"Salón A02\",\n  \"fecha\": \"{{fechaFutura}}\",\n  \"horaInicio\": \"10:00\",\n  \"horaFin\": \"08:00\",\n  \"motivo\": \"x\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Fecha pasada",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+                  "const err = pm.response.json();",
+                  "pm.test('Formato de error unico', () => { pm.expect(err.success).to.eql(false); pm.expect(err.error).to.have.property('message'); });",
+                  "pm.test('error.code = VALIDATION_ERROR', () => pm.expect(err.error.code).to.eql('VALIDATION_ERROR'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenEstudiante}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reservas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reservas"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipoEspacio\": \"espacio\",\n  \"espacio\": \"Salón A02\",\n  \"fecha\": \"2026-01-10\",\n  \"horaInicio\": \"08:00\",\n  \"horaFin\": \"10:00\",\n  \"motivo\": \"x\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Espacio inexistente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+                  "const err = pm.response.json();",
+                  "pm.test('Formato de error unico', () => { pm.expect(err.success).to.eql(false); pm.expect(err.error).to.have.property('message'); });",
+                  "pm.test('error.code = SPACE_NOT_FOUND', () => pm.expect(err.error.code).to.eql('SPACE_NOT_FOUND'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenEstudiante}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reservas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reservas"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipoEspacio\": \"espacio\",\n  \"espacio\": \"Salón Z99\",\n  \"fecha\": \"{{fechaFutura}}\",\n  \"horaInicio\": \"08:00\",\n  \"horaFin\": \"10:00\",\n  \"motivo\": \"x\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Reserva de equipo (consulta recursos-service)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenEstudiante}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reservas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reservas"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipoEspacio\": \"equipo\",\n  \"espacio\": \"Videobeam Epson X400\",\n  \"fecha\": \"{{fechaFutura}}\",\n  \"horaInicio\": \"08:00\",\n  \"horaFin\": \"10:00\",\n  \"motivo\": \"Exposición\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Modificar a una franja ocupada",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 409', () => pm.response.to.have.status(409));",
+                  "const err = pm.response.json();",
+                  "pm.test('Formato de error unico', () => { pm.expect(err.success).to.eql(false); pm.expect(err.error).to.have.property('message'); });",
+                  "pm.test('error.code = RESERVATION_CONFLICT', () => pm.expect(err.error.code).to.eql('RESERVATION_CONFLICT'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenEstudiante}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reservas/{{reservaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reservas",
+                "{{reservaId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"horaInicio\": \"09:00\",\n  \"horaFin\": \"11:00\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Modificar a otra fecha libre",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Fecha nueva', () => pm.expect(json.fecha).to.eql(pm.collectionVariables.get('fechaFutura2')));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenEstudiante}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reservas/{{reservaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reservas",
+                "{{reservaId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fecha\": \"{{fechaFutura2}}\",\n  \"motivo\": \"Taller (reprogramado)\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Otro usuario consulta la reserva",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 403', () => pm.response.to.have.status(403));",
+                  "const err = pm.response.json();",
+                  "pm.test('Formato de error unico', () => { pm.expect(err.success).to.eql(false); pm.expect(err.error).to.have.property('message'); });",
+                  "pm.test('error.code = FORBIDDEN', () => pm.expect(err.error.code).to.eql('FORBIDDEN'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenDocente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reservas/{{reservaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reservas",
+                "{{reservaId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Confirmar reserva",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdministrativo}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reservas/{{reservaId}}/estado",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reservas",
+                "{{reservaId}}",
+                "estado"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"Confirmada\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Confirmada → Pendiente (no permitido)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 409', () => pm.response.to.have.status(409));",
+                  "const err = pm.response.json();",
+                  "pm.test('Formato de error unico', () => { pm.expect(err.success).to.eql(false); pm.expect(err.error).to.have.property('message'); });",
+                  "pm.test('error.code = INVALID_TRANSITION', () => pm.expect(err.error.code).to.eql('INVALID_TRANSITION'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdministrativo}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reservas/{{reservaId}}/estado",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reservas",
+                "{{reservaId}}",
+                "estado"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"Pendiente\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Cancelar reserva",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdministrativo}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reservas/{{reservaId}}/estado",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reservas",
+                "{{reservaId}}",
+                "estado"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"Cancelada\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Historial de la reserva",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Pendiente → Confirmada → Cancelada', () => pm.expect(json.map(h => h.estado)).to.eql(['Pendiente','Confirmada','Cancelada']));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenEstudiante}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reservas/{{reservaId}}/historial",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reservas",
+                "{{reservaId}}",
+                "historial"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 · Usuarios",
+      "description": "Registro público, CRUD del Administrador y validación de roles.",
+      "item": [
+        {
+          "name": "Registro público con rol Administrador queda Estudiante",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.test('Rol forzado a Estudiante', () => pm.expect(json.usuario.rol).to.eql('Estudiante'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Usuario Postman\",\n  \"correo\": \"postman.{{$timestamp}}@uajs.edu.co\",\n  \"password\": \"clave123\",\n  \"rol\": \"Administrador del sistema\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Admin crea un Docente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('usuarioId', json.id);",
+                  "pm.test('No expone passwordHash', () => pm.expect(json).to.not.have.property('passwordHash'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/usuarios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "usuarios"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Docente Postman\",\n  \"correo\": \"docente.{{$timestamp}}@uajs.edu.co\",\n  \"password\": \"clave123\",\n  \"rol\": \"Docente\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Admin crea con rol inválido",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+                  "const err = pm.response.json();",
+                  "pm.test('Formato de error unico', () => { pm.expect(err.success).to.eql(false); pm.expect(err.error).to.have.property('message'); });",
+                  "pm.test('error.code = INVALID_ROLE', () => pm.expect(err.error.code).to.eql('INVALID_ROLE'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/usuarios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "usuarios"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"X\",\n  \"correo\": \"x.{{$timestamp}}@uajs.edu.co\",\n  \"password\": \"clave123\",\n  \"rol\": \"Rey\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Consultar usuario por ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/usuarios/{{usuarioId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "usuarios",
+                "{{usuarioId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Editar usuario",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Nombre actualizado', () => pm.expect(json.nombre).to.eql('Docente Postman Editado'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/usuarios/{{usuarioId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "usuarios",
+                "{{usuarioId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Docente Postman Editado\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Estudiante consulta otro usuario",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 403', () => pm.response.to.have.status(403));",
+                  "const err = pm.response.json();",
+                  "pm.test('Formato de error unico', () => { pm.expect(err.success).to.eql(false); pm.expect(err.error).to.have.property('message'); });",
+                  "pm.test('error.code = FORBIDDEN', () => pm.expect(err.error.code).to.eql('FORBIDDEN'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenEstudiante}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/usuarios/{{usuarioId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "usuarios",
+                "{{usuarioId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Eliminar usuario",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 204', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/usuarios/{{usuarioId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "usuarios",
+                "{{usuarioId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 · Eventos",
+      "description": "CRUD de eventos con hora de fin e inscripción.",
+      "item": [
+        {
+          "name": "Crear evento",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('eventoId', json.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdministrativo}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/eventos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "eventos"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Feria de proyectos\",\n  \"fecha\": \"{{fechaFutura}}\",\n  \"hora\": \"08:00\",\n  \"horaFin\": \"12:00\",\n  \"lugar\": \"Auditorio central\",\n  \"ponente\": \"Facultad de Ingeniería\",\n  \"facultad\": \"Facultad de Ingeniería\",\n  \"cupoMaximo\": 50\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Crear evento con hora de fin inválida",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+                  "const err = pm.response.json();",
+                  "pm.test('Formato de error unico', () => { pm.expect(err.success).to.eql(false); pm.expect(err.error).to.have.property('message'); });",
+                  "pm.test('error.code = VALIDATION_ERROR', () => pm.expect(err.error.code).to.eql('VALIDATION_ERROR'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdministrativo}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/eventos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "eventos"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"X\",\n  \"fecha\": \"{{fechaFutura}}\",\n  \"hora\": \"10:00\",\n  \"horaFin\": \"09:00\",\n  \"lugar\": \"A\",\n  \"ponente\": \"B\",\n  \"facultad\": \"Facultad de Ingeniería\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Consultar evento por ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Incluye horaFin', () => pm.expect(json.horaFin).to.eql('12:00'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenEstudiante}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/eventos/{{eventoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "eventos",
+                "{{eventoId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Editar evento",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdministrativo}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/eventos/{{eventoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "eventos",
+                "{{eventoId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Feria de proyectos 2026\",\n  \"fecha\": \"{{fechaFutura}}\",\n  \"hora\": \"08:00\",\n  \"horaFin\": \"13:00\",\n  \"lugar\": \"Auditorio central\",\n  \"ponente\": \"Facultad de Ingeniería\",\n  \"facultad\": \"Facultad de Ingeniería\",\n  \"cupoMaximo\": 50\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Estudiante se inscribe",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenEstudiante}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/eventos/{{eventoId}}/inscribir",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "eventos",
+                "{{eventoId}}",
+                "inscribir"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Inscripción duplicada",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 409', () => pm.response.to.have.status(409));",
+                  "const err = pm.response.json();",
+                  "pm.test('Formato de error unico', () => { pm.expect(err.success).to.eql(false); pm.expect(err.error).to.have.property('message'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenEstudiante}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/eventos/{{eventoId}}/inscribir",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "eventos",
+                "{{eventoId}}",
+                "inscribir"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Evento inexistente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404', () => pm.response.to.have.status(404));",
+                  "const err = pm.response.json();",
+                  "pm.test('Formato de error unico', () => { pm.expect(err.success).to.eql(false); pm.expect(err.error).to.have.property('message'); });",
+                  "pm.test('error.code = EVENT_NOT_FOUND', () => pm.expect(err.error.code).to.eql('EVENT_NOT_FOUND'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenEstudiante}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/eventos/99999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "eventos",
+                "99999"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 · Notificaciones",
+      "description": "Las notificaciones las generan los servicios (E2-32); aquí se consultan y se marcan como leídas.",
+      "item": [
+        {
+          "name": "Listar mis notificaciones",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "setTimeout(() => {}, 1000);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('notificacionId', json[0].id);",
+                  "pm.test('Hay notificaciones generadas por los servicios', () => pm.expect(json.some(n => n.titulo === 'Inscripción confirmada')).to.be.true);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenEstudiante}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/notificaciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notificaciones"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Consultar notificación propia",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenEstudiante}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/notificaciones/{{notificacionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notificaciones",
+                "{{notificacionId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Otro usuario consulta la notificación",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404', () => pm.response.to.have.status(404));",
+                  "const err = pm.response.json();",
+                  "pm.test('Formato de error unico', () => { pm.expect(err.success).to.eql(false); pm.expect(err.error).to.have.property('message'); });",
+                  "pm.test('error.code = NOTIFICATION_NOT_FOUND', () => pm.expect(err.error.code).to.eql('NOTIFICATION_NOT_FOUND'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenDocente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/notificaciones/{{notificacionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notificaciones",
+                "{{notificacionId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Marcar como leída",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('leida = true', () => pm.expect(json.leida).to.be.true);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenEstudiante}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/notificaciones/{{notificacionId}}/leida",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notificaciones",
+                "{{notificacionId}}",
+                "leida"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Crear notificación sin título",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+                  "const err = pm.response.json();",
+                  "pm.test('Formato de error unico', () => { pm.expect(err.success).to.eql(false); pm.expect(err.error).to.have.property('message'); });",
+                  "pm.test('error.code = VALIDATION_ERROR', () => pm.expect(err.error.code).to.eql('VALIDATION_ERROR'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdministrativo}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/notificaciones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notificaciones"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoria\": \"Institucional\",\n  \"mensaje\": \"x\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Usuario normal en endpoint interno",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 403', () => pm.response.to.have.status(403));",
+                  "const err = pm.response.json();",
+                  "pm.test('Formato de error unico', () => { pm.expect(err.success).to.eql(false); pm.expect(err.error).to.have.property('message'); });",
+                  "pm.test('error.code = SERVICE_ONLY', () => pm.expect(err.error.code).to.eql('SERVICE_ONLY'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/notificaciones/interna",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notificaciones",
+                "interna"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuarioId\": 1,\n  \"categoria\": \"Institucional\",\n  \"titulo\": \"x\",\n  \"mensaje\": \"y\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 · Errores y seguridad",
+      "description": "Respuestas controladas ante datos incompletos, autenticación, permisos y rutas inexistentes.",
+      "item": [
+        {
+          "name": "Sin token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401', () => pm.response.to.have.status(401));",
+                  "const err = pm.response.json();",
+                  "pm.test('Formato de error unico', () => { pm.expect(err.success).to.eql(false); pm.expect(err.error).to.have.property('message'); });",
+                  "pm.test('error.code = UNAUTHORIZED', () => pm.expect(err.error.code).to.eql('UNAUTHORIZED'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recursos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "recursos"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Token inválido",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401', () => pm.response.to.have.status(401));",
+                  "const err = pm.response.json();",
+                  "pm.test('Formato de error unico', () => { pm.expect(err.success).to.eql(false); pm.expect(err.error).to.have.property('message'); });",
+                  "pm.test('error.code = UNAUTHORIZED', () => pm.expect(err.error.code).to.eql('UNAUTHORIZED'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenFalso}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recursos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "recursos"
+              ]
+            }
+          }
+        },
+        {
+          "name": "JSON mal formado",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+                  "const err = pm.response.json();",
+                  "pm.test('Formato de error unico', () => { pm.expect(err.success).to.eql(false); pm.expect(err.error).to.have.property('message'); });",
+                  "pm.test('error.code = INVALID_JSON', () => pm.expect(err.error.code).to.eql('INVALID_JSON'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdministrativo}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recursos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "recursos"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{nombre:",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Ruta inexistente en el Gateway",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404', () => pm.response.to.have.status(404));",
+                  "const err = pm.response.json();",
+                  "pm.test('Formato de error unico', () => { pm.expect(err.success).to.eql(false); pm.expect(err.error).to.have.property('message'); });",
+                  "pm.test('error.code = ROUTE_NOT_FOUND', () => pm.expect(err.error.code).to.eql('ROUTE_NOT_FOUND'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/no-existe",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "no-existe"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Ruta inexistente en un servicio",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404', () => pm.response.to.have.status(404));",
+                  "const err = pm.response.json();",
+                  "pm.test('Formato de error unico', () => { pm.expect(err.success).to.eql(false); pm.expect(err.error).to.have.property('message'); });",
+                  "pm.test('error.code = ROUTE_NOT_FOUND', () => pm.expect(err.error.code).to.eql('ROUTE_NOT_FOUND'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdministrativo}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recursos/REC-001/xyz",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "recursos",
+                "REC-001",
+                "xyz"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Usuario intenta indexar en el buscador",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 403', () => pm.response.to.have.status(403));",
+                  "const err = pm.response.json();",
+                  "pm.test('Formato de error unico', () => { pm.expect(err.success).to.eql(false); pm.expect(err.error).to.have.property('message'); });",
+                  "pm.test('error.code = SERVICE_ONLY', () => pm.expect(err.error.code).to.eql('SERVICE_ONLY'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenEstudiante}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/buscar/documento",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "buscar",
+                "documento"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"solicitud\",\n  \"entidadId\": \"FALSA\",\n  \"titulo\": \"Resultado falso\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Búsqueda global",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenEstudiante}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/buscar?q=Feria",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "buscar"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "Feria"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 · Health checks",
+      "description": "Prueba T15: el Gateway consulta el /health de los 7 microservicios.",
+      "item": [
+        {
+          "name": "[T15] Health agregado del Gateway",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Los 7 microservicios responden', () => { pm.expect(json.status).to.eql('ok'); pm.expect(json.microservicios).to.have.length(7); pm.expect(json.microservicios.every(m => m.ok)).to.be.true; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gatewayUrl}}/health",
+              "host": [
+                "{{gatewayUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "09 · Persistencia (antes de reiniciar)",
+      "description": "T12, parte 1: crea un registro. Después se reinician los servicios y se corre la carpeta 10.",
+      "item": [
+        {
+          "name": "[T12] Crear recurso para la prueba de persistencia",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('recursoPersistente', json.codigo);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdministrativo}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recursos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "recursos"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Recurso persistente\",\n  \"tipo\": \"Mobiliario\",\n  \"ubicacion\": \"Bodega\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "10 · Persistencia (después de reiniciar)",
+      "description": "T12, parte 2: con los servicios reiniciados, el registro sigue en la base.",
+      "item": [
+        {
+          "name": "[T12] Consultar el recurso tras reiniciar",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('El registro sigue disponible', () => { pm.expect(json.length).to.be.at.least(1); pm.expect(json[0].nombre).to.eql('Recurso persistente'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdministrativo}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recursos?nombre=Recurso persistente",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "recursos"
+              ],
+              "query": [
+                {
+                  "key": "nombre",
+                  "value": "Recurso persistente"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "11 · Servicio caído",
+      "description": "T14: con eventos-service detenido, el Gateway responde 502 controlado y el resto sigue funcionando.",
+      "item": [
+        {
+          "name": "[T14] Eventos con el servicio detenido",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 502', () => pm.response.to.have.status(502));",
+                  "const err = pm.response.json();",
+                  "pm.test('Formato de error unico', () => { pm.expect(err.success).to.eql(false); pm.expect(err.error).to.have.property('message'); });",
+                  "pm.test('error.code = SERVICE_UNAVAILABLE', () => pm.expect(err.error.code).to.eql('SERVICE_UNAVAILABLE'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenEstudiante}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/eventos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "eventos"
+              ]
+            }
+          }
+        },
+        {
+          "name": "[T14] Los demás servicios siguen respondiendo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdministrativo}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recursos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "recursos"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "recursoCodigo",
+      "value": ""
+    },
+    {
+      "key": "solicitudId",
+      "value": ""
+    },
+    {
+      "key": "reservaId",
+      "value": ""
+    },
+    {
+      "key": "usuarioId",
+      "value": ""
+    },
+    {
+      "key": "eventoId",
+      "value": ""
+    },
+    {
+      "key": "notificacionId",
+      "value": ""
+    },
+    {
+      "key": "recursoPersistente",
+      "value": ""
+    },
+    {
+      "key": "fechaFutura",
+      "value": ""
+    },
+    {
+      "key": "fechaFutura2",
+      "value": ""
+    },
+    {
+      "key": "tokenFalso",
+      "value": "esto-no-es-un-jwt"
+    }
+  ]
+}

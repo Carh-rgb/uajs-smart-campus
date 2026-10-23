@@ -9,7 +9,7 @@ export function EventosProvider({ children }) {
   const [eventos, setEventos] = useState([])
   const [cargando, setCargando] = useState(true)
   const { user } = useAuth()
-  const { agregarNotificacion } = useNotifications()
+  const { recargarNotificaciones } = useNotifications()
 
   const cargar = useCallback(async () => {
     if (!user) {
@@ -32,8 +32,8 @@ export function EventosProvider({ children }) {
     cargar()
   }, [cargar])
 
-  const agregarEvento = async ({ titulo, fecha, hora, lugar, ponente, descripcion, facultad, cupoMaximo }) => {
-    const nuevo = await api.post('/eventos', { titulo, fecha, hora, lugar, ponente, descripcion, facultad, cupoMaximo })
+  const agregarEvento = async ({ titulo, fecha, hora, horaFin, lugar, ponente, descripcion, facultad, cupoMaximo }) => {
+    const nuevo = await api.post('/eventos', { titulo, fecha, hora, horaFin, lugar, ponente, descripcion, facultad, cupoMaximo })
     setEventos((prev) => [{ ...nuevo, inscrito: false, inscritosCount: 0 }, ...prev])
     return nuevo
   }
@@ -55,9 +55,8 @@ export function EventosProvider({ children }) {
   const inscribir = async (eventoId, tituloEvento) => {
     await api.post(`/eventos/${eventoId}/inscribir`)
     setEventos((prev) => prev.map((e) => (e.id === eventoId ? { ...e, inscrito: true } : e)))
-    if (tituloEvento) {
-      agregarNotificacion('Eventos', `Quedaste inscrito en "${tituloEvento}".`)
-    }
+    // La notificacion de inscripcion la crea eventos-service (E2-32).
+    setTimeout(recargarNotificaciones, 800)
   }
 
   const estaInscrito = (eventoId) => eventos.find((e) => e.id === eventoId)?.inscrito || false

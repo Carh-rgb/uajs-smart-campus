@@ -94,7 +94,7 @@ export default function Topbar({ onToggleMobileMenu }) {
                     title={rutaDeNotificacion(n.categoria) ? 'Ir al módulo' : undefined}
                   >
                     <p className="notif-preview__category">{n.categoria}</p>
-                    <p className="notif-preview__text">{n.mensaje}</p>
+                    <p className="notif-preview__text">{n.titulo ? <strong>{n.titulo}. </strong> : null}{n.mensaje}</p>
                     <p className="notif-preview__date">{n.fecha}</p>
                   </div>
                 ))}

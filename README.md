@@ -17,6 +17,8 @@ Plataforma web que centraliza los servicios universitarios de UAJS (solicitudes,
 
 ## Arquitectura
 
+Diagramas completos (capas, comunicación entre servicios y secuencias de los flujos principales) en [`arquitectura/README.md`](arquitectura/README.md).
+
 ```
 Frontend React (5183)
         │  HTTPS + JWT
@@ -48,6 +50,7 @@ Cada microservicio protege sus propias rutas con su propio middleware JWT (el Ga
 
 ```
 uajs-smart-campus/
+├── arquitectura/     # Diagramas de arquitectura y de secuencia (ver arquitectura/README.md)
 ├── backend/          # Gateway + 7 microservicios (ver backend/README.md)
 ├── database/         # Scripts SQL, datos de prueba y modelo de datos (ver database/README.md)
 ├── frontend/         # Aplicación React (ver frontend/README.md)

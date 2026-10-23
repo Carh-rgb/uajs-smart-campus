@@ -89,7 +89,7 @@ function ProximosEventos({ eventos }) {
             <div>
               <p style={{ margin: '0 0 3px', fontWeight: 600 }}>{e.titulo}</p>
               <p style={{ margin: 0, fontSize: 12, color: 'var(--color-text-secondary)' }}>
-                {e.fecha} · {e.hora} · {e.lugar}
+                {e.fecha} · {e.hora}{e.horaFin ? `–${e.horaFin}` : ''} · {e.lugar}
               </p>
             </div>
             {e.inscrito && <span className="status-badge status-badge--ok">Inscrito</span>}

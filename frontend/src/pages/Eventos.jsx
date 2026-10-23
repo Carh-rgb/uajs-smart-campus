@@ -9,7 +9,7 @@ import { BrandSpinner, ButtonSpinner } from '../components/BrandSpinner.jsx'
 import { facultadesEventos, estadosEvento } from '../data/mockData.js'
 import { useHighlightRow } from '../hooks/useHighlightRow.js'
 
-const FORM_VACIO = { titulo: '', fecha: '', hora: '', lugar: '', ponente: '', descripcion: '', facultad: facultadesEventos[0], cupoMaximo: '' }
+const FORM_VACIO = { titulo: '', fecha: '', hora: '', horaFin: '', lugar: '', ponente: '', descripcion: '', facultad: facultadesEventos[0], cupoMaximo: '' }
 
 // Fila de botones-filtro (Todos + un botón por estado) con contador, mismo
 // patrón que ya se usa en PQRS y Recursos.
@@ -54,8 +54,19 @@ function CamposEvento({ form, setForm }) {
           <input className="field__input" type="date" required value={form.fecha} onChange={(e) => setForm({ ...form, fecha: e.target.value })} />
         </div>
         <div className="field">
-          <label className="field__label">Hora</label>
+          <label className="field__label">Hora de inicio</label>
           <input className="field__input" type="time" required value={form.hora} onChange={(e) => setForm({ ...form, hora: e.target.value })} />
+        </div>
+        <div className="field">
+          <label className="field__label">Hora de fin</label>
+          <input
+            className="field__input"
+            type="time"
+            required
+            min={form.hora || undefined}
+            value={form.horaFin}
+            onChange={(e) => setForm({ ...form, horaFin: e.target.value })}
+          />
         </div>
         <div className="field">
           <label className="field__label">Lugar</label>
@@ -90,6 +101,7 @@ function EditarEventoModal({ evento, onClose, onGuardarDatos, onCambiarEstado, o
     titulo: evento.titulo,
     fecha: evento.fecha,
     hora: evento.hora,
+    horaFin: evento.horaFin || '',
     lugar: evento.lugar,
     ponente: evento.ponente,
     descripcion: evento.descripcion || '',
@@ -348,7 +360,7 @@ export default function Eventos() {
               data-row-id={e.id}
             >
               <div className="event-card__header">
-                <p className="event-card__date">{e.fecha} · {e.hora}</p>
+                <p className="event-card__date">{e.fecha} · {e.hora}{e.horaFin ? `–${e.horaFin}` : ''}</p>
                 <div className="event-card__badges">
                   {(esAdministrativo || e.estado !== 'Activo') && <StatusBadge estado={e.estado} />}
                 </div>

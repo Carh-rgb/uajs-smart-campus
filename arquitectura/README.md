@@ -16,8 +16,9 @@ Contenido:
 6. [Resumen de comunicaciones entre servicios](#6-resumen-de-comunicaciones-entre-servicios)
 7. [Riesgos conocidos](#7-riesgos-conocidos)
 
-> **Convención:** lo marcado como *E2-xx* es comportamiento que se implementa
-> en esa tarea del Entregable 2 (ClickUp). El resto ya existe en `develop`.
+> **Convención:** lo marcado como *E2-xx* es comportamiento agregado en esa
+> tarea del Entregable 2 (ClickUp); está implementado y probado en la rama
+> `feature/arnovis-e2-backend` (ver `pruebas/MATRIZ-PRUEBAS.md`).
 
 ---
 
@@ -190,16 +191,19 @@ sequenceDiagram
     RE-->>FE: 400 VALIDATION_ERROR (vía Gateway)
   end
   RE->>DRE: ¿existe el espacio en el catálogo? (salón, sala o equipo)
+  alt no existe
+    RE-->>FE: 400 SPACE_NOT_FOUND
+  end
   opt el espacio es un equipo (E2-21)
-    RE->>RC: GET /recursos/:codigo (token de servicio)
+    RE->>RC: GET /recursos?nombre=…&estado=Disponible (token de servicio, timeout 3 s)
     alt recursos-service no responde
       RC--xRE: timeout o error de red
       RE-->>FE: 503 SERVICE_UNAVAILABLE · no se crea la reserva
-    else el recurso no existe o no está Disponible
-      RC-->>RE: 404 o estado distinto de Disponible
-      RE-->>FE: 400 VALIDATION_ERROR
-    else disponible
-      RC-->>RE: 200 recurso Disponible
+    else ninguna unidad Disponible
+      RC-->>RE: 200 [] (lista vacía)
+      RE-->>FE: 409 NO_UNITS_AVAILABLE
+    else hay unidades
+      RC-->>RE: 200 [recursos Disponibles]
     end
   end
   RE->>DRE: ¿hay reservas Pendiente/Confirmada del mismo espacio, misma fecha y horario cruzado? (E2-20)
@@ -272,8 +276,8 @@ sequenceDiagram
 
 **Control de fallos:** si notificaciones-service está caído, el cambio de
 estado igual se guarda (la notificación es secundaria) y el error queda en el
-log del servicio. Hoy (antes de E2-32) es el frontend quien crea la
-notificación después de una respuesta exitosa.
+log del servicio. Desde E2-32 el frontend ya no crea estas notificaciones:
+solo refresca la campana después de cada acción.
 
 ---
 
@@ -326,13 +330,14 @@ conocida, ver sección 7).
 | Frontend → Gateway | `/api/*` | Toda petición del usuario | Sí | `502 SERVICE_UNAVAILABLE`; la interfaz muestra el error |
 | Gateway → servicio | ruta sin `/api` | Toda petición | Sí | `502` con formato único de error |
 | recursos → reservas | `PATCH /reservas/equipos/sync` | Crear, editar, cambiar estado o eliminar un recurso reservable | No | Se registra en log; el stock puede quedar desfasado |
-| reservas → recursos *(E2-21)* | `GET /recursos/:codigo` | Crear una reserva de equipo | **Sí** | `503`; no se crea la reserva |
-| solicitudes, reservas, eventos → notificaciones *(E2-32)* | endpoint interno de notificaciones | Cambio de estado, confirmación, inscripción | No | Se registra en log; la operación se completa |
+| reservas → recursos *(E2-21)* | `GET /recursos?nombre=…&estado=Disponible` | Crear una reserva de equipo | **Sí** (timeout 3 s) | `503`; no se crea la reserva |
+| solicitudes, reservas, eventos → notificaciones *(E2-32)* | `POST /notificaciones/interna` (solo token de servicio) | Registro y cambio de estado de solicitudes, PQRS y reservas; inscripción a eventos | No (timeout 2 s) | Se registra en log; la operación se completa |
 | usuarios, solicitudes, reservas, recursos, eventos → búsqueda | `PUT /buscar/documento`, `DELETE /buscar/documento/:tipo/:id` | Crear, editar o eliminar algo indexable | No | Se registra en log; el índice se recupera con `backfill` |
 
 **Autenticación entre servicios:** las llamadas internas llevan un *token de
-servicio* firmado con el mismo `JWT_SECRET`, con 1 minuto de vigencia y sin
-usuario real detrás (`id: 0`).
+servicio* firmado con el mismo `JWT_SECRET`, con 1 minuto de vigencia, sin
+usuario real detrás (`id: 0`) y marcado con `servicio: true`. Los endpoints
+internos rechazan cualquier token sin esa marca.
 
 **Formato de error común (E2-01):** todos los servicios y el Gateway
 responden los errores como
@@ -344,7 +349,7 @@ responden los errores como
 
 | Riesgo | Impacto | Propuesta |
 |---|---|---|
-| Los endpoints internos de búsqueda (`PUT` y `DELETE /buscar/documento`) aceptan el token de **cualquier usuario**, y el Gateway los publica en `/api/buscar/documento`. | Un usuario autenticado podría insertar o borrar resultados del buscador. | Aceptar solo tokens de servicio (marcarlos con un campo `servicio`) o no exponer esas rutas en el Gateway. |
+| ~~Los endpoints internos de búsqueda aceptaban el token de cualquier usuario.~~ | — | **Resuelto en E2-33:** `PUT`/`DELETE /buscar/documento` y `POST /notificaciones/interna` solo aceptan tokens de servicio (`servicio: true`); un token de usuario recibe `403 SERVICE_ONLY`. |
 | El `JWT_SECRET` de los `.env.example` es un valor de relleno público. | Con él se pueden fabricar tokens válidos. | Generar uno nuevo antes de cualquier despliegue (ver `SEGURIDAD.md` de la rama de Maicol). |
 | Sincronización de stock *fire-and-forget*. | Si reservas-service está caído durante un cambio de recurso, el stock queda desfasado. | Reintentos o una cola de mensajes (RabbitMQ), propuesto para el Entregable 3. |
 | Comunicación síncrona HTTP en todas las integraciones. | Un servicio lento retrasa al que lo llama. | Timeouts explícitos en los clientes HTTP y mensajería asíncrona en el Entregable 3. |

@@ -8,6 +8,9 @@ export const Evento = sequelize.define(
     titulo: { type: DataTypes.STRING, allowNull: false },
     fecha: { type: DataTypes.DATEONLY, allowNull: false },
     hora: { type: DataTypes.STRING, allowNull: false },
+    // Hora de finalizacion (E2-30). Obligatoria al crear o editar desde la
+    // API; la columna admite nulos solo por compatibilidad con datos viejos.
+    horaFin: { type: DataTypes.STRING, allowNull: true },
     lugar: { type: DataTypes.STRING, allowNull: false },
     ponente: { type: DataTypes.STRING, allowNull: false },
     descripcion: { type: DataTypes.TEXT, allowNull: true },

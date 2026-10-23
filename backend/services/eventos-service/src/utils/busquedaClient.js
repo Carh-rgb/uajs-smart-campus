@@ -4,7 +4,7 @@ const URL_BUSQUEDA = process.env.BUSQUEDA_SERVICE_URL || 'http://localhost:4007'
 
 function tokenServicio() {
   return jwt.sign(
-    { id: 0, nombre: 'eventos-service', rol: 'Administrador del sistema' },
+    { id: 0, nombre: 'eventos-service', rol: 'Administrador del sistema', servicio: true },
     process.env.JWT_SECRET,
     { expiresIn: '1m' },
   )
@@ -19,7 +19,7 @@ export async function indexarEvento(evento) {
         tipo: 'evento',
         entidadId: evento.id,
         titulo: evento.titulo,
-        subtitulo: `${evento.fecha} · ${evento.lugar}`,
+        subtitulo: `${evento.fecha} · ${evento.hora}${evento.horaFin ? '-' + evento.horaFin : ''} · ${evento.lugar}`,
         texto: [evento.descripcion, evento.ponente, evento.facultad].filter(Boolean).join(' '),
         estado: evento.estado,
         ruta: '/app/eventos',

@@ -1,7 +1,7 @@
 // Define los endpoints disponibles para el servicio de reservas
 import { Router } from 'express'
 import { obtenerCatalogo, sincronizarEquipo } from '../controllers/catalogo.controller.js'
-import { listar, crear, actualizarEstado, historial, eliminar } from '../controllers/reservas.controller.js'
+import { listar, obtener, crear, actualizar, actualizarEstado, historial, eliminar } from '../controllers/reservas.controller.js'
 import { requireAuth, requireRole } from '../middlewares/auth.js'
 
 export const reservasRouter = Router()
@@ -15,6 +15,8 @@ reservasRouter.patch(
 )
 reservasRouter.get('/', requireAuth, listar)
 reservasRouter.post('/', requireAuth, crear)
+reservasRouter.get('/:id', requireAuth, obtener)
+reservasRouter.patch('/:id', requireAuth, actualizar)
 reservasRouter.patch(
   '/:id/estado',
   requireAuth,

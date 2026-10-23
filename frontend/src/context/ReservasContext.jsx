@@ -12,7 +12,10 @@ export function ReservasProvider({ children }) {
   const [catalogo, setCatalogo] = useState(CATALOGO_VACIO)
   const [cargando, setCargando] = useState(true)
   const { user } = useAuth()
-  const { agregarNotificacion } = useNotifications()
+  const { recargarNotificaciones } = useNotifications()
+  // Las notificaciones las genera el backend (E2-32); aqui solo se refresca
+  // la campana un momento despues para mostrar las del propio usuario.
+  const refrescarAvisos = () => setTimeout(recargarNotificaciones, 800)
 
   const cargar = useCallback(async () => {
     if (!user) {
@@ -53,20 +56,26 @@ export function ReservasProvider({ children }) {
   const crearReserva = async ({ tipoEspacio, espacio, fecha, horaInicio, horaFin, motivo }) => {
     const nueva = await api.post('/reservas', { tipoEspacio, espacio, fecha, horaInicio, horaFin, motivo })
     setReservas((prev) => [nueva, ...prev])
-    agregarNotificacion('Reservas', `Se registró la reserva ${nueva.id} para ${espacio}.`, nueva.solicitanteId)
+    refrescarAvisos()
     return nueva
   }
 
   const actualizarEstado = async (id, nuevoEstado) => {
     const actualizada = await api.patch(`/reservas/${id}/estado`, { estado: nuevoEstado })
     setReservas((prev) => prev.map((r) => (r.id === id ? actualizada : r)))
-    agregarNotificacion('Reservas', `Tu reserva ${id} cambió a estado ${nuevoEstado}.`, actualizada.solicitanteId)
     // Confirmar/descartar una reserva de equipo cambia su stock disponible.
     if (actualizada.tipoEspacio === 'equipo') cargarCatalogo()
     return actualizada
   }
 
   const obtenerHistorial = async (id) => api.get(`/reservas/${id}/historial`)
+
+  // E2-41: modificar fecha, horas o motivo de una reserva Pendiente.
+  const modificarReserva = async (id, cambios) => {
+    const actualizada = await api.patch(`/reservas/${id}`, cambios)
+    setReservas((prev) => prev.map((r) => (r.id === id ? actualizada : r)))
+    return actualizada
+  }
 
   const eliminarReserva = async (id) => {
     const reserva = reservas.find((r) => r.id === id)
@@ -83,6 +92,7 @@ export function ReservasProvider({ children }) {
         cargando,
         actualizarEstado,
         crearReserva,
+        modificarReserva,
         obtenerHistorial,
         eliminarReserva,
         recargar: cargar,

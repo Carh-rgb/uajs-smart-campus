@@ -18,6 +18,28 @@ algo que no existe todavía ni pise el trabajo de otro.
 
 ---
 
+## 0. Estado al viernes 23 (léelo primero)
+
+Como el jueves no hubo avances, **Arnovis implementó y probó todo el backend,
+el frontend y las pruebas en el
+[PR #14](https://github.com/Carh-rgb/uajs-smart-campus/pull/14)**
+(E2-10 a E2-13, E2-20 a E2-23, E2-30 a E2-33, E2-40 a E2-42, E2-51 y E2-52).
+**No vuelvan a hacer esas tareas.** La matriz de pruebas da 15/15
+(`pruebas/MATRIZ-PRUEBAS.md`).
+
+Lo que **sí** queda pendiente, en este orden:
+
+| Quién | Qué | Para cuándo |
+|---|---|---|
+| Camilo (o quien pueda) | Revisar y mezclar en `develop` los PR #11, #12, #13 y #14 (se mezclan en cualquier orden sin conflictos). | Hoy viernes |
+| Todos | Bajar `develop`, levantar el sistema (`npm install` y `docker compose down -v && docker compose up -d` en `backend/`) y probar su módulo desde la interfaz. Si algo falla, avisar en el grupo. | Hoy viernes |
+| Maicol | E2-50: integrar la dockerización a `develop` con CORS limitado. | Hoy viernes |
+| David | E2-43: revisar estados de interfaz y completar capturas por módulo (ya hay 5 en `pruebas/evidencias/`). | Hoy viernes |
+| Maicol | E2-05: documento técnico PDF. Insumos listos: `database/`, `arquitectura/` (con imágenes), `pruebas/` y `postman/`. | Sábado 12 m. |
+| Maicol | E2-53: registrar en ClickUp los defectos de `pruebas/MATRIZ-PRUEBAS.md` y armar el ZIP final. | Sábado 12 m. |
+
+---
+
 ## 1. Lo primero: hoy, miércoles 21
 
 Hay 3 Pull Requests de base abiertos. **Nadie debe crear su rama del

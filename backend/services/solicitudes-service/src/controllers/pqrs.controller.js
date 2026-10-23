@@ -1,5 +1,7 @@
 import { Pqrs, PqrsHistorial } from '../models/index.js'
 import { indexarPqrs } from '../utils/busquedaClient.js'
+import { HttpError } from '../middlewares/errores.js'
+import { TIPOS_PQRS, DEPENDENCIAS, ESTADOS_PQRS } from '../utils/catalogos.js'
 
 async function siguienteId() {
   // Basado en el maximo id existente, no en el conteo de filas (ver la
@@ -29,8 +31,14 @@ export async function listar(req, res) {
 
 export async function crear(req, res) {
   const { tipo, dirigidoA, asunto, descripcion, adjunto } = req.body
-  if (!tipo || !dirigidoA || !asunto || !descripcion) {
+  if (!tipo || !dirigidoA || !String(asunto || '').trim() || !String(descripcion || '').trim()) {
     return res.status(400).json({ error: 'tipo, dirigidoA, asunto y descripcion son obligatorios.' })
+  }
+  if (!TIPOS_PQRS.includes(tipo)) {
+    throw new HttpError(400, `Tipo de PQRS invalido. Valores permitidos: ${TIPOS_PQRS.join(', ')}.`)
+  }
+  if (!DEPENDENCIAS.includes(dirigidoA)) {
+    throw new HttpError(400, `Dependencia invalida. Valores permitidos: ${DEPENDENCIAS.join(', ')}.`)
   }
 
   const id = await siguienteId()
@@ -65,6 +73,9 @@ export async function responder(req, res) {
   }
 
   const { respuesta, adjunto, estado } = req.body
+  if (estado && !ESTADOS_PQRS.includes(estado)) {
+    throw new HttpError(400, `Estado de PQRS invalido. Valores permitidos: ${ESTADOS_PQRS.join(', ')}.`)
+  }
   const fecha = hoy()
   const estadoAnterior = pqrs.estado
 
@@ -107,7 +118,14 @@ export async function asignar(req, res) {
   res.json(pqrs)
 }
 
+// E2-13: el historial solo lo ven el solicitante, el Docente asignado o el personal.
 export async function historial(req, res) {
+  const pqrs = await Pqrs.findByPk(req.params.id)
+  if (!pqrs) throw new HttpError(404, 'PQRS no encontrada.', 'PQRS_NOT_FOUND')
+  const esResponsable = req.user.rol === 'Docente' && pqrs.asignadoA === req.user.nombre
+  if (!puedeGestionar(req.user) && pqrs.solicitanteId !== req.user.id && !esResponsable) {
+    throw new HttpError(403, 'No tienes permiso para ver el historial de esta PQRS.')
+  }
   const items = await PqrsHistorial.findAll({ where: { pqrsId: req.params.id }, order: [['fecha', 'ASC']] })
   res.json(items)
 }

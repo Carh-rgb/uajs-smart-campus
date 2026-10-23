@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken'
 import { Usuario } from '../models/index.js'
 import { enviarCorreoReset } from '../utils/mailer.js'
 import { indexarUsuario } from '../utils/busquedaClient.js'
+import { HttpError } from '../middlewares/errores.js'
 
 function firmarToken(usuario) {
   return jwt.sign(
@@ -30,7 +31,7 @@ const CAMPOS_PERFIL_EDITABLES = [
 
 // Datos de registro institucional que solo se capturan al crear la
 // cuenta (ver registrar()); el propio usuario no puede modificarlos.
-const CAMPOS_REGISTRO_INSTITUCIONAL = [
+export const CAMPOS_REGISTRO_INSTITUCIONAL = [
   'genero',
   'tipoDocumento',
   'numeroDocumento',
@@ -43,7 +44,7 @@ const CAMPOS_REGISTRO_INSTITUCIONAL = [
   'extension',
 ]
 
-function serializar(usuario) {
+export function serializar(usuario) {
   return {
     id: usuario.id,
     nombre: usuario.nombre,
@@ -92,28 +93,41 @@ export async function login(req, res) {
   res.json({ token, usuario: serializar(usuario) })
 }
 
-export async function registrar(req, res) {
-  const { nombre, correo, password, rol, programa } = req.body
-  if (!nombre || !correo || !password || !rol) {
-    return res.status(400).json({ error: 'nombre, correo, password y rol son obligatorios.' })
+// Roles validos (mismos valores del ENUM de Usuario.rol).
+export const ROLES = ['Estudiante', 'Docente', 'Administrativo', 'Administrador del sistema']
+
+// Crea una cuenta validando los datos. La usan el registro publico
+// (rolForzado = 'Estudiante') y el Administrador desde POST /usuarios
+// (rol elegido, validado contra ROLES). Lanza HttpError si algo no cuadra.
+export async function crearCuenta(datos, { rolForzado } = {}) {
+  const { nombre, correo, password, programa } = datos
+  const rol = rolForzado || datos.rol
+  if (!nombre?.trim() || !correo?.trim() || !password || !rol) {
+    throw new HttpError(400, 'nombre, correo, password y rol son obligatorios.')
   }
   if (!/^[^\s@]+@uajs\.edu\.co$/i.test(correo)) {
-    return res.status(400).json({ error: 'El correo debe pertenecer al dominio @uajs.edu.co' })
+    throw new HttpError(400, 'El correo debe pertenecer al dominio @uajs.edu.co')
+  }
+  if (!ROLES.includes(rol)) {
+    throw new HttpError(400, `Rol invalido. Valores permitidos: ${ROLES.join(', ')}.`, 'INVALID_ROLE')
+  }
+  if (String(password).length < 6) {
+    throw new HttpError(400, 'La contraseña debe tener al menos 6 caracteres.')
   }
 
   const existente = await Usuario.findOne({ where: { correo: correo.toLowerCase() } })
   if (existente) {
-    return res.status(409).json({ error: 'Ya existe un usuario con ese correo.' })
+    throw new HttpError(409, 'Ya existe un usuario con ese correo.', 'DUPLICATE')
   }
 
   const passwordHash = await bcrypt.hash(password, 10)
   const registroInstitucional = {}
   for (const campo of CAMPOS_REGISTRO_INSTITUCIONAL) {
-    if (req.body[campo]) registroInstitucional[campo] = req.body[campo]
+    if (datos[campo]) registroInstitucional[campo] = datos[campo]
   }
 
   const usuario = await Usuario.create({
-    nombre,
+    nombre: nombre.trim(),
     correo: correo.toLowerCase(),
     passwordHash,
     rol,
@@ -121,7 +135,15 @@ export async function registrar(req, res) {
     ...registroInstitucional,
   })
   indexarUsuario(usuario)
+  return usuario
+}
 
+// Registro publico (E2-10): siempre crea un Estudiante, sin importar el
+// "rol" que venga en el cuerpo. Antes cualquiera podia registrarse como
+// "Administrador del sistema". Las cuentas de otros roles las crea el
+// Administrador con POST /usuarios.
+export async function registrar(req, res) {
+  const usuario = await crearCuenta(req.body, { rolForzado: 'Estudiante' })
   const token = firmarToken(usuario)
   res.status(201).json({ token, usuario: serializar(usuario) })
 }

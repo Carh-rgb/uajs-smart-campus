@@ -1,6 +1,7 @@
 import { Pqrs, PqrsHistorial } from '../models/index.js'
 import { indexarPqrs } from '../utils/busquedaClient.js'
 import { HttpError } from '../middlewares/errores.js'
+import { notificar } from '../utils/notificacionesClient.js'
 import { TIPOS_PQRS, DEPENDENCIAS, ESTADOS_PQRS } from '../utils/catalogos.js'
 
 async function siguienteId() {
@@ -59,6 +60,14 @@ export async function crear(req, res) {
   })
   await PqrsHistorial.create({ pqrsId: id, estado: 'Registrada', fecha, por: req.user.nombre })
   indexarPqrs(nueva)
+  notificar({
+    usuarioId: nueva.solicitanteId,
+    categoria: 'PQRS',
+    titulo: 'PQRS radicada',
+    mensaje: `Se radicó ${id}: ${nueva.asunto}.`,
+    entidadRelacionada: 'pqrs',
+    entidadId: id,
+  })
 
   res.status(201).json(nueva)
 }
@@ -91,6 +100,14 @@ export async function responder(req, res) {
     await PqrsHistorial.create({ pqrsId: pqrs.id, estado: pqrs.estado, fecha, por: req.user.nombre })
   }
   indexarPqrs(pqrs)
+  notificar({
+    usuarioId: pqrs.solicitanteId,
+    categoria: 'PQRS',
+    titulo: `PQRS ${pqrs.id} respondida`,
+    mensaje: `Tu ${pqrs.tipo.toLowerCase()} ${pqrs.id} recibió una respuesta (estado: ${pqrs.estado}).`,
+    entidadRelacionada: 'pqrs',
+    entidadId: pqrs.id,
+  })
 
   res.json(pqrs)
 }

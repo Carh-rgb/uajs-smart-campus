@@ -3,6 +3,7 @@ import { Reserva, ReservaHistorial, Equipo, Salon, SalaEspecial, SalaBiblioteca 
 import { indexarReserva, eliminarReservaDelIndice } from '../utils/busquedaClient.js'
 import { unidadesDisponibles } from '../utils/recursosClient.js'
 import { HttpError } from '../middlewares/errores.js'
+import { notificar } from '../utils/notificacionesClient.js'
 
 // Estados de una reserva y a cuales puede pasar cada uno (E2-20/E2-22).
 // Denegada y Cancelada son finales: una reserva cancelada no se reactiva,
@@ -163,6 +164,14 @@ export async function crear(req, res) {
   })
   await ReservaHistorial.create({ reservaId: id, estado: 'Pendiente', fecha: hoy(), por: req.user.nombre })
   indexarReserva(reserva)
+  notificar({
+    usuarioId: reserva.solicitanteId,
+    categoria: 'Reservas',
+    titulo: 'Reserva registrada',
+    mensaje: `Se registró la reserva ${id} para ${espacio} el ${fecha} de ${horaInicio} a ${horaFin}. Queda pendiente de confirmación.`,
+    entidadRelacionada: 'reserva',
+    entidadId: id,
+  })
 
   res.status(201).json(reserva)
 }
@@ -249,6 +258,15 @@ export async function actualizarEstado(req, res) {
   // Solo se registra en el historial cuando el estado realmente cambia.
   if (estado !== estadoAnterior) {
     await ReservaHistorial.create({ reservaId: reserva.id, estado, fecha: hoy(), por: req.user.nombre })
+    // E2-32: la notificacion al solicitante la genera el servicio.
+    notificar({
+      usuarioId: reserva.solicitanteId,
+      categoria: 'Reservas',
+      titulo: `Reserva ${reserva.id}: ${estado}`,
+      mensaje: `Tu reserva ${reserva.id} de ${reserva.espacio} (${reserva.fecha}, ${reserva.horaInicio}-${reserva.horaFin}) quedó ${estado.toLowerCase()}.`,
+      entidadRelacionada: 'reserva',
+      entidadId: reserva.id,
+    })
   }
   indexarReserva(reserva)
 

@@ -1,6 +1,7 @@
 import { Solicitud, SolicitudHistorial } from '../models/index.js'
 import { indexarSolicitud, eliminarDelIndice } from '../utils/busquedaClient.js'
 import { HttpError } from '../middlewares/errores.js'
+import { notificar } from '../utils/notificacionesClient.js'
 import {
   TIPOS_SOLICITUD,
   DEPENDENCIAS,
@@ -86,6 +87,14 @@ export async function crear(req, res) {
   })
   await SolicitudHistorial.create({ solicitudId: id, estado: 'Registrada', fecha, por: req.user.nombre })
   indexarSolicitud(solicitud)
+  notificar({
+    usuarioId: solicitud.solicitanteId,
+    categoria: 'Solicitudes',
+    titulo: 'Solicitud registrada',
+    mensaje: `Se registró la solicitud ${id} (${tipo}). Te avisaremos cada vez que cambie de estado.`,
+    entidadRelacionada: 'solicitud',
+    entidadId: id,
+  })
 
   res.status(201).json(solicitud)
 }
@@ -137,6 +146,18 @@ export async function responder(req, res) {
     await SolicitudHistorial.create({ solicitudId: solicitud.id, estado: solicitud.estado, fecha, por: req.user.nombre })
   }
   indexarSolicitud(solicitud)
+  // E2-32: la notificacion al solicitante la genera el servicio.
+  notificar({
+    usuarioId: solicitud.solicitanteId,
+    categoria: 'Solicitudes',
+    titulo: solicitud.estado !== estadoAnterior ? `Solicitud ${solicitud.id}: ${solicitud.estado}` : `Solicitud ${solicitud.id} respondida`,
+    mensaje:
+      solicitud.estado !== estadoAnterior
+        ? `Tu solicitud ${solicitud.id} pasó de "${estadoAnterior}" a "${solicitud.estado}".`
+        : `Tu solicitud ${solicitud.id} recibió una respuesta.`,
+    entidadRelacionada: 'solicitud',
+    entidadId: solicitud.id,
+  })
 
   res.json(solicitud)
 }

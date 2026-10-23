@@ -9,7 +9,7 @@ const URL_BUSQUEDA = process.env.BUSQUEDA_SERVICE_URL || 'http://localhost:4007'
 // try/catch sin relanzar el error.
 function tokenServicio() {
   return jwt.sign(
-    { id: 0, nombre: 'solicitudes-service', rol: 'Administrador del sistema' },
+    { id: 0, nombre: 'solicitudes-service', rol: 'Administrador del sistema', servicio: true },
     process.env.JWT_SECRET,
     { expiresIn: '1m' },
   )

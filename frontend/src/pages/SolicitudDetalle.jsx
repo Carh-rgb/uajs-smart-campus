@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { estadosSolicitud } from '../data/mockData.js'
+import { estadosSolicitud, transicionesSolicitud } from '../data/mockData.js'
+import { useUsers } from '../context/UsersContext.jsx'
 import { useSolicitudes } from '../context/SolicitudesContext.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import StatusBadge from '../components/StatusBadge.jsx'
@@ -11,10 +12,13 @@ export default function SolicitudDetalle() {
   const { id } = useParams()
   const { user } = useAuth()
   const { responderSolicitud, obtenerSolicitud } = useSolicitudes()
+  const { responsables } = useUsers()
   const [solicitud, setSolicitud] = useState(null)
   const [cargando, setCargando] = useState(true)
   const [guardando, setGuardando] = useState(false)
   const [mensaje, setMensaje] = useState('')
+  const [mensajeError, setMensajeError] = useState(false)
+  const [asignadoForm, setAsignadoForm] = useState('')
   const [estadoForm, setEstadoForm] = useState('')
   const [respuestaForm, setRespuestaForm] = useState('')
   const [adjuntoForm, setAdjuntoForm] = useState(null)
@@ -26,6 +30,7 @@ export default function SolicitudDetalle() {
       setSolicitud(detalle)
       setEstadoForm(detalle.estado)
       setRespuestaForm(detalle.respuesta || '')
+      setAsignadoForm(detalle.asignadoA && detalle.asignadoA !== 'Sin asignar' ? detalle.asignadoA : '')
     } catch {
       setSolicitud(null)
     } finally {
@@ -59,6 +64,11 @@ export default function SolicitudDetalle() {
   }
 
   const indiceActual = estadosSolicitud.indexOf(solicitud.estado)
+  // E2-40: solo se ofrecen el estado actual y los siguientes permitidos; el
+  // backend igual valida y responde 409 si alguien intenta otra cosa.
+  const siguientes = transicionesSolicitud[solicitud.estado] || []
+  const opcionesEstado = [solicitud.estado, ...siguientes]
+  const pideResponsable = estadoForm === 'Asignada' && solicitud.estado !== 'Asignada'
 
   const handleResponder = async (e) => {
     e.preventDefault()
@@ -68,11 +78,15 @@ export default function SolicitudDetalle() {
         respuesta: respuestaForm,
         adjunto: adjuntoForm?.name || '',
         nuevoEstado: estadoForm,
+        asignadoA: pideResponsable ? asignadoForm : undefined,
       })
       await cargar()
+      setMensajeError(false)
       setMensaje('Respuesta enviada al solicitante.')
       setTimeout(() => setMensaje(''), 3000)
     } catch (err) {
+      // Ej. 409 INVALID_TRANSITION o 400 por falta de responsable.
+      setMensajeError(true)
       setMensaje(err.message || 'No se pudo guardar la respuesta.')
     } finally {
       setGuardando(false)
@@ -122,13 +136,36 @@ export default function SolicitudDetalle() {
             <div className="field">
               <label className="field__label">Estado</label>
               <select className="field__input" value={estadoForm} onChange={(e) => setEstadoForm(e.target.value)}>
-                {estadosSolicitud.map((estado) => (
+                {opcionesEstado.map((estado) => (
                   <option key={estado} value={estado}>
-                    {estado}
+                    {estado === solicitud.estado ? `${estado} (actual)` : `Pasar a: ${estado}`}
                   </option>
                 ))}
               </select>
+              {siguientes.length === 0 && (
+                <p style={{ fontSize: 12, color: 'var(--color-text-muted)', marginTop: 4 }}>
+                  La solicitud está cerrada: ya no puede cambiar de estado.
+                </p>
+              )}
             </div>
+            {pideResponsable && (
+              <div className="field">
+                <label className="field__label">Asignar a</label>
+                <select
+                  className="field__input"
+                  required
+                  value={asignadoForm}
+                  onChange={(e) => setAsignadoForm(e.target.value)}
+                >
+                  <option value="">Selecciona un responsable</option>
+                  {responsables.map((r) => (
+                    <option key={r.id} value={r.nombre}>
+                      {r.nombre} · {r.rol}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
             <div className="field">
               <label className="field__label">Adjunto (opcional)</label>
               <input
@@ -159,7 +196,12 @@ export default function SolicitudDetalle() {
             Guardar y responder
           </LoadingButton>
           {mensaje && (
-            <p style={{ fontSize: 12.5, color: 'var(--color-success)', marginTop: 10 }}>{mensaje}</p>
+            <p
+              role={mensajeError ? 'alert' : 'status'}
+              style={{ fontSize: 12.5, color: mensajeError ? 'var(--color-danger)' : 'var(--color-success)', marginTop: 10 }}
+            >
+              {mensaje}
+            </p>
           )}
         </form>
       )}

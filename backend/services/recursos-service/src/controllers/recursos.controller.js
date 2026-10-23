@@ -1,6 +1,23 @@
 import { Recurso, RecursoHistorial } from '../models/index.js'
 import { sincronizarEquipoEnReservas } from '../utils/reservasClient.js'
 import { indexarRecurso, eliminarRecursoDelIndice } from '../utils/busquedaClient.js'
+import { HttpError } from '../middlewares/errores.js'
+
+// Valores permitidos (los mismos del frontend: mockData.js). E2-23.
+export const TIPOS_RECURSO = ['Audiovisual', 'Equipo de cómputo', 'Mobiliario', 'Instrumento de laboratorio', 'Otro']
+export const ESTADOS_RECURSO = ['Disponible', 'En mantenimiento', 'Fuera de servicio']
+
+function validarTipo(tipo) {
+  if (!TIPOS_RECURSO.includes(tipo)) {
+    throw new HttpError(400, `Tipo de recurso invalido. Valores permitidos: ${TIPOS_RECURSO.join(', ')}.`)
+  }
+}
+
+async function buscarOFallar(codigo) {
+  const recurso = await Recurso.findByPk(codigo)
+  if (!recurso) throw new HttpError(404, 'No existe un recurso con el codigo solicitado.', 'RESOURCE_NOT_FOUND')
+  return recurso
+}
 
 // Solo estos tipos de recurso se pueden reservar (ver "Laboratorios y
 // equipos" en el modulo de Reservas); mobiliario, instrumentos de
@@ -20,22 +37,38 @@ async function siguienteCodigo() {
 }
 
 export async function listar(req, res) {
-  const { tipo, estado } = req.query
+  const { tipo, estado, nombre } = req.query
   const where = {}
   if (tipo && tipo !== 'Todos') where.tipo = tipo
   if (estado && estado !== 'Todos') where.estado = estado
+  // nombre exacto: lo usa reservas-service para saber cuantas unidades
+  // Disponibles hay de un equipo antes de aceptar una reserva (E2-21).
+  if (nombre) where.nombre = nombre
   const recursos = await Recurso.findAll({ where, order: [['createdAt', 'DESC']] })
   res.json(recursos)
 }
 
+// GET /recursos/:codigo (E2-23, pruebas T04 y T05).
+export async function obtener(req, res) {
+  res.json(await buscarOFallar(req.params.codigo))
+}
+
 export async function crear(req, res) {
-  const { nombre, tipo, ubicacion } = req.body
-  if (!nombre || !tipo || !ubicacion) {
+  const { nombre, tipo, ubicacion, descripcion } = req.body
+  if (!String(nombre || '').trim() || !tipo || !String(ubicacion || '').trim()) {
     return res.status(400).json({ error: 'nombre, tipo y ubicacion son obligatorios.' })
   }
+  validarTipo(tipo)
 
   const codigo = await siguienteCodigo()
-  const recurso = await Recurso.create({ codigo, nombre, tipo, ubicacion, estado: 'Disponible' })
+  const recurso = await Recurso.create({
+    codigo,
+    nombre: nombre.trim(),
+    tipo,
+    ubicacion: ubicacion.trim(),
+    descripcion: descripcion || null,
+    estado: 'Disponible',
+  })
   await RecursoHistorial.create({ recursoCodigo: codigo, estado: 'Disponible', fecha: hoy(), por: req.user.nombre })
 
   if (TIPOS_RESERVABLES.includes(tipo)) {
@@ -49,13 +82,13 @@ export async function crear(req, res) {
 // Edita nombre/tipo/ubicacion (todo menos el estado, que tiene su propio
 // endpoint por el efecto colateral que tiene sobre el stock reservable).
 export async function actualizar(req, res) {
-  const recurso = await Recurso.findByPk(req.params.codigo)
-  if (!recurso) return res.status(404).json({ error: 'Recurso no encontrado.' })
+  const recurso = await buscarOFallar(req.params.codigo)
 
-  const { nombre, tipo, ubicacion } = req.body
-  if (!nombre || !tipo || !ubicacion) {
+  const { nombre, tipo, ubicacion, descripcion } = req.body
+  if (!String(nombre || '').trim() || !tipo || !String(ubicacion || '').trim()) {
     return res.status(400).json({ error: 'nombre, tipo y ubicacion son obligatorios.' })
   }
+  validarTipo(tipo)
 
   const nombreAnterior = recurso.nombre
   const tipoAnterior = recurso.tipo
@@ -64,6 +97,7 @@ export async function actualizar(req, res) {
   recurso.nombre = nombre
   recurso.tipo = tipo
   recurso.ubicacion = ubicacion
+  if (descripcion !== undefined) recurso.descripcion = descripcion || null
   await recurso.save()
 
   // El catalogo de equipos reservables en reservas-service agrupa el stock
@@ -98,11 +132,13 @@ export async function actualizar(req, res) {
 }
 
 export async function actualizarEstado(req, res) {
-  const recurso = await Recurso.findByPk(req.params.codigo)
-  if (!recurso) return res.status(404).json({ error: 'Recurso no encontrado.' })
+  const recurso = await buscarOFallar(req.params.codigo)
 
   const estadoAnterior = recurso.estado
   const nuevoEstado = req.body.estado
+  if (!ESTADOS_RECURSO.includes(nuevoEstado)) {
+    throw new HttpError(400, `Estado invalido. Valores permitidos: ${ESTADOS_RECURSO.join(', ')}.`)
+  }
   recurso.estado = nuevoEstado
   await recurso.save()
 
@@ -129,13 +165,13 @@ export async function actualizarEstado(req, res) {
 }
 
 export async function historial(req, res) {
+  await buscarOFallar(req.params.codigo)
   const items = await RecursoHistorial.findAll({ where: { recursoCodigo: req.params.codigo }, order: [['fecha', 'ASC']] })
   res.json(items)
 }
 
 export async function eliminar(req, res) {
-  const recurso = await Recurso.findByPk(req.params.codigo)
-  if (!recurso) return res.status(404).json({ error: 'Recurso no encontrado.' })
+  const recurso = await buscarOFallar(req.params.codigo)
 
   await recurso.destroy()
   await RecursoHistorial.destroy({ where: { recursoCodigo: recurso.codigo } })

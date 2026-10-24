@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useFetch } from '../hooks/useFetch.js'
+import ErrorPanel from '../components/ErrorPanel.jsx'
 import { useNotifications } from '../context/NotificationsContext.jsx'
 import { BrandSpinner } from '../components/BrandSpinner.jsx'
 import { rutaDeNotificacion } from '../utils/notificaciones.js'
@@ -10,7 +10,7 @@ const FILTROS = ['Todas', 'No leídas', 'Sistema']
 export default function Notificaciones() {
   const navigate = useNavigate()
   const [filtro, setFiltro] = useState('Todas')
-  const { notificaciones, cargando, marcarLeida, marcarTodasLeidas, eliminarNotificacion, noLeidasCount } = useNotifications()
+  const { notificaciones, cargando, error, recargar, marcarLeida, marcarTodasLeidas, eliminarNotificacion, noLeidasCount } = useNotifications()
 
   const handleClickNotificacion = (n) => {
     if (!n.leida) marcarLeida(n.id)
@@ -18,14 +18,13 @@ export default function Notificaciones() {
     if (ruta) navigate(ruta)
   }
 
-  const { data } = useFetch(
-    () => notificaciones,
-    (n) => {
-      if (filtro === 'Todas') return true
-      if (filtro === 'No leídas') return !n.leida
-      if (filtro === 'Sistema') return n.categoria === 'Institucional'
-      return true
-    },
+  const data = useMemo(
+    () =>
+      notificaciones.filter((n) => {
+        if (filtro === 'No leídas') return !n.leida
+        if (filtro === 'Sistema') return n.categoria === 'Institucional'
+        return true
+      }),
     [filtro, notificaciones],
   )
 
@@ -66,7 +65,9 @@ export default function Notificaciones() {
         )}
       </div>
 
-      {cargando ? (
+      {error && !cargando ? (
+        <ErrorPanel mensaje={error} onReintentar={recargar} />
+      ) : cargando ? (
         <div className="brand-loading-panel">
           <BrandSpinner size="md" label="Cargando notificaciones..." />
         </div>
@@ -106,7 +107,7 @@ export default function Notificaciones() {
         ))}
         {data.length === 0 && (
           <p style={{ color: 'var(--color-text-secondary)', fontSize: 13 }}>
-            No hay notificaciones para este filtro.
+            {notificaciones.length === 0 ? 'No tienes notificaciones por el momento.' : 'No hay notificaciones para este filtro.'}
           </p>
         )}
       </div>

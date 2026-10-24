@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { estadosSolicitud } from '../data/mockData.js'
+import { estadosSolicitud, TRANSICIONES_SOLICITUD, estadosDisponibles } from '../constants/catalogos.js'
+import ErrorPanel from '../components/ErrorPanel.jsx'
 import { useSolicitudes } from '../context/SolicitudesContext.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import StatusBadge from '../components/StatusBadge.jsx'
@@ -15,19 +16,24 @@ export default function SolicitudDetalle() {
   const [cargando, setCargando] = useState(true)
   const [guardando, setGuardando] = useState(false)
   const [mensaje, setMensaje] = useState('')
+  const [errorGuardar, setErrorGuardar] = useState('')
+  const [errorCarga, setErrorCarga] = useState(null) // null | 'no-encontrada' | mensaje
   const [estadoForm, setEstadoForm] = useState('')
   const [respuestaForm, setRespuestaForm] = useState('')
   const [adjuntoForm, setAdjuntoForm] = useState(null)
 
   const cargar = useCallback(async () => {
     setCargando(true)
+    setErrorCarga(null)
     try {
       const detalle = await obtenerSolicitud(id)
       setSolicitud(detalle)
       setEstadoForm(detalle.estado)
       setRespuestaForm(detalle.respuesta || '')
-    } catch {
+    } catch (err) {
       setSolicitud(null)
+      // 404 y 403 se presentan como "no encontrada" (no se revela si existe).
+      setErrorCarga(err.status === 404 || err.status === 403 ? 'no-encontrada' : err.message)
     } finally {
       setAdjuntoForm(null)
       setCargando(false)
@@ -49,20 +55,39 @@ export default function SolicitudDetalle() {
     )
   }
 
-  if (!solicitud) {
+  if (!solicitud && errorCarga && errorCarga !== 'no-encontrada') {
     return (
       <div>
-        <p>No se encontró la solicitud {id}.</p>
-        <Link to="/app/solicitudes">Volver a solicitudes</Link>
+        <ErrorPanel mensaje={errorCarga} onReintentar={cargar} />
+        <Link to="/app/solicitudes">← Volver a solicitudes</Link>
+      </div>
+    )
+  }
+
+  if (!solicitud) {
+    return (
+      <div className="panel" style={{ textAlign: 'center' }}>
+        <h3 className="panel__title">Solicitud no encontrada</h3>
+        <p style={{ color: 'var(--color-text-secondary)' }}>
+          No existe la solicitud {id} o no tienes permiso para verla.
+        </p>
+        <Link to="/app/solicitudes" style={{ color: 'var(--color-text-accent)' }}>
+          ← Volver a solicitudes
+        </Link>
       </div>
     )
   }
 
   const indiceActual = estadosSolicitud.indexOf(solicitud.estado)
+  // Solo se ofrecen los estados a los que el backend permite pasar desde el actual.
+  const opcionesEstado = estadosDisponibles(TRANSICIONES_SOLICITUD, solicitud.estado)
+  const requiereRespuesta = ['Resuelta', 'Cerrada'].includes(estadoForm) && !solicitud.respuesta
 
   const handleResponder = async (e) => {
     e.preventDefault()
     setGuardando(true)
+    setErrorGuardar('')
+    setMensaje('')
     try {
       await responderSolicitud(solicitud.id, {
         respuesta: respuestaForm,
@@ -70,10 +95,10 @@ export default function SolicitudDetalle() {
         nuevoEstado: estadoForm,
       })
       await cargar()
-      setMensaje('Respuesta enviada al solicitante.')
+      setMensaje('Cambios guardados y notificados al solicitante.')
       setTimeout(() => setMensaje(''), 3000)
     } catch (err) {
-      setMensaje(err.message || 'No se pudo guardar la respuesta.')
+      setErrorGuardar(err.message || 'No se pudo guardar la respuesta.')
     } finally {
       setGuardando(false)
     }
@@ -122,7 +147,7 @@ export default function SolicitudDetalle() {
             <div className="field">
               <label className="field__label">Estado</label>
               <select className="field__input" value={estadoForm} onChange={(e) => setEstadoForm(e.target.value)}>
-                {estadosSolicitud.map((estado) => (
+                {opcionesEstado.map((estado) => (
                   <option key={estado} value={estado}>
                     {estado}
                   </option>
@@ -139,11 +164,11 @@ export default function SolicitudDetalle() {
             </div>
           </div>
           <div className="field">
-            <label className="field__label">Respuesta para el solicitante</label>
+            <label className="field__label">Respuesta para el solicitante{requiereRespuesta ? ' (obligatoria para resolver o cerrar)' : ''}</label>
             <textarea
               className="field__input"
               rows={4}
-              required
+              required={requiereRespuesta}
               value={respuestaForm}
               onChange={(e) => setRespuestaForm(e.target.value)}
               placeholder="Escribe la respuesta o el resultado de la gestión..."
@@ -159,7 +184,10 @@ export default function SolicitudDetalle() {
             Guardar y responder
           </LoadingButton>
           {mensaje && (
-            <p style={{ fontSize: 12.5, color: 'var(--color-success)', marginTop: 10 }}>{mensaje}</p>
+            <p role="status" style={{ fontSize: 12.5, color: 'var(--color-success)', marginTop: 10 }}>{mensaje}</p>
+          )}
+          {errorGuardar && (
+            <p role="alert" style={{ fontSize: 12.5, color: 'var(--color-danger)', marginTop: 10 }}>{errorGuardar}</p>
           )}
         </form>
       )}

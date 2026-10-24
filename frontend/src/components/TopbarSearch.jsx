@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
 import { usePermissions, MODULOS } from '../context/PermissionsContext.jsx'
-import { api } from '../api/client.js'
+import { busquedaService } from '../services/busquedaService.js'
 import { INFO_POR_MODULO } from './Sidebar.jsx'
 import { IconoLupa, IconoDocumento, IconoChat, IconoCalendario, IconoGorro, IconoHerramientas, IconoUsuarios } from './icons.jsx'
 
@@ -66,8 +66,8 @@ export default function TopbarSearch() {
     }
     setBuscando(true)
     const timer = setTimeout(() => {
-      api
-        .get(`/buscar?q=${encodeURIComponent(q)}`)
+      busquedaService
+        .buscar(q)
         .then(setResultadosBusqueda)
         .catch(() => setResultadosBusqueda([]))
         .finally(() => setBuscando(false))

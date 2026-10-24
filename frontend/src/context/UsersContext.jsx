@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
-import { api } from '../api/client.js'
+import { usuariosService } from '../services/usuariosService.js'
 import { useAuth } from './AuthContext.jsx'
 
 const UsersContext = createContext(null)
@@ -9,20 +9,22 @@ export function UsersProvider({ children }) {
   const [usuarios, setUsuarios] = useState([])
   const [responsables, setResponsables] = useState([])
   const [cargando, setCargando] = useState(true)
+  const [error, setError] = useState(null)
 
   // La lista completa solo la puede ver el Administrador del sistema
   // (el backend responde 403 para cualquier otro rol).
   const cargarUsuarios = useCallback(async () => {
     if (!user || user.rol !== 'Administrador del sistema') {
+      setError(null)
       setCargando(false)
       return
     }
     setCargando(true)
+    setError(null)
     try {
-      const data = await api.get('/usuarios')
-      setUsuarios(data)
-    } catch {
-      setUsuarios([])
+      setUsuarios(await usuariosService.listar())
+    } catch (err) {
+      setError(err.message || 'No se pudieron cargar los usuarios.')
     } finally {
       setCargando(false)
     }
@@ -39,30 +41,30 @@ export function UsersProvider({ children }) {
       setResponsables([])
       return
     }
-    api
-      .get('/usuarios/responsables')
+    usuariosService
+      .responsables()
       .then(setResponsables)
       .catch(() => setResponsables([]))
   }, [user])
 
   const crearUsuario = async (datos) => {
-    const { usuario } = await api.post('/auth/register', datos)
+    const { usuario } = await usuariosService.crear(datos)
     setUsuarios((prev) => [usuario, ...prev])
     return usuario
   }
 
   const toggleActivo = async (id) => {
-    const actualizado = await api.patch(`/usuarios/${id}/estado`)
+    const actualizado = await usuariosService.alternarActivo(id)
     setUsuarios((prev) => prev.map((u) => (u.id === id ? actualizado : u)))
   }
 
   const actualizarRol = async (id, rol) => {
-    const actualizado = await api.patch(`/usuarios/${id}/rol`, { rol })
+    const actualizado = await usuariosService.cambiarRol(id, rol)
     setUsuarios((prev) => prev.map((u) => (u.id === id ? actualizado : u)))
   }
 
   const eliminarUsuario = async (id) => {
-    await api.delete(`/usuarios/${id}`)
+    await usuariosService.eliminar(id)
     setUsuarios((prev) => prev.filter((u) => u.id !== id))
   }
 
@@ -72,6 +74,7 @@ export function UsersProvider({ children }) {
         usuarios,
         responsables,
         cargando,
+        error,
         crearUsuario,
         toggleActivo,
         actualizarRol,

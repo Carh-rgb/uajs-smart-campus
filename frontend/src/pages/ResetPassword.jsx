@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { api } from '../api/client.js'
+import { authService } from '../services/usuariosService.js'
 import LoadingButton from '../components/LoadingButton.jsx'
 
 export default function ResetPassword() {
@@ -32,7 +32,7 @@ export default function ResetPassword() {
     setError('')
     setEnviando(true)
     try {
-      await api.post('/auth/reset-password', { token, nuevaPassword: password })
+      await authService.restablecerPassword(token, password)
       setExito(true)
       setTimeout(() => navigate('/login'), 3000)
     } catch (err) {

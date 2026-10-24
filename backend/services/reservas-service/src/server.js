@@ -4,6 +4,7 @@ import cors from 'cors'
 import { sequelize } from './config/database.js'
 import { reservasRouter } from './routes/reservas.routes.js'
 import { seed } from './seed/seed.js'
+import { rutaNoEncontrada, manejadorErrores } from './utils/errores.js'
 
 const app = express()
 const PORT = process.env.PORT || 4003
@@ -15,10 +16,9 @@ app.get('/health', (req, res) => res.json({ status: 'ok', service: 'reservas-ser
 
 app.use('/reservas', reservasRouter)
 
-app.use((err, req, res, next) => {
-  console.error('[reservas-service]', err)
-  res.status(500).json({ error: 'Error interno del servicio de reservas.' })
-})
+// 404 para rutas inexistentes y manejador central de errores (ver utils/errores.js).
+app.use(rutaNoEncontrada)
+app.use(manejadorErrores('reservas'))
 
 async function start() {
   await sequelize.authenticate()

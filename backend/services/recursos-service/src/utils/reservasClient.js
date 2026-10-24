@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken'
+import { ErrorApi } from './errores.js'
 
 const RESERVAS_SERVICE_URL = process.env.RESERVAS_SERVICE_URL || 'http://localhost:4003'
 
@@ -31,5 +32,32 @@ export async function sincronizarEquipoEnReservas({ codigo, nombre, tipo, delta,
     })
   } catch (err) {
     console.error('[recursos-service] no se pudo sincronizar con reservas-service:', err.message)
+  }
+}
+
+// Cuantas reservas activas (Pendiente/Confirmada, de hoy en adelante) tiene
+// un equipo, segun reservas-service (dueño de esos datos). Se usa para no
+// eliminar un recurso del que dependen reservas vigentes. Si reservas-service
+// no responde NO se asume "sin reservas": se devuelve 503 y no se elimina.
+export async function contarReservasActivas(nombre) {
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 3000)
+  try {
+    const respuesta = await fetch(`${RESERVAS_SERVICE_URL}/reservas/equipos/uso?nombre=${encodeURIComponent(nombre)}`, {
+      headers: { Authorization: `Bearer ${firmarTokenServicio()}` },
+      signal: controller.signal,
+    })
+    if (!respuesta.ok) throw new Error(`reservas-service respondio ${respuesta.status}`)
+    const { activas } = await respuesta.json()
+    return activas
+  } catch (err) {
+    console.error('[recursos-service] no se pudo consultar reservas-service:', err.message)
+    throw new ErrorApi(
+      503,
+      'No se pudo verificar si el recurso tiene reservas activas porque reservas-service no esta disponible. No se elimino; intenta de nuevo.',
+      'SERVICIO_NO_DISPONIBLE',
+    )
+  } finally {
+    clearTimeout(timeout)
   }
 }

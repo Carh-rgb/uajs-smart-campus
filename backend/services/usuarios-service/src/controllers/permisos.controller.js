@@ -1,4 +1,5 @@
 import { Permiso } from '../models/index.js'
+import { ErrorApi } from '../utils/errores.js'
 
 export async function listar(req, res) {
   const permisos = await Permiso.findAll()
@@ -11,7 +12,7 @@ export async function alternarModulo(req, res) {
   const { rol } = req.params
   const { moduloId } = req.body
   if (rol === 'Administrador del sistema') {
-    return res.status(400).json({ error: 'El Administrador del sistema siempre tiene acceso total.' })
+    throw new ErrorApi(400, 'El Administrador del sistema siempre tiene acceso total.', 'VALIDACION')
   }
 
   const [permiso] = await Permiso.findOrCreate({ where: { rol }, defaults: { modulosActivos: [] } })

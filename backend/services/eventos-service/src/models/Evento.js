@@ -8,6 +8,8 @@ export const Evento = sequelize.define(
     titulo: { type: DataTypes.STRING, allowNull: false },
     fecha: { type: DataTypes.DATEONLY, allowNull: false },
     hora: { type: DataTypes.STRING, allowNull: false },
+    // Hora de fin opcional (HH:MM); si se informa debe ser posterior a `hora`.
+    horaFin: { type: DataTypes.STRING, allowNull: true },
     lugar: { type: DataTypes.STRING, allowNull: false },
     ponente: { type: DataTypes.STRING, allowNull: false },
     descripcion: { type: DataTypes.TEXT, allowNull: true },

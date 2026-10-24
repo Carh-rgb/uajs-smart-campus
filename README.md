@@ -48,18 +48,30 @@ Cada microservicio protege sus propias rutas con su propio middleware JWT (el Ga
 
 ```
 uajs-smart-campus/
-├── backend/          # Gateway + 7 microservicios (ver backend/README.md)
+├── backend/          # Gateway + 7 microservicios + pruebas de API (ver backend/README.md)
+│   ├── gateway/
+│   ├── services/     # usuarios, solicitudes (+pqrs), reservas, recursos, eventos, notificaciones, busqueda
+│   └── tests/        # 82 pruebas automáticas de API (npm test)
 ├── frontend/         # Aplicación React (ver frontend/README.md)
-└── docs/             # Documentos del Entregable 1 (análisis, arquitectura, diseño)
+├── database/         # schema.sql, seed.sql y README de la base de datos
+├── postman/          # Colección y entorno de Postman (111 peticiones, 189 aserciones)
+└── .env.example      # Referencia de todas las variables de entorno
 ```
+
+## Requisitos
+
+- Node.js 18 o superior
+- Docker Desktop **en ejecución** (PostgreSQL y Elasticsearch corren en contenedores)
+- ~1 GB de RAM libre para Elasticsearch
 
 ## Cómo levantar todo
 
 ```bash
 # 1) Backend: base de datos + los 7 microservicios + Gateway
 cd backend
-npm run db:up
+npm run db:up        # PostgreSQL + Elasticsearch en Docker
 npm install
+npm run setup:env    # crea los .env desde los .env.example (solo los que falten)
 npm run dev
 
 # 2) Frontend (en otra terminal)
@@ -68,7 +80,27 @@ npm install
 npm run dev
 ```
 
-La aplicación queda disponible en `http://localhost:5183`. Instrucciones más detalladas de cada lado en [`backend/README.md`](backend/README.md) y [`frontend/README.md`](frontend/README.md).
+La aplicación queda disponible en `http://localhost:5183`. Cada servicio crea sus tablas y carga datos de prueba la primera vez que arranca; si prefieres scripts SQL explícitos, están en [`database/`](database/README.md). Instrucciones más detalladas de cada lado en [`backend/README.md`](backend/README.md) y [`frontend/README.md`](frontend/README.md).
+
+## Puertos
+
+| Componente | Puerto |
+|---|---|
+| Frontend (Vite) | 5183 |
+| API Gateway | 4000 |
+| usuarios · solicitudes · reservas · recursos · eventos · notificaciones · búsqueda | 4001 · 4002 · 4003 · 4004 · 4005 · 4006 · 4007 |
+| PostgreSQL · Elasticsearch | 5432 · 9200 |
+
+## Pruebas
+
+Con la base de datos y los servicios corriendo:
+
+```bash
+cd backend
+npm test             # 82 pruebas automáticas de API (~13 s)
+```
+
+Además, la colección de [`postman/`](postman) se puede ejecutar completa con el Runner de Postman o con Newman. Detalle de pruebas, catálogo de endpoints, reglas de negocio y solución de problemas en [`backend/README.md`](backend/README.md).
 
 ## Usuarios de prueba
 

@@ -6,6 +6,7 @@ import { authRouter } from './routes/auth.routes.js'
 import { usuariosRouter } from './routes/usuarios.routes.js'
 import { permisosRouter } from './routes/permisos.routes.js'
 import { seed } from './seed/seed.js'
+import { rutaNoEncontrada, manejadorErrores } from './utils/errores.js'
 
 const app = express()
 const PORT = process.env.PORT || 4001
@@ -21,10 +22,9 @@ app.use('/auth', authRouter)
 app.use('/usuarios', usuariosRouter)
 app.use('/permisos', permisosRouter)
 
-app.use((err, req, res, next) => {
-  console.error('[usuarios-service]', err)
-  res.status(500).json({ error: 'Error interno del servicio de usuarios.' })
-})
+// 404 para rutas inexistentes y manejador central de errores (ver utils/errores.js).
+app.use(rutaNoEncontrada)
+app.use(manejadorErrores('usuarios'))
 
 async function start() {
   await sequelize.authenticate()

@@ -9,7 +9,7 @@ import { useReservas } from '../context/ReservasContext.jsx'
 import { usePqrs } from '../context/PqrsContext.jsx'
 import { useEventos } from '../context/EventosContext.jsx'
 import { useUsers } from '../context/UsersContext.jsx'
-import { estadosSolicitud, estadosReserva, tiposSolicitud, tiposPqrs, estadosPqrs } from '../data/mockData.js'
+import { estadosSolicitud, estadosReserva, tiposSolicitud, tiposPqrs, estadosPqrs } from '../constants/catalogos.js'
 import { BrandSpinner } from '../components/BrandSpinner.jsx'
 import { IconoDocumento, IconoCalendario, IconoChat, IconoHerramientas, IconoUsuarios, IconoGorro } from '../components/icons.jsx'
 

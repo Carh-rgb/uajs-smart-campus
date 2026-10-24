@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
-import { api, getToken, setToken } from '../api/client.js'
+import { getToken, setToken } from '../api/client.js'
+import { authService } from '../services/usuariosService.js'
 
 const AuthContext = createContext(null)
 const STORAGE_KEY = 'uajs_smart_campus_user'
@@ -28,7 +29,7 @@ export function AuthProvider({ children }) {
   }
 
   const login = async ({ correo, password }) => {
-    const { token, usuario } = await api.post('/auth/login', { correo, password })
+    const { token, usuario } = await authService.login({ correo, password })
     guardarSesion(token, usuario)
     return usuario
   }
@@ -43,13 +44,13 @@ export function AuthProvider({ children }) {
   }
 
   const actualizarCorreoRecuperacion = async (correoRecuperacion) => {
-    const usuario = await api.patch('/auth/correo-recuperacion', { correoRecuperacion })
+    const usuario = await authService.actualizarCorreoRecuperacion(correoRecuperacion)
     actualizarUsuarioLocal(usuario)
     return usuario
   }
 
   const actualizarPerfil = async (datos) => {
-    const usuario = await api.patch('/auth/perfil', datos)
+    const usuario = await authService.actualizarPerfil(datos)
     actualizarUsuarioLocal(usuario)
     return usuario
   }
@@ -72,14 +73,18 @@ export function AuthProvider({ children }) {
       setCargando(false)
       return
     }
-    api
-      .get('/auth/me')
+    authService
+      .perfil()
       .then((usuario) => {
         setUser(usuario)
         localStorage.setItem(STORAGE_KEY, JSON.stringify(usuario))
       })
-      .catch(() => {
-        logout()
+      .catch((err) => {
+        // Solo se cierra la sesion si el backend dice que el token ya no
+        // sirve (401/403). Si el servidor esta caido (sin conexion) se
+        // conserva la sesion guardada: la app muestra el aviso de backend
+        // caido en vez de sacar al usuario.
+        if (err.status === 401 || err.status === 403) logout()
       })
       .finally(() => setCargando(false))
     // eslint-disable-next-line react-hooks/exhaustive-deps

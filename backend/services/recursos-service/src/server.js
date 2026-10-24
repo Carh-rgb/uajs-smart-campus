@@ -4,6 +4,7 @@ import cors from 'cors'
 import { sequelize } from './config/database.js'
 import { recursosRouter } from './routes/recursos.routes.js'
 import { seed } from './seed/seed.js'
+import { rutaNoEncontrada, manejadorErrores } from './utils/errores.js'
 
 const app = express()
 const PORT = process.env.PORT || 4004
@@ -15,14 +16,15 @@ app.get('/health', (req, res) => res.json({ status: 'ok', service: 'recursos-ser
 
 app.use('/recursos', recursosRouter)
 
-app.use((err, req, res, next) => {
-  console.error('[recursos-service]', err)
-  res.status(500).json({ error: 'Error interno del servicio de recursos.' })
-})
+// 404 para rutas inexistentes y manejador central de errores (ver utils/errores.js).
+app.use(rutaNoEncontrada)
+app.use(manejadorErrores('recursos'))
 
 async function start() {
   await sequelize.authenticate()
-  await sequelize.sync()
+  // alter:true: la tabla recursos ya existia antes de agregar `descripcion` y
+  // el proyecto no usa una herramienta de migraciones aparte de sync().
+  await sequelize.sync({ alter: true })
   await seed()
   app.listen(PORT, () => console.log(`[recursos-service] escuchando en http://localhost:${PORT}`))
 }

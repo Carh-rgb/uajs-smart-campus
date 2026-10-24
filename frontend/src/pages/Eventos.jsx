@@ -6,10 +6,11 @@ import ConfirmDialog from '../components/ConfirmDialog.jsx'
 import Modal from '../components/Modal.jsx'
 import LoadingButton from '../components/LoadingButton.jsx'
 import { BrandSpinner, ButtonSpinner } from '../components/BrandSpinner.jsx'
-import { facultadesEventos, estadosEvento } from '../data/mockData.js'
+import { facultadesEventos, estadosEvento } from '../constants/catalogos.js'
 import { useHighlightRow } from '../hooks/useHighlightRow.js'
+import ErrorPanel from '../components/ErrorPanel.jsx'
 
-const FORM_VACIO = { titulo: '', fecha: '', hora: '', lugar: '', ponente: '', descripcion: '', facultad: facultadesEventos[0], cupoMaximo: '' }
+const FORM_VACIO = { titulo: '', fecha: '', hora: '', horaFin: '', lugar: '', ponente: '', descripcion: '', facultad: facultadesEventos[0], cupoMaximo: '' }
 
 // Fila de botones-filtro (Todos + un botón por estado) con contador, mismo
 // patrón que ya se usa en PQRS y Recursos.
@@ -40,7 +41,7 @@ function CamposEvento({ form, setForm }) {
     <>
       <div className="field">
         <label className="field__label">Título</label>
-        <input className="field__input" required value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })} />
+        <input className="field__input" required minLength={3} maxLength={150} value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })} />
       </div>
       <div className="field">
         <label className="field__label">Facultad / dependencia</label>
@@ -56,6 +57,10 @@ function CamposEvento({ form, setForm }) {
         <div className="field">
           <label className="field__label">Hora</label>
           <input className="field__input" type="time" required value={form.hora} onChange={(e) => setForm({ ...form, hora: e.target.value })} />
+        </div>
+        <div className="field">
+          <label className="field__label">Hora de fin (opcional)</label>
+          <input className="field__input" type="time" min={form.hora || undefined} value={form.horaFin || ''} onChange={(e) => setForm({ ...form, horaFin: e.target.value })} />
         </div>
         <div className="field">
           <label className="field__label">Lugar</label>
@@ -90,6 +95,7 @@ function EditarEventoModal({ evento, onClose, onGuardarDatos, onCambiarEstado, o
     titulo: evento.titulo,
     fecha: evento.fecha,
     hora: evento.hora,
+    horaFin: evento.horaFin || '',
     lugar: evento.lugar,
     ponente: evento.ponente,
     descripcion: evento.descripcion || '',
@@ -103,6 +109,10 @@ function EditarEventoModal({ evento, onClose, onGuardarDatos, onCambiarEstado, o
 
   const handleGuardarDatos = async (e) => {
     e.preventDefault()
+    if (form.horaFin && form.horaFin <= form.hora) {
+      setError('La hora de fin debe ser posterior a la hora de inicio.')
+      return
+    }
     setGuardando(true)
     try {
       await onGuardarDatos(evento.id, { ...form, cupoMaximo: form.cupoMaximo === '' ? null : Number(form.cupoMaximo) })
@@ -119,8 +129,11 @@ function EditarEventoModal({ evento, onClose, onGuardarDatos, onCambiarEstado, o
   const handleCambiarEstado = async (e) => {
     const nuevoEstado = e.target.value
     setCambiandoEstado(true)
+    setError('')
     try {
       await onCambiarEstado(evento.id, nuevoEstado)
+    } catch (err) {
+      setError(err.message || 'No se pudo cambiar el estado del evento.')
     } finally {
       setCambiandoEstado(false)
     }
@@ -129,7 +142,7 @@ function EditarEventoModal({ evento, onClose, onGuardarDatos, onCambiarEstado, o
   return (
     <Modal title={`Editar evento — ${evento.titulo}`} onClose={onClose}>
       <form onSubmit={handleGuardarDatos}>
-        {error && <p style={{ fontSize: 12.5, color: 'var(--color-danger)', marginBottom: 14 }}>{error}</p>}
+        {error && <p role="alert" style={{ fontSize: 12.5, color: 'var(--color-danger)', marginBottom: 14 }}>{error}</p>}
         <CamposEvento form={form} setForm={setForm} />
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <LoadingButton
@@ -184,8 +197,8 @@ function EditarEventoModal({ evento, onClose, onGuardarDatos, onCambiarEstado, o
 export default function Eventos() {
   const { user } = useAuth()
   const {
-    eventos, cargando, agregarEvento, actualizarEvento, actualizarEstadoEvento,
-    inscribir, estaInscrito, inscritosDe, eliminarEvento,
+    eventos, cargando, error: errorCarga, recargar, agregarEvento, actualizarEvento, actualizarEstadoEvento,
+    inscribir, cancelarInscripcion, estaInscrito, inscritosDe, eliminarEvento,
   } = useEventos()
   const highlightId = useHighlightRow()
 
@@ -199,6 +212,8 @@ export default function Eventos() {
   const [eventoAConfirmar, setEventoAConfirmar] = useState(null)
   const [eventoEditar, setEventoEditar] = useState(null)
   const [eventoAEliminar, setEventoAEliminar] = useState(null)
+  const [eventoACancelar, setEventoACancelar] = useState(null)
+  const [cancelando, setCancelando] = useState(false)
   const [mensajeExito, setMensajeExito] = useState('')
   const [modalNuevoAbierto, setModalNuevoAbierto] = useState(false)
   const [eventoInscritosId, setEventoInscritosId] = useState(null)
@@ -239,9 +254,12 @@ export default function Eventos() {
 
   const verInscritos = async (eventoId) => {
     setCargandoInscritosId(eventoId)
+    setError('')
     try {
       setInscritos(await inscritosDe(eventoId))
       setEventoInscritosId(eventoId)
+    } catch (err) {
+      setError(err.message || 'No se pudieron cargar los inscritos.')
     } finally {
       setCargandoInscritosId(null)
     }
@@ -249,6 +267,10 @@ export default function Eventos() {
 
   const handleCrearEvento = async (e) => {
     e.preventDefault()
+    if (form.horaFin && form.horaFin <= form.hora) {
+      setError('La hora de fin debe ser posterior a la hora de inicio.')
+      return
+    }
     setGuardandoEvento(true)
     try {
       await agregarEvento({ ...form, cupoMaximo: form.cupoMaximo === '' ? null : Number(form.cupoMaximo) })
@@ -277,12 +299,31 @@ export default function Eventos() {
 
   const confirmarEliminarEvento = async () => {
     setEliminando(true)
+    setError('')
     try {
       await eliminarEvento(eventoAEliminar.id)
       setEventoAEliminar(null)
       setEventoEditar(null)
+    } catch (err) {
+      setEventoAEliminar(null)
+      setError(err.message || 'No se pudo eliminar el evento.')
     } finally {
       setEliminando(false)
+    }
+  }
+
+  const confirmarCancelarInscripcion = async () => {
+    setCancelando(true)
+    setError('')
+    try {
+      await cancelarInscripcion(eventoACancelar.id)
+      setMensajeExito(`Cancelaste tu inscripción en "${eventoACancelar.titulo}".`)
+      setTimeout(() => setMensajeExito(''), 4000)
+    } catch (err) {
+      setError(err.message || 'No se pudo cancelar la inscripción.')
+    } finally {
+      setEventoACancelar(null)
+      setCancelando(false)
     }
   }
 
@@ -330,7 +371,9 @@ export default function Eventos() {
         )}
       </div>
 
-      {cargando ? (
+      {errorCarga && !cargando ? (
+        <ErrorPanel mensaje={errorCarga} onReintentar={recargar} />
+      ) : cargando ? (
         <div className="panel">
           <div className="brand-loading-panel">
             <BrandSpinner size="md" label="Cargando eventos..." />
@@ -348,7 +391,7 @@ export default function Eventos() {
               data-row-id={e.id}
             >
               <div className="event-card__header">
-                <p className="event-card__date">{e.fecha} · {e.hora}</p>
+                <p className="event-card__date">{e.fecha} · {e.hora}{e.horaFin ? `–${e.horaFin}` : ''}</p>
                 <div className="event-card__badges">
                   {(esAdministrativo || e.estado !== 'Activo') && <StatusBadge estado={e.estado} />}
                 </div>
@@ -384,9 +427,18 @@ export default function Eventos() {
                 </div>
               ) : user?.rol === 'Estudiante' || user?.rol === 'Docente' ? (
                 inscrito ? (
-                  <span className="status-badge status-badge--ok" style={{ display: 'inline-block', marginTop: 12 }}>
-                    Ya estás inscrito
-                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
+                    <span className="status-badge status-badge--ok" style={{ display: 'inline-block' }}>
+                      Ya estás inscrito
+                    </span>
+                    <button
+                      className="btn btn--sm"
+                      style={{ width: 'auto', background: 'transparent', border: '1px solid var(--color-danger)', color: 'var(--color-danger)' }}
+                      onClick={() => setEventoACancelar(e)}
+                    >
+                      Cancelar inscripción
+                    </button>
+                  </div>
                 ) : e.estado === 'Cancelado' ? (
                   <span className="status-badge status-badge--bad" style={{ display: 'inline-block', marginTop: 12 }}>
                     Evento cancelado
@@ -410,7 +462,7 @@ export default function Eventos() {
         })}
         {visibles.length === 0 && (
           <p style={{ gridColumn: '1 / -1', fontSize: 13, color: 'var(--color-text-secondary)' }}>
-            No hay eventos que coincidan con el filtro.
+            {eventos.length === 0 ? 'Aún no hay eventos publicados.' : 'No hay eventos que coincidan con el filtro.'}
           </p>
         )}
       </div>
@@ -423,6 +475,17 @@ export default function Eventos() {
           onConfirm={handleConfirmarInscripcion}
           onCancel={() => setEventoAConfirmar(null)}
           loading={inscribiendo}
+        />
+      )}
+
+      {eventoACancelar && (
+        <ConfirmDialog
+          title="Cancelar inscripción"
+          text={`¿Deseas cancelar tu inscripción en "${eventoACancelar.titulo}"? Liberarás tu cupo.`}
+          confirmLabel="Cancelar inscripción"
+          loading={cancelando}
+          onConfirm={confirmarCancelarInscripcion}
+          onCancel={() => setEventoACancelar(null)}
         />
       )}
 

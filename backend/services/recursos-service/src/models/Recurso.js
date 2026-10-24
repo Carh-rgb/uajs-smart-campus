@@ -8,6 +8,7 @@ export const Recurso = sequelize.define(
     nombre: { type: DataTypes.STRING, allowNull: false },
     tipo: { type: DataTypes.STRING, allowNull: false },
     ubicacion: { type: DataTypes.STRING, allowNull: false },
+    descripcion: { type: DataTypes.TEXT, allowNull: true },
     estado: {
       type: DataTypes.ENUM('Disponible', 'En mantenimiento', 'Fuera de servicio'),
       allowNull: false,

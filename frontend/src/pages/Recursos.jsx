@@ -4,9 +4,10 @@ import Modal from '../components/Modal.jsx'
 import ConfirmDialog from '../components/ConfirmDialog.jsx'
 import LoadingButton from '../components/LoadingButton.jsx'
 import { BrandSpinner, ButtonSpinner } from '../components/BrandSpinner.jsx'
-import { api } from '../api/client.js'
+import ErrorPanel from '../components/ErrorPanel.jsx'
+import { recursosService } from '../services/recursosService.js'
 import { useAuth } from '../context/AuthContext.jsx'
-import { tiposRecurso, estadosRecurso } from '../data/mockData.js'
+import { tiposRecurso, estadosRecurso } from '../constants/catalogos.js'
 import { useHighlightRow } from '../hooks/useHighlightRow.js'
 
 // Fila de botones-filtro (Todos + un botón por estado) con contador, mismo
@@ -58,8 +59,11 @@ function EditarRecursoModal({ recurso, onClose, onGuardarDatos, onCambiarEstado,
   const handleCambiarEstado = async (e) => {
     const nuevoEstado = e.target.value
     setCambiandoEstado(true)
+    setError('')
     try {
       await onCambiarEstado(recurso.codigo, nuevoEstado)
+    } catch (err) {
+      setError(err.message || 'No se pudo cambiar el estado del recurso.')
     } finally {
       setCambiandoEstado(false)
     }
@@ -68,7 +72,7 @@ function EditarRecursoModal({ recurso, onClose, onGuardarDatos, onCambiarEstado,
   return (
     <Modal title={`Editar recurso — ${recurso.codigo}`} onClose={onClose}>
       <form onSubmit={handleGuardarDatos}>
-        {error && <p style={{ fontSize: 12.5, color: 'var(--color-danger)', marginBottom: 14 }}>{error}</p>}
+        {error && <p role="alert" style={{ fontSize: 12.5, color: 'var(--color-danger)', marginBottom: 14 }}>{error}</p>}
         <div className="field">
           <label className="field__label">Nombre</label>
           <input
@@ -152,6 +156,8 @@ export default function Recursos() {
 
   const [recursos, setRecursos] = useState([])
   const [cargando, setCargando] = useState(true)
+  const [errorCarga, setErrorCarga] = useState(null)
+  const [errorAccion, setErrorAccion] = useState('')
   const [filtroTipo, setFiltroTipo] = useState('Todos')
   const [filtroEstado, setFiltroEstado] = useState('Todos')
   const [busqueda, setBusqueda] = useState('')
@@ -168,11 +174,11 @@ export default function Recursos() {
 
   const cargar = useCallback(async () => {
     setCargando(true)
+    setErrorCarga(null)
     try {
-      const data = await api.get(filtroTipo === 'Todos' ? '/recursos' : `/recursos?tipo=${encodeURIComponent(filtroTipo)}`)
-      setRecursos(data)
-    } catch {
-      setRecursos([])
+      setRecursos(await recursosService.listar(filtroTipo))
+    } catch (err) {
+      setErrorCarga(err.message || 'No se pudieron cargar los recursos.')
     } finally {
       setCargando(false)
     }
@@ -200,20 +206,23 @@ export default function Recursos() {
   }
 
   const guardarDatos = async (codigo, datos) => {
-    const actualizado = await api.patch(`/recursos/${codigo}`, datos)
+    const actualizado = await recursosService.actualizar(codigo, datos)
     actualizarEnLista(actualizado)
   }
 
   const cambiarEstado = async (codigo, estado) => {
-    const actualizado = await api.patch(`/recursos/${codigo}/estado`, { estado })
+    const actualizado = await recursosService.cambiarEstado(codigo, estado)
     actualizarEnLista(actualizado)
   }
 
   const verHistorial = async (codigo) => {
     setCargandoHistorial(true)
+    setErrorAccion('')
     try {
-      setHistorial(await api.get(`/recursos/${codigo}/historial`))
+      setHistorial(await recursosService.historial(codigo))
       setHistorialCodigo(codigo)
+    } catch (err) {
+      setErrorAccion(err.message || 'No se pudo cargar el historial.')
     } finally {
       setCargandoHistorial(false)
     }
@@ -223,7 +232,7 @@ export default function Recursos() {
     e.preventDefault()
     setCreando(true)
     try {
-      const nuevo = await api.post('/recursos', form)
+      const nuevo = await recursosService.crear(form)
       setRecursos((prev) => [nuevo, ...prev])
       setForm({ nombre: '', tipo: tiposRecurso[0], ubicacion: '' })
       setModalAbierto(false)
@@ -237,11 +246,16 @@ export default function Recursos() {
 
   const confirmarEliminar = async () => {
     setEliminando(true)
+    setErrorAccion('')
     try {
-      await api.delete(`/recursos/${recursoAEliminar.codigo}`)
+      await recursosService.eliminar(recursoAEliminar.codigo)
       setRecursos((prev) => prev.filter((r) => r.codigo !== recursoAEliminar.codigo))
       setRecursoAEliminar(null)
       setRecursoEditar(null)
+    } catch (err) {
+      // Ej. 409 RECURSO_EN_USO: el recurso tiene reservas activas.
+      setRecursoAEliminar(null)
+      setErrorAccion(err.message || 'No se pudo eliminar el recurso.')
     } finally {
       setEliminando(false)
     }
@@ -258,6 +272,13 @@ export default function Recursos() {
         </p>
       </div>
 
+      {errorAccion && (
+        <p role="alert" style={{ fontSize: 13, color: 'var(--color-danger)', marginBottom: 14 }}>{errorAccion}</p>
+      )}
+
+      {errorCarga && !cargando ? (
+        <ErrorPanel mensaje={errorCarga} onReintentar={cargar} />
+      ) : (
       <div className="panel">
         <FiltrosEstado valor={filtroEstado} onChange={setFiltroEstado} items={recursos} />
 
@@ -326,7 +347,7 @@ export default function Recursos() {
               {visibles.length === 0 && (
                 <tr>
                   <td colSpan={puedeAdministrar ? 6 : 5} style={{ textAlign: 'center', color: 'var(--color-text-secondary)' }}>
-                    No hay recursos que coincidan con el filtro.
+                    {recursos.length === 0 ? 'Aún no hay recursos registrados.' : 'No hay recursos que coincidan con el filtro.'}
                   </td>
                 </tr>
               )}
@@ -335,14 +356,15 @@ export default function Recursos() {
           </div>
         )}
       </div>
+      )}
 
       {modalAbierto && (
         <Modal title="Nuevo recurso" onClose={() => setModalAbierto(false)}>
           <form onSubmit={handleCrear}>
-            {error && <p style={{ fontSize: 12.5, color: 'var(--color-danger)', marginBottom: 14 }}>{error}</p>}
+            {error && <p role="alert" style={{ fontSize: 12.5, color: 'var(--color-danger)', marginBottom: 14 }}>{error}</p>}
             <div className="field">
               <label className="field__label">Nombre</label>
-              <input className="field__input" required value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} />
+              <input className="field__input" required minLength={3} maxLength={100} value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} />
             </div>
             <div className="field-grid">
               <div className="field">

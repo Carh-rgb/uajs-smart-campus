@@ -4,6 +4,8 @@ import jwt from 'jsonwebtoken'
 import { Usuario } from '../models/index.js'
 import { enviarCorreoReset } from '../utils/mailer.js'
 import { indexarUsuario } from '../utils/busquedaClient.js'
+import { ErrorApi } from '../utils/errores.js'
+import { validar } from '../utils/validaciones.js'
 
 function firmarToken(usuario) {
   return jwt.sign(
@@ -73,19 +75,19 @@ function serializar(usuario) {
 }
 
 export async function login(req, res) {
-  const { correo, password } = req.body
-  if (!correo || !password) {
-    return res.status(400).json({ error: 'Correo y contrasena son obligatorios.' })
-  }
+  const { correo, password } = validar(req.body, {
+    correo: { tipo: 'correo', requerido: true, etiqueta: 'El correo' },
+    password: { tipo: 'texto', requerido: true, max: 72, etiqueta: 'La contraseña' },
+  })
 
-  const usuario = await Usuario.findOne({ where: { correo: correo.toLowerCase() } })
+  const usuario = await Usuario.findOne({ where: { correo } })
   if (!usuario || !usuario.activo) {
-    return res.status(401).json({ error: 'Credenciales invalidas o usuario inactivo.' })
+    throw new ErrorApi(401, 'Credenciales invalidas o usuario inactivo.', 'CREDENCIALES_INVALIDAS')
   }
 
   const claveValida = await bcrypt.compare(password, usuario.passwordHash)
   if (!claveValida) {
-    return res.status(401).json({ error: 'Credenciales invalidas.' })
+    throw new ErrorApi(401, 'Credenciales invalidas.', 'CREDENCIALES_INVALIDAS')
   }
 
   const token = firmarToken(usuario)
@@ -93,17 +95,20 @@ export async function login(req, res) {
 }
 
 export async function registrar(req, res) {
-  const { nombre, correo, password, rol, programa } = req.body
-  if (!nombre || !correo || !password || !rol) {
-    return res.status(400).json({ error: 'nombre, correo, password y rol son obligatorios.' })
-  }
+  const { nombre, correo, password, rol, programa } = validar(req.body, {
+    nombre: { tipo: 'texto', requerido: true, min: 3, max: 120, etiqueta: 'El nombre' },
+    correo: { tipo: 'correo', requerido: true, etiqueta: 'El correo' },
+    password: { tipo: 'texto', requerido: true, min: 6, max: 72, etiqueta: 'La contraseña' },
+    rol: { tipo: 'texto', requerido: true, valores: ['Estudiante', 'Docente', 'Administrativo', 'Administrador del sistema'], etiqueta: 'El rol' },
+    programa: { tipo: 'texto', max: 120, etiqueta: 'El programa' },
+  })
   if (!/^[^\s@]+@uajs\.edu\.co$/i.test(correo)) {
-    return res.status(400).json({ error: 'El correo debe pertenecer al dominio @uajs.edu.co' })
+    throw new ErrorApi(400, 'El correo debe pertenecer al dominio @uajs.edu.co', 'VALIDACION')
   }
 
-  const existente = await Usuario.findOne({ where: { correo: correo.toLowerCase() } })
+  const existente = await Usuario.findOne({ where: { correo } })
   if (existente) {
-    return res.status(409).json({ error: 'Ya existe un usuario con ese correo.' })
+    throw new ErrorApi(409, 'Ya existe un usuario con ese correo.', 'CONFLICTO')
   }
 
   const passwordHash = await bcrypt.hash(password, 10)
@@ -114,7 +119,7 @@ export async function registrar(req, res) {
 
   const usuario = await Usuario.create({
     nombre,
-    correo: correo.toLowerCase(),
+    correo,
     passwordHash,
     rol,
     programa: programa || null,
@@ -122,19 +127,18 @@ export async function registrar(req, res) {
   })
   indexarUsuario(usuario)
 
-  const token = firmarToken(usuario)
-  res.status(201).json({ token, usuario: serializar(usuario) })
+  res.status(201).json({ usuario: serializar(usuario) })
 }
 
 export async function perfil(req, res) {
   const usuario = await Usuario.findByPk(req.user.id)
-  if (!usuario) return res.status(404).json({ error: 'Usuario no encontrado.' })
+  if (!usuario) throw new ErrorApi(404, 'Usuario no encontrado.', 'NO_ENCONTRADO')
   res.json(serializar(usuario))
 }
 
 export async function actualizarPerfil(req, res) {
   const usuario = await Usuario.findByPk(req.user.id)
-  if (!usuario) return res.status(404).json({ error: 'Usuario no encontrado.' })
+  if (!usuario) throw new ErrorApi(404, 'Usuario no encontrado.', 'NO_ENCONTRADO')
 
   for (const campo of CAMPOS_PERFIL_EDITABLES) {
     if (campo in req.body) {
@@ -149,11 +153,11 @@ export async function actualizarPerfil(req, res) {
 export async function actualizarCorreoRecuperacion(req, res) {
   const { correoRecuperacion } = req.body
   if (!correoRecuperacion || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correoRecuperacion)) {
-    return res.status(400).json({ error: 'Ingresa un correo de recuperación válido.' })
+    throw new ErrorApi(400, 'Ingresa un correo de recuperación válido.', 'VALIDACION')
   }
 
   const usuario = await Usuario.findByPk(req.user.id)
-  if (!usuario) return res.status(404).json({ error: 'Usuario no encontrado.' })
+  if (!usuario) throw new ErrorApi(404, 'Usuario no encontrado.', 'NO_ENCONTRADO')
 
   usuario.correoRecuperacion = correoRecuperacion.toLowerCase()
   await usuario.save()
@@ -164,7 +168,7 @@ export async function actualizarCorreoRecuperacion(req, res) {
 export async function solicitarReset(req, res) {
   const { correo } = req.body
   if (!correo) {
-    return res.status(400).json({ error: 'El correo es obligatorio.' })
+    throw new ErrorApi(400, 'El correo es obligatorio.', 'VALIDACION')
   }
 
   const usuario = await Usuario.findOne({ where: { correo: correo.toLowerCase() } })
@@ -192,15 +196,15 @@ export async function solicitarReset(req, res) {
 export async function restablecerPassword(req, res) {
   const { token, nuevaPassword } = req.body
   if (!token || !nuevaPassword) {
-    return res.status(400).json({ error: 'token y nuevaPassword son obligatorios.' })
+    throw new ErrorApi(400, 'token y nuevaPassword son obligatorios.', 'VALIDACION')
   }
   if (nuevaPassword.length < 6) {
-    return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres.' })
+    throw new ErrorApi(400, 'La contraseña debe tener al menos 6 caracteres.', 'VALIDACION')
   }
 
   const usuario = await Usuario.findOne({ where: { resetToken: token } })
   if (!usuario || !usuario.resetTokenExpira || usuario.resetTokenExpira < new Date()) {
-    return res.status(400).json({ error: 'El enlace es invalido o ha expirado.' })
+    throw new ErrorApi(400, 'El enlace es invalido o ha expirado.', 'VALIDACION')
   }
 
   usuario.passwordHash = await bcrypt.hash(nuevaPassword, 10)

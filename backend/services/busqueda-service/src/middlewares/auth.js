@@ -5,13 +5,13 @@ export function requireAuth(req, res, next) {
   const token = header.startsWith('Bearer ') ? header.slice(7) : null
 
   if (!token) {
-    return res.status(401).json({ error: 'Token no proporcionado.' })
+    return res.status(401).json({ error: 'Token no proporcionado.', codigo: 'NO_AUTENTICADO' })
   }
 
   try {
     req.user = jwt.verify(token, process.env.JWT_SECRET)
     next()
   } catch {
-    return res.status(401).json({ error: 'Token invalido o expirado.' })
+    return res.status(401).json({ error: 'Token invalido o expirado.', codigo: 'TOKEN_INVALIDO' })
   }
 }

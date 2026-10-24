@@ -10,7 +10,7 @@ import { usePqrs } from '../context/PqrsContext.jsx'
 import { useNotifications } from '../context/NotificationsContext.jsx'
 import { useUsers } from '../context/UsersContext.jsx'
 import { BrandSpinner } from '../components/BrandSpinner.jsx'
-import { promocionesInstitucionales } from '../data/mockData.js'
+import { promocionesInstitucionales } from '../constants/institucional.js'
 import { IconoGorro, IconoMegafono, IconoAlerta, IconoChat, IconoHerramientas, IconoUsuarios } from '../components/icons.jsx'
 
 function AccesosRapidos({ enlaces }) {
@@ -109,7 +109,7 @@ function ProximosEventos({ eventos }) {
 }
 
 // Panel de contenido institucional (anuncios/beneficios). Es contenido
-// de ejemplo (ver mockData.js) para que el panel no quede vacío; la
+// de ejemplo (ver constants/institucional.js) para que el panel no quede vacío; la
 // universidad lo reemplazaria por sus propias promociones vigentes.
 function AnunciosPromociones() {
   return (

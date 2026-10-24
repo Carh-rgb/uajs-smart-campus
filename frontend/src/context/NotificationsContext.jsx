@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
-import { api } from '../api/client.js'
+import { notificacionesService } from '../services/notificacionesService.js'
 import { useAuth } from './AuthContext.jsx'
 
 const NotificationsContext = createContext(null)
@@ -8,19 +8,21 @@ export function NotificationsProvider({ children }) {
   const { user } = useAuth()
   const [notificaciones, setNotificaciones] = useState([])
   const [cargando, setCargando] = useState(true)
+  const [error, setError] = useState(null)
 
   const cargar = useCallback(async () => {
     if (!user) {
       setNotificaciones([])
+      setError(null)
       setCargando(false)
       return
     }
     setCargando(true)
+    setError(null)
     try {
-      const data = await api.get('/notificaciones')
-      setNotificaciones(data)
-    } catch {
-      setNotificaciones([])
+      setNotificaciones(await notificacionesService.listar())
+    } catch (err) {
+      setError(err.message || 'No se pudieron cargar las notificaciones.')
     } finally {
       setCargando(false)
     }
@@ -33,9 +35,11 @@ export function NotificationsProvider({ children }) {
   // usuarioId es opcional: si se omite, la notificacion es para el usuario
   // autenticado; el personal (Administrativo/Docente/Admin) puede indicar
   // el id de otro usuario (p. ej. avisarle al dueno de una solicitud).
-  const agregarNotificacion = async (categoria, mensaje, usuarioId) => {
+  // `entidad` y `entidadId` (opcionales) enlazan la notificacion con el
+  // registro que la origino, ej. ('solicitud', 'SOL-0231').
+  const agregarNotificacion = async (categoria, mensaje, usuarioId, entidad, entidadId) => {
     try {
-      const nueva = await api.post('/notificaciones', { categoria, mensaje, usuarioId })
+      const nueva = await notificacionesService.crear({ categoria, mensaje, usuarioId, entidad, entidadId })
       if (!usuarioId || usuarioId === user?.id) {
         setNotificaciones((prev) => [nueva, ...prev])
       }
@@ -49,7 +53,7 @@ export function NotificationsProvider({ children }) {
   const marcarLeida = async (id) => {
     setNotificaciones((prev) => prev.map((n) => (n.id === id ? { ...n, leida: true } : n)))
     try {
-      await api.patch(`/notificaciones/${id}/leida`)
+      await notificacionesService.marcarLeida(id)
     } catch {
       cargar()
     }
@@ -58,7 +62,7 @@ export function NotificationsProvider({ children }) {
   const marcarTodasLeidas = async () => {
     setNotificaciones((prev) => prev.map((n) => ({ ...n, leida: true })))
     try {
-      await api.patch('/notificaciones/marcar-todas')
+      await notificacionesService.marcarTodasLeidas()
     } catch {
       cargar()
     }
@@ -68,7 +72,7 @@ export function NotificationsProvider({ children }) {
     const previas = notificaciones
     setNotificaciones((prev) => prev.filter((n) => n.id !== id))
     try {
-      await api.delete(`/notificaciones/${id}`)
+      await notificacionesService.eliminar(id)
     } catch {
       setNotificaciones(previas)
     }
@@ -81,6 +85,8 @@ export function NotificationsProvider({ children }) {
       value={{
         notificaciones,
         cargando,
+        error,
+        recargar: cargar,
         agregarNotificacion,
         marcarLeida,
         marcarTodasLeidas,

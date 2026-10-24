@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
-import { api } from '../api/client.js'
+import { permisosService } from '../services/usuariosService.js'
 import { useAuth } from './AuthContext.jsx'
 
 // Catalogo de modulos disponibles en el sidebar (excluye "Permisos",
@@ -30,7 +30,7 @@ export function PermissionsProvider({ children }) {
       return
     }
     try {
-      const data = await api.get('/permisos')
+      const data = await permisosService.listar()
       setPermisos(data)
     } catch {
       setPermisos({})
@@ -51,7 +51,7 @@ export function PermissionsProvider({ children }) {
 
   const toggleModulo = async (rol, moduloId) => {
     if (rol === 'Administrador del sistema') return // no editable
-    const actualizado = await api.patch(`/permisos/${rol}`, { moduloId })
+    const actualizado = await permisosService.alternarModulo(rol, moduloId)
     setPermisos((prev) => ({ ...prev, [rol]: actualizado.modulosActivos }))
   }
 

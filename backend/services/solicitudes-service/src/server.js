@@ -5,6 +5,7 @@ import { sequelize } from './config/database.js'
 import { solicitudesRouter } from './routes/solicitudes.routes.js'
 import { pqrsRouter } from './routes/pqrs.routes.js'
 import { seed } from './seed/seed.js'
+import { rutaNoEncontrada, manejadorErrores } from './utils/errores.js'
 
 const app = express()
 const PORT = process.env.PORT || 4002
@@ -17,10 +18,9 @@ app.get('/health', (req, res) => res.json({ status: 'ok', service: 'solicitudes-
 app.use('/solicitudes', solicitudesRouter)
 app.use('/pqrs', pqrsRouter)
 
-app.use((err, req, res, next) => {
-  console.error('[solicitudes-service]', err)
-  res.status(500).json({ error: 'Error interno del servicio de solicitudes.' })
-})
+// 404 para rutas inexistentes y manejador central de errores (ver utils/errores.js).
+app.use(rutaNoEncontrada)
+app.use(manejadorErrores('solicitudes'))
 
 async function start() {
   await sequelize.authenticate()

@@ -25,28 +25,35 @@ npm run preview   # sirve el build localmente
 
 ## Variables de entorno
 
-Archivo `.env` en esta carpeta:
+Archivo `.env` en esta carpeta (hay un `.env.example` de referencia; `npm run setup:env` en `backend/` lo crea si falta):
 
 ```
 VITE_API_URL=http://localhost:4000/api
 ```
 
-Apunta al API Gateway, no a un microservicio directamente.
+Apunta al API Gateway, nunca a un microservicio ni a la base de datos: el navegador solo habla con el Gateway.
 
 ## Estructura de carpetas
 
 ```
 src/
-├── api/          # cliente HTTP (fetch + token JWT)
-├── components/   # 15 componentes reutilizables (Modal, Sidebar, StatusBadge, icons.jsx...)
-├── context/      # un Context por dominio (Auth, Solicitudes, Reservas, PQRS, Eventos...)
-├── data/         # catálogos y datos ilustrativos (mockData.js)
-├── hooks/        # useHighlightRow, useFetch
+├── api/          # cliente HTTP base (fetch + token JWT + ApiError tipado)
+├── services/     # un cliente HTTP por dominio (solicitudes, reservas, recursos, eventos...)
+├── constants/    # catálogos (estados, tipos) y transiciones de estado válidas
+├── components/   # componentes reutilizables (Modal, Sidebar, StatusBadge, ErrorPanel, icons.jsx...)
+├── context/      # un Context por dominio: estado, carga y error sobre los services
+├── hooks/        # useHighlightRow
 ├── pages/        # 15 vistas (una por módulo)
 ├── styles/       # CSS con metodología BEM, variables de tema (claro/oscuro)
 ├── App.jsx       # rutas (React Router)
 └── main.jsx
 ```
+
+## Integración con el backend
+
+Flujo de cada acción: **página → context → service → API Gateway → microservicio → base de datos**. Los datos que se muestran vienen siempre de la API; no hay datos simulados en la aplicación (la única excepción es el panel editorial "Anuncios y beneficios" del dashboard, que es contenido estático en `constants/institucional.js`).
+
+Estados de interfaz implementados en cada módulo: **cargando** (spinner), **éxito** (confirmación y lista actualizada), **error de validación o de regla de negocio** (el mensaje del backend, que nombra el campo), **error de servidor o de conexión** (panel con botón *Reintentar* y aviso global que indica qué servicio no responde), **lista vacía** (mensaje útil) y **detalle inexistente** (pantalla "no encontrado"). Los selectores de estado (solicitudes, PQRS, reservas) ofrecen solo las transiciones que el backend acepta.
 
 ## Tecnologías
 

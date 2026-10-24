@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { api } from '../api/client.js'
+import { authService } from '../services/usuariosService.js'
 import { esCorreoInstitucional } from '../utils/validation.js'
 import LoadingButton from '../components/LoadingButton.jsx'
 
@@ -20,7 +20,7 @@ export default function ForgotPassword() {
     setError('')
     setEnviando(true)
     try {
-      await api.post('/auth/forgot-password', { correo })
+      await authService.solicitarReset(correo)
       setEnviado(true)
     } catch (err) {
       setError(err.message || 'No se pudo procesar la solicitud.')

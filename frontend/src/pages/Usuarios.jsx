@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext.jsx'
 import { useUsers } from '../context/UsersContext.jsx'
 import { ROLES_GESTIONABLES } from '../context/PermissionsContext.jsx'
 import Modal from '../components/Modal.jsx'
+import ErrorPanel from '../components/ErrorPanel.jsx'
 import ConfirmDialog from '../components/ConfirmDialog.jsx'
 import LoadingButton from '../components/LoadingButton.jsx'
 import { BrandSpinner, ButtonSpinner } from '../components/BrandSpinner.jsx'
@@ -33,7 +34,8 @@ const FORM_INICIAL = {
 
 export default function Usuarios() {
   const { user } = useAuth()
-  const { usuarios, cargando, crearUsuario, toggleActivo, actualizarRol, eliminarUsuario } = useUsers()
+  const { usuarios, cargando, error: errorCarga, cargarUsuarios, crearUsuario, toggleActivo, actualizarRol, eliminarUsuario } = useUsers()
+  const [errorAccion, setErrorAccion] = useState('')
 
   const [busqueda, setBusqueda] = useState('')
   const [filtroRol, setFiltroRol] = useState('Todos')
@@ -105,8 +107,12 @@ export default function Usuarios() {
 
   const handleToggleActivo = async (id) => {
     setCargandoEstadoId(id)
+    setErrorAccion('')
     try {
       await toggleActivo(id)
+    } catch (err) {
+      // Ej. 409 ULTIMO_ADMINISTRADOR: no se puede desactivar al unico administrador.
+      setErrorAccion(err.message || 'No se pudo cambiar el estado del usuario.')
     } finally {
       setCargandoEstadoId(null)
     }
@@ -114,9 +120,13 @@ export default function Usuarios() {
 
   const confirmarEliminar = async () => {
     setEliminando(true)
+    setErrorAccion('')
     try {
       await eliminarUsuario(usuarioAEliminar.id)
       setUsuarioAEliminar(null)
+    } catch (err) {
+      setUsuarioAEliminar(null)
+      setErrorAccion(err.message || 'No se pudo eliminar el usuario.')
     } finally {
       setEliminando(false)
     }
@@ -170,7 +180,13 @@ export default function Usuarios() {
           </button>
         </div>
 
-        {cargando ? (
+        {errorAccion && (
+          <p role="alert" style={{ fontSize: 13, color: 'var(--color-danger)', marginBottom: 14 }}>{errorAccion}</p>
+        )}
+
+        {errorCarga && !cargando ? (
+          <ErrorPanel mensaje={errorCarga} onReintentar={cargarUsuarios} />
+        ) : cargando ? (
           <div className="brand-loading-panel">
             <BrandSpinner size="md" label="Cargando usuarios..." />
           </div>
@@ -195,7 +211,12 @@ export default function Usuarios() {
                   <select
                     className="toolbar__select"
                     value={u.rol}
-                    onChange={(e) => actualizarRol(u.id, e.target.value)}
+                    onChange={(e) => {
+                      setErrorAccion('')
+                      actualizarRol(u.id, e.target.value).catch((err) =>
+                        setErrorAccion(err.message || 'No se pudo cambiar el rol del usuario.'),
+                      )
+                    }}
                   >
                     {ROLES_DISPONIBLES.map((r) => <option key={r}>{r}</option>)}
                   </select>

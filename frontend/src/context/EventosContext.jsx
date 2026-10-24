@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
-import { api } from '../api/client.js'
+import { eventosService } from '../services/eventosService.js'
 import { useAuth } from './AuthContext.jsx'
 import { useNotifications } from './NotificationsContext.jsx'
 
@@ -8,21 +8,23 @@ const EventosContext = createContext(null)
 export function EventosProvider({ children }) {
   const [eventos, setEventos] = useState([])
   const [cargando, setCargando] = useState(true)
+  const [error, setError] = useState(null)
   const { user } = useAuth()
   const { agregarNotificacion } = useNotifications()
 
   const cargar = useCallback(async () => {
     if (!user) {
       setEventos([])
+      setError(null)
       setCargando(false)
       return
     }
     setCargando(true)
+    setError(null)
     try {
-      const data = await api.get('/eventos')
-      setEventos(data)
-    } catch {
-      setEventos([])
+      setEventos(await eventosService.listar())
+    } catch (err) {
+      setError(err.message || 'No se pudieron cargar los eventos.')
     } finally {
       setCargando(false)
     }
@@ -32,8 +34,8 @@ export function EventosProvider({ children }) {
     cargar()
   }, [cargar])
 
-  const agregarEvento = async ({ titulo, fecha, hora, lugar, ponente, descripcion, facultad, cupoMaximo }) => {
-    const nuevo = await api.post('/eventos', { titulo, fecha, hora, lugar, ponente, descripcion, facultad, cupoMaximo })
+  const agregarEvento = async ({ titulo, fecha, hora, horaFin, lugar, ponente, descripcion, facultad, cupoMaximo }) => {
+    const nuevo = await eventosService.crear({ titulo, fecha, hora, horaFin, lugar, ponente, descripcion, facultad, cupoMaximo })
     setEventos((prev) => [{ ...nuevo, inscrito: false, inscritosCount: 0 }, ...prev])
     return nuevo
   }
@@ -43,35 +45,57 @@ export function EventosProvider({ children }) {
   }
 
   const actualizarEvento = async (id, datos) => {
-    const actualizado = await api.patch(`/eventos/${id}`, datos)
-    actualizarEnLista(actualizado)
+    actualizarEnLista(await eventosService.actualizar(id, datos))
   }
 
   const actualizarEstadoEvento = async (id, estado) => {
-    const actualizado = await api.patch(`/eventos/${id}/estado`, { estado })
-    actualizarEnLista(actualizado)
+    actualizarEnLista(await eventosService.cambiarEstado(id, estado))
   }
 
   const inscribir = async (eventoId, tituloEvento) => {
-    await api.post(`/eventos/${eventoId}/inscribir`)
-    setEventos((prev) => prev.map((e) => (e.id === eventoId ? { ...e, inscrito: true } : e)))
+    await eventosService.inscribir(eventoId)
+    setEventos((prev) =>
+      prev.map((e) => (e.id === eventoId ? { ...e, inscrito: true, inscritosCount: (e.inscritosCount || 0) + 1 } : e)),
+    )
     if (tituloEvento) {
       agregarNotificacion('Eventos', `Quedaste inscrito en "${tituloEvento}".`)
     }
   }
 
+  const cancelarInscripcion = async (eventoId) => {
+    await eventosService.cancelarInscripcion(eventoId)
+    setEventos((prev) =>
+      prev.map((e) =>
+        e.id === eventoId ? { ...e, inscrito: false, inscritosCount: Math.max(0, (e.inscritosCount || 1) - 1) } : e,
+      ),
+    )
+  }
+
   const estaInscrito = (eventoId) => eventos.find((e) => e.id === eventoId)?.inscrito || false
 
-  const inscritosDe = async (eventoId) => api.get(`/eventos/${eventoId}/inscritos`)
+  const inscritosDe = async (eventoId) => eventosService.inscritos(eventoId)
 
   const eliminarEvento = async (id) => {
-    await api.delete(`/eventos/${id}`)
+    await eventosService.eliminar(id)
     setEventos((prev) => prev.filter((e) => e.id !== id))
   }
 
   return (
     <EventosContext.Provider
-      value={{ eventos, cargando, agregarEvento, actualizarEvento, actualizarEstadoEvento, inscribir, estaInscrito, inscritosDe, eliminarEvento }}
+      value={{
+        eventos,
+        cargando,
+        error,
+        recargar: cargar,
+        agregarEvento,
+        actualizarEvento,
+        actualizarEstadoEvento,
+        inscribir,
+        cancelarInscripcion,
+        estaInscrito,
+        inscritosDe,
+        eliminarEvento,
+      }}
     >
       {children}
     </EventosContext.Provider>

@@ -7,7 +7,8 @@ import StatusBadge from '../components/StatusBadge.jsx'
 import Modal from '../components/Modal.jsx'
 import LoadingButton from '../components/LoadingButton.jsx'
 import { BrandSpinner, ButtonSpinner } from '../components/BrandSpinner.jsx'
-import { tiposPqrs, dependencias, estadosPqrs } from '../data/mockData.js'
+import { tiposPqrs, dependencias, estadosPqrs, TRANSICIONES_PQRS, estadosDisponibles } from '../constants/catalogos.js'
+import ErrorPanel from '../components/ErrorPanel.jsx'
 import { useHighlightRow } from '../hooks/useHighlightRow.js'
 
 // Fila de botones-filtro (Todos + un botón por estado) con contador,
@@ -35,7 +36,7 @@ function FiltrosEstado({ valor, onChange, items }) {
 }
 
 function VistaEstudiante({ highlightId }) {
-  const { pqrs, cargando, radicar } = usePqrs()
+  const { pqrs, cargando, error: errorCarga, recargar, radicar } = usePqrs()
   const [radicado, setRadicado] = useState(null)
   const [error, setError] = useState('')
   const [enviando, setEnviando] = useState(false)
@@ -111,7 +112,9 @@ function VistaEstudiante({ highlightId }) {
 
       <div className="panel">
         <h3 className="panel__title">Mis PQRS</h3>
-        {cargando ? (
+        {errorCarga && !cargando ? (
+          <ErrorPanel mensaje={errorCarga} onReintentar={recargar} />
+        ) : cargando ? (
           <div className="brand-loading-panel">
             <BrandSpinner size="md" label="Cargando tus PQRS..." />
           </div>
@@ -163,6 +166,7 @@ function ResponderPqrsModal({ item, onClose, onSubmit, responsables, onAsignar }
   const handleGuardarAsignacion = async () => {
     setAsignando(true)
     setMensajeAsignacion('')
+    setError('')
     try {
       await onAsignar(item.id, asignadoA, nota.trim())
       setMensajeAsignacion(
@@ -171,6 +175,9 @@ function ResponderPqrsModal({ item, onClose, onSubmit, responsables, onAsignar }
           : `Asignación guardada. Se notificó a ${asignadoA}.`,
       )
       setNota('')
+    } catch (err) {
+      setMensajeAsignacion('')
+      setError(err.message || 'No se pudo guardar la asignación.')
     } finally {
       setAsignando(false)
     }
@@ -244,14 +251,16 @@ function ResponderPqrsModal({ item, onClose, onSubmit, responsables, onAsignar }
       )}
 
       <form onSubmit={handleSubmit}>
-        {error && <p style={{ fontSize: 12.5, color: 'var(--color-danger)', marginBottom: 14 }}>{error}</p>}
+        {error && <p role="alert" style={{ fontSize: 12.5, color: 'var(--color-danger)', marginBottom: 14 }}>{error}</p>}
         <div className="field-grid">
           <div className="field">
             <label className="field__label">Estado</label>
             <select className="field__input" value={estado} onChange={(e) => setEstado(e.target.value)}>
-              {estadosPqrs.filter((e) => e !== 'Registrada').map((e) => (
-                <option key={e}>{e}</option>
-              ))}
+              {estadosDisponibles(TRANSICIONES_PQRS, item.estado)
+                .filter((e) => e !== 'Registrada')
+                .map((e) => (
+                  <option key={e}>{e}</option>
+                ))}
             </select>
           </div>
           <div className="field">
@@ -287,13 +296,15 @@ function ResponderPqrsModal({ item, onClose, onSubmit, responsables, onAsignar }
 }
 
 function VistaDocente({ highlightId }) {
-  const { pqrs, cargando, responder } = usePqrs()
+  const { pqrs, cargando, error: errorCarga, recargar, responder } = usePqrs()
   const [respondiendoId, setRespondiendoId] = useState(null)
   const [filtro, setFiltro] = useState('Todos')
 
   // El backend ya devuelve solo las PQRS asignadas a este docente.
   const asignadas = pqrs
   const visibles = filtro === 'Todos' ? asignadas : asignadas.filter((p) => p.estado === filtro)
+
+  if (errorCarga && !cargando) return <ErrorPanel mensaje={errorCarga} onReintentar={recargar} />
 
   if (cargando) {
     return (
@@ -355,7 +366,7 @@ function VistaDocente({ highlightId }) {
 }
 
 function VistaAdministrativo({ highlightId }) {
-  const { pqrs, cargando, responder, asignar, obtenerHistorial } = usePqrs()
+  const { pqrs, cargando, error: errorCarga, recargar, responder, asignar, obtenerHistorial } = usePqrs()
   const { responsables } = useUsers()
   const { agregarNotificacion } = useNotifications()
   const [respondiendoId, setRespondiendoId] = useState(null)
@@ -402,6 +413,8 @@ function VistaAdministrativo({ highlightId }) {
         return [p.id, p.asunto, p.solicitante, p.tipo].some((v) => v?.toLowerCase().includes(texto))
       })
   }, [pqrs, filtro, busqueda])
+
+  if (errorCarga && !cargando) return <ErrorPanel mensaje={errorCarga} onReintentar={recargar} />
 
   if (cargando) {
     return (

@@ -1,11 +1,11 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import StatusBadge from '../components/StatusBadge.jsx'
 import Modal from '../components/Modal.jsx'
 import LoadingButton from '../components/LoadingButton.jsx'
 import { BrandSpinner } from '../components/BrandSpinner.jsx'
-import { useFetch } from '../hooks/useFetch.js'
-import { estadosSolicitud, tiposSolicitud, dependencias } from '../data/mockData.js'
+import ErrorPanel from '../components/ErrorPanel.jsx'
+import { estadosSolicitud, tiposSolicitud, dependencias, prioridadesSolicitud } from '../constants/catalogos.js'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useSolicitudes } from '../context/SolicitudesContext.jsx'
 
@@ -15,25 +15,23 @@ export default function Solicitudes() {
   const [modalAbierto, setModalAbierto] = useState(false)
   const navigate = useNavigate()
   const { user } = useAuth()
-  const { solicitudes, crearSolicitud } = useSolicitudes()
+  const { solicitudes, cargando, error, recargar, crearSolicitud } = useSolicitudes()
   const puedeCrear = user?.rol !== 'Administrativo'
 
   // El backend ya devuelve solo las solicitudes propias para
   // Estudiante/Docente, y todas para Administrativo/Admin.
-  const { data, loading } = useFetch(
-    () => solicitudes,
-    (s) => {
+  const data = useMemo(() => {
+    const texto = busqueda.trim().toLowerCase()
+    return solicitudes.filter((s) => {
       const coincideEstado = filtroEstado === 'Todos' || s.estado === filtroEstado
-      const texto = busqueda.trim().toLowerCase()
       const coincideBusqueda =
         !texto ||
         s.id.toLowerCase().includes(texto) ||
         s.tipo.toLowerCase().includes(texto) ||
         s.descripcion.toLowerCase().includes(texto)
       return coincideEstado && coincideBusqueda
-    },
-    [filtroEstado, busqueda, solicitudes],
-  )
+    })
+  }, [solicitudes, filtroEstado, busqueda])
 
   const [form, setForm] = useState({
     tipo: tiposSolicitud[0],
@@ -99,8 +97,11 @@ export default function Solicitudes() {
         )}
       </div>
 
+      {error && !cargando ? (
+        <ErrorPanel mensaje={error} onReintentar={recargar} />
+      ) : (
       <div className="panel">
-        {loading ? (
+        {cargando ? (
           <div className="brand-loading-panel">
             <BrandSpinner size="md" label="Cargando solicitudes..." />
           </div>
@@ -147,7 +148,9 @@ export default function Solicitudes() {
               {data.length === 0 && (
                 <tr>
                   <td colSpan={7} style={{ color: 'var(--color-text-secondary)', textAlign: 'center' }}>
-                    No se encontraron solicitudes para "{busqueda}".
+                    {solicitudes.length === 0
+                      ? 'Aún no hay solicitudes registradas.'
+                      : 'No hay solicitudes que coincidan con los filtros.'}
                   </td>
                 </tr>
               )}
@@ -156,6 +159,7 @@ export default function Solicitudes() {
           </div>
         )}
       </div>
+      )}
 
       {modalAbierto && (
         <Modal title="Nueva solicitud" onClose={() => setModalAbierto(false)}>
@@ -195,9 +199,9 @@ export default function Solicitudes() {
                   value={form.prioridad}
                   onChange={(e) => setForm({ ...form, prioridad: e.target.value })}
                 >
-                  <option>Baja</option>
-                  <option>Media</option>
-                  <option>Alta</option>
+                  {prioridadesSolicitud.map((p) => (
+                    <option key={p}>{p}</option>
+                  ))}
                 </select>
               </div>
               <div className="field">
@@ -212,9 +216,11 @@ export default function Solicitudes() {
                 className="field__input"
                 rows={4}
                 required
+                minLength={10}
+                maxLength={2000}
                 value={form.descripcion}
                 onChange={(e) => setForm({ ...form, descripcion: e.target.value })}
-                placeholder="Describe tu solicitud..."
+                placeholder="Describe tu solicitud (mínimo 10 caracteres)..."
               />
             </div>
 

@@ -6,13 +6,17 @@ import LoadingButton from '../components/LoadingButton.jsx'
 import { BrandSpinner, ButtonSpinner } from '../components/BrandSpinner.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useReservas } from '../context/ReservasContext.jsx'
-import { estadosReserva } from '../data/mockData.js'
+import { TRANSICIONES_RESERVA, estadosDisponibles } from '../constants/catalogos.js'
+import ErrorPanel from '../components/ErrorPanel.jsx'
 import { useHighlightRow } from '../hooks/useHighlightRow.js'
 
 const PESTANAS_DOCENTE = ['Pabellones / Salones', 'Salas especiales', 'Salas de biblioteca', 'Laboratorios y equipos']
 const PESTANAS_ESTUDIANTE = ['Laboratorios y equipos', 'Salas de biblioteca']
 
-function FormularioReserva({ user, catalogo, onCrear }) {
+// Fecha de hoy en hora de Colombia (AAAA-MM-DD), para el minimo del selector de fecha.
+const hoyLocal = () => new Date().toLocaleDateString('en-CA', { timeZone: 'America/Bogota' })
+
+function FormularioReserva({ user, catalogo, onCrear, onDisponibilidad }) {
   const { pabellones, salasEspeciales, salasBiblioteca, equipos } = catalogo
   const pestanas = user.rol === 'Estudiante' ? PESTANAS_ESTUDIANTE : PESTANAS_DOCENTE
   const [pestana, setPestana] = useState(pestanas[0])
@@ -30,6 +34,7 @@ function FormularioReserva({ user, catalogo, onCrear }) {
   const [horaInicio, setHoraInicio] = useState('')
   const [horaFin, setHoraFin] = useState('')
   const [motivo, setMotivo] = useState('')
+  const [ocupadas, setOcupadas] = useState([])
 
   useEffect(() => {
     if (pabellones.length && !pabellonId) setPabellonId(pabellones[0].id)
@@ -49,19 +54,9 @@ function FormularioReserva({ user, catalogo, onCrear }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pabellonId, pabellones])
 
-  if (!pabellonActual || !pabellonActual.salones) {
-    return (
-      <div className="panel">
-        <div className="brand-loading-panel">
-          <BrandSpinner size="md" label="Cargando catálogo de espacios..." />
-        </div>
-      </div>
-    )
-  }
-
   const espacioSeleccionado =
     pestana === 'Pabellones / Salones'
-      ? pabellonActual.salones.find((s) => s.id === salonId)?.nombre
+      ? pabellonActual?.salones?.find((s) => s.id === salonId)?.nombre
       : pestana === 'Salas especiales'
       ? salasEspeciales.find((s) => s.id === salaEspecialId)?.nombre
       : pestana === 'Salas de biblioteca'
@@ -72,9 +67,41 @@ function FormularioReserva({ user, catalogo, onCrear }) {
   const equipoSeleccionado = equipos.find((e) => e.codigo === equipoCodigo)
   const sinStock = tipoEspacio === 'equipo' && (!equipoSeleccionado || equipoSeleccionado.stock === 0)
 
+  useEffect(() => {
+    // Los equipos tienen varias unidades; solo los espacios se ocupan en
+    // exclusiva, asi que solo ahi tiene sentido mostrar franjas tomadas.
+    if (tipoEspacio !== 'espacio' || !espacioSeleccionado || !fecha) {
+      setOcupadas([])
+      return undefined
+    }
+    let vigente = true
+    onDisponibilidad(espacioSeleccionado, fecha)
+      .then((r) => vigente && setOcupadas(r.ocupadas))
+      .catch(() => vigente && setOcupadas([]))
+    return () => {
+      vigente = false
+    }
+  }, [tipoEspacio, espacioSeleccionado, fecha, onDisponibilidad])
+
+  if (!pabellonActual || !pabellonActual.salones) {
+    return (
+      <div className="panel">
+        <div className="brand-loading-panel">
+          <BrandSpinner size="md" label="Cargando catálogo de espacios..." />
+        </div>
+      </div>
+    )
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!fecha || !horaInicio || !horaFin || !motivo) return
+    // Validacion basica en el cliente; el backend vuelve a validar todo.
+    if (horaFin <= horaInicio) {
+      setError('La hora de fin debe ser posterior a la hora de inicio.')
+      return
+    }
+    setError('')
     setEnviando(true)
     try {
       await onCrear({
@@ -90,6 +117,7 @@ function FormularioReserva({ user, catalogo, onCrear }) {
       setHoraFin('')
       setMotivo('')
       setError('')
+      onDisponibilidad(espacioSeleccionado, fecha).then((r) => setOcupadas(r.ocupadas)).catch(() => {})
     } catch (err) {
       setError(err.message || 'No se pudo registrar la reserva.')
     } finally {
@@ -100,7 +128,7 @@ function FormularioReserva({ user, catalogo, onCrear }) {
   return (
     <div className="panel">
       <h3 className="panel__title">Formulario de reserva</h3>
-      {error && <p style={{ fontSize: 12.5, color: 'var(--color-danger)', marginBottom: 14 }}>{error}</p>}
+      {error && <p role="alert" style={{ fontSize: 12.5, color: 'var(--color-danger)', marginBottom: 14 }}>{error}</p>}
 
       {pestanas.length > 1 && (
         <div className="toolbar">
@@ -214,7 +242,7 @@ function FormularioReserva({ user, catalogo, onCrear }) {
         <div className="field-grid">
           <div className="field">
             <label className="field__label">Fecha</label>
-            <input className="field__input" type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} required />
+            <input className="field__input" type="date" min={hoyLocal()} value={fecha} onChange={(e) => setFecha(e.target.value)} required />
           </div>
           <div className="field">
             <label className="field__label">Hora de inicio</label>
@@ -226,11 +254,21 @@ function FormularioReserva({ user, catalogo, onCrear }) {
           </div>
         </div>
 
+        {tipoEspacio === 'espacio' && fecha && (
+          <p style={{ fontSize: 12.5, margin: '0 0 14px', color: ocupadas.length ? 'var(--color-danger)' : 'var(--color-text-secondary)' }}>
+            {ocupadas.length
+              ? `Horarios ya ocupados el ${fecha}: ${ocupadas.map((o) => `${o.horaInicio}–${o.horaFin}`).join(', ')}.`
+              : 'No hay reservas activas para este espacio en la fecha elegida.'}
+          </p>
+        )}
+
         <div className="field">
           <label className="field__label">Motivo / asignatura / actividad</label>
           <input
             className="field__input"
             placeholder="Ej: Clase de Bases de Datos"
+            minLength={3}
+            maxLength={200}
             value={motivo}
             onChange={(e) => setMotivo(e.target.value)}
             required
@@ -314,7 +352,7 @@ function GestionReservas({ reservas, actualizarEstado, onVerHistorial, cargandoH
     <div className="panel">
       <h3 className="panel__title">Reservas de estudiantes y docentes</h3>
       {errorEstado && (
-        <p style={{ fontSize: 12.5, color: 'var(--color-danger)', marginTop: -8, marginBottom: 14 }}>{errorEstado}</p>
+        <p role="alert" style={{ fontSize: 12.5, color: 'var(--color-danger)', marginTop: -8, marginBottom: 14 }}>{errorEstado}</p>
       )}
       <div className="table-responsive">
       <table className="data-table">
@@ -345,9 +383,11 @@ function GestionReservas({ reservas, actualizarEstado, onVerHistorial, cargandoH
                 <select
                   className="toolbar__select"
                   value={r.estado}
+                  disabled={estadosDisponibles(TRANSICIONES_RESERVA, r.estado).length === 1}
+                  title={estadosDisponibles(TRANSICIONES_RESERVA, r.estado).length === 1 ? 'Estado final: no admite cambios' : undefined}
                   onChange={(e) => handleCambiarEstado(r.id, e.target.value)}
                 >
-                  {estadosReserva.map((estado) => (
+                  {estadosDisponibles(TRANSICIONES_RESERVA, r.estado).map((estado) => (
                     <option key={estado} value={estado}>{estado}</option>
                   ))}
                 </select>
@@ -392,9 +432,12 @@ export default function Reservas() {
     reservas,
     catalogo,
     cargando,
+    error,
     actualizarEstado,
     crearReserva,
+    cancelarReserva,
     obtenerHistorial,
+    obtenerDisponibilidad,
     eliminarReserva,
     recargar,
     recargarCatalogo,
@@ -404,6 +447,9 @@ export default function Reservas() {
   const [cargandoHistorialId, setCargandoHistorialId] = useState(null)
   const [reservaAEliminar, setReservaAEliminar] = useState(null)
   const [eliminando, setEliminando] = useState(false)
+  const [reservaACancelar, setReservaACancelar] = useState(null)
+  const [cancelando, setCancelando] = useState(false)
+  const [errorAccion, setErrorAccion] = useState('')
   const highlightId = useHighlightRow()
 
   // El catalogo de equipos (y su stock) vive en un contexto que se monta
@@ -419,9 +465,12 @@ export default function Reservas() {
 
   const verHistorial = async (id) => {
     setCargandoHistorialId(id)
+    setErrorAccion('')
     try {
       setHistorial(await obtenerHistorial(id))
       setHistorialId(id)
+    } catch (err) {
+      setErrorAccion(err.message || 'No se pudo cargar el historial.')
     } finally {
       setCargandoHistorialId(null)
     }
@@ -429,11 +478,29 @@ export default function Reservas() {
 
   const confirmarEliminar = async () => {
     setEliminando(true)
+    setErrorAccion('')
     try {
       await eliminarReserva(reservaAEliminar.id)
       setReservaAEliminar(null)
+    } catch (err) {
+      setReservaAEliminar(null)
+      setErrorAccion(err.message || 'No se pudo eliminar la reserva.')
     } finally {
       setEliminando(false)
+    }
+  }
+
+  const confirmarCancelar = async () => {
+    setCancelando(true)
+    setErrorAccion('')
+    try {
+      await cancelarReserva(reservaACancelar.id)
+      setReservaACancelar(null)
+    } catch (err) {
+      setReservaACancelar(null)
+      setErrorAccion(err.message || 'No se pudo cancelar la reserva.')
+    } finally {
+      setCancelando(false)
     }
   }
 
@@ -448,7 +515,13 @@ export default function Reservas() {
         </p>
       </div>
 
-      {cargando ? (
+      {errorAccion && (
+        <p role="alert" style={{ fontSize: 13, color: 'var(--color-danger)', marginBottom: 14 }}>{errorAccion}</p>
+      )}
+
+      {error && !cargando ? (
+        <ErrorPanel mensaje={error} onReintentar={recargar} />
+      ) : cargando ? (
         <div className="panel">
           <div className="brand-loading-panel">
             <BrandSpinner size="md" label="Cargando reservas..." />
@@ -474,7 +547,7 @@ export default function Reservas() {
               subtitulo="Unidades disponibles de cada equipo. Si un equipo está en 0, no podrás reservarlo por ahora."
             />
           )}
-          <FormularioReserva user={user} catalogo={catalogo} onCrear={crearReserva} />
+          <FormularioReserva user={user} catalogo={catalogo} onCrear={crearReserva} onDisponibilidad={obtenerDisponibilidad} />
 
           <div className="panel">
             <h3 className="panel__title">Mis reservas</h3>
@@ -510,6 +583,15 @@ export default function Reservas() {
                         {cargandoHistorialId === r.id && <ButtonSpinner />}
                         Historial
                       </button>
+                      {(r.estado === 'Pendiente' || r.estado === 'Confirmada') && (
+                        <button
+                          className="btn btn--sm"
+                          style={{ width: 'auto', background: 'transparent', border: '1px solid var(--color-danger)', color: 'var(--color-danger)', marginRight: r.estado === 'Pendiente' ? 6 : 0 }}
+                          onClick={() => setReservaACancelar(r)}
+                        >
+                          Cancelar
+                        </button>
+                      )}
                       {r.estado === 'Pendiente' && (
                         <button
                           className="btn btn--sm"
@@ -547,6 +629,17 @@ export default function Reservas() {
             ))}
           </div>
         </Modal>
+      )}
+
+      {reservaACancelar && (
+        <ConfirmDialog
+          title="Cancelar reserva"
+          text={`¿Seguro que deseas cancelar la reserva ${reservaACancelar.id}? Quedará en estado Cancelada y se liberará el horario.`}
+          confirmLabel="Cancelar reserva"
+          loading={cancelando}
+          onConfirm={confirmarCancelar}
+          onCancel={() => setReservaACancelar(null)}
+        />
       )}
 
       {reservaAEliminar && (

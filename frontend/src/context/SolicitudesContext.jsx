@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
-import { api } from '../api/client.js'
+import { solicitudesService } from '../services/solicitudesService.js'
 import { useAuth } from './AuthContext.jsx'
 import { useNotifications } from './NotificationsContext.jsx'
 
@@ -8,21 +8,23 @@ const SolicitudesContext = createContext(null)
 export function SolicitudesProvider({ children }) {
   const [solicitudes, setSolicitudes] = useState([])
   const [cargando, setCargando] = useState(true)
+  const [error, setError] = useState(null)
   const { user } = useAuth()
   const { agregarNotificacion } = useNotifications()
 
   const cargar = useCallback(async () => {
     if (!user) {
       setSolicitudes([])
+      setError(null)
       setCargando(false)
       return
     }
     setCargando(true)
+    setError(null)
     try {
-      const data = await api.get('/solicitudes')
-      setSolicitudes(data)
-    } catch {
-      setSolicitudes([])
+      setSolicitudes(await solicitudesService.listar())
+    } catch (err) {
+      setError(err.message || 'No se pudieron cargar las solicitudes.')
     } finally {
       setCargando(false)
     }
@@ -33,23 +35,27 @@ export function SolicitudesProvider({ children }) {
   }, [cargar])
 
   const crearSolicitud = async ({ tipo, dependencia, prioridad, descripcion }) => {
-    const nueva = await api.post('/solicitudes', { tipo, dependencia, prioridad, descripcion })
+    const nueva = await solicitudesService.crear({ tipo, dependencia, prioridad, descripcion })
     setSolicitudes((prev) => [nueva, ...prev])
     agregarNotificacion('Solicitudes', `Se registró la solicitud ${nueva.id} (${tipo}).`, nueva.solicitanteId)
     return nueva
   }
 
   const responderSolicitud = async (id, { respuesta, adjunto, nuevoEstado }) => {
-    const actualizada = await api.patch(`/solicitudes/${id}/responder`, { respuesta, adjunto, nuevoEstado })
+    const actualizada = await solicitudesService.responder(id, { respuesta, adjunto, nuevoEstado })
     setSolicitudes((prev) => prev.map((s) => (s.id === id ? actualizada : s)))
-    agregarNotificacion('Solicitudes', `Tu solicitud ${id} recibió una respuesta.`, actualizada.solicitanteId)
+    agregarNotificacion(
+      'Solicitudes',
+      `Tu solicitud ${id} está en estado ${actualizada.estado}.`,
+      actualizada.solicitanteId,
+    )
     return actualizada
   }
 
-  const obtenerSolicitud = async (id) => api.get(`/solicitudes/${id}`)
+  const obtenerSolicitud = async (id) => solicitudesService.obtener(id)
 
   const eliminarSolicitud = async (id) => {
-    await api.delete(`/solicitudes/${id}`)
+    await solicitudesService.eliminar(id)
     setSolicitudes((prev) => prev.filter((s) => s.id !== id))
   }
 
@@ -58,6 +64,7 @@ export function SolicitudesProvider({ children }) {
       value={{
         solicitudes,
         cargando,
+        error,
         crearSolicitud,
         responderSolicitud,
         obtenerSolicitud,

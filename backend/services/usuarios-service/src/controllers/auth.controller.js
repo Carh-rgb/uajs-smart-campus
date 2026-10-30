@@ -78,6 +78,9 @@ export async function login(req, res) {
   if (!correo || !password) {
     return res.status(400).json({ error: 'Correo y contrasena son obligatorios.' })
   }
+  if (typeof correo !== 'string' || typeof password !== 'string') {
+    return res.status(400).json({ error: 'El correo y la contrasena deben ser texto.' })
+  }
 
   const usuario = await Usuario.findOne({ where: { correo: correo.toLowerCase() } })
   if (!usuario || !usuario.activo) {
@@ -102,6 +105,9 @@ export const ROLES = ['Estudiante', 'Docente', 'Administrativo', 'Administrador 
 export async function crearCuenta(datos, { rolForzado } = {}) {
   const { nombre, correo, password, programa } = datos
   const rol = rolForzado || datos.rol
+  if ([nombre, correo, password, rol].some((v) => v != null && typeof v !== 'string')) {
+    throw new HttpError(400, 'nombre, correo, password y rol deben ser texto.')
+  }
   if (!nombre?.trim() || !correo?.trim() || !password || !rol) {
     throw new HttpError(400, 'nombre, correo, password y rol son obligatorios.')
   }

@@ -3,6 +3,7 @@ import { Evento, Inscripcion } from '../models/index.js'
 import { indexarEvento, eliminarEventoDelIndice } from '../utils/busquedaClient.js'
 import { notificar } from '../utils/notificacionesClient.js'
 import { HttpError } from '../middlewares/errores.js'
+import { sequelize } from '../config/database.js'
 
 const ESTADOS = ['Activo', 'Inactivo', 'Cancelado']
 const HORA = /^([01]\d|2[0-3]):[0-5]\d$/
@@ -108,9 +109,29 @@ export async function obtener(req, res) {
 // Edita los datos del evento (todo menos el estado, que tiene su propio
 // endpoint) — mismo patron usado en recursos.controller.js.
 export async function actualizar(req, res) {
-  const evento = await buscarOFallar(req.params.id)
-  Object.assign(evento, validarEvento(req.body))
-  await evento.save()
+  await buscarOFallar(req.params.id)
+  const datos = validarEvento(req.body)
+
+  // El cupo no puede quedar por debajo de los inscritos actuales. Se bloquea
+  // la fila del evento para que una inscripcion simultanea no se cuele entre
+  // el conteo y el guardado.
+  const evento = await sequelize.transaction(async (transaction) => {
+    const actual = await Evento.findByPk(req.params.id, { transaction, lock: transaction.LOCK.UPDATE })
+    if (!actual) throw new HttpError(404, 'Evento no encontrado.', 'EVENT_NOT_FOUND')
+    if (datos.cupoMaximo != null) {
+      const inscritosActuales = await Inscripcion.count({ where: { eventoId: actual.id }, transaction })
+      if (datos.cupoMaximo < inscritosActuales) {
+        throw new HttpError(
+          409,
+          `El cupo máximo no puede ser menor que los ${inscritosActuales} inscritos actuales.`,
+          'CAPACITY_BELOW_ENROLLED',
+        )
+      }
+    }
+    Object.assign(actual, datos)
+    await actual.save({ transaction })
+    return actual
+  })
   indexarEvento(evento)
 
   res.json(evento)
@@ -135,29 +156,37 @@ export async function inscritos(req, res) {
 }
 
 export async function inscribir(req, res) {
-  const evento = await buscarOFallar(req.params.id)
+  await buscarOFallar(req.params.id)
 
-  if (evento.estado !== 'Activo') {
-    return res.status(400).json({ error: 'Este evento no está disponible para inscripciones.' })
-  }
+  // El conteo de inscritos y la insercion deben ser atomicos: si dos
+  // peticiones simultaneas leen el mismo conteo antes de que cualquiera
+  // inserte, se supera el cupo. Se bloquea la fila del evento (SELECT ... FOR
+  // UPDATE) durante la transaccion para serializar las inscripciones.
+  const { evento, inscripcion } = await sequelize.transaction(async (transaction) => {
+    const actual = await Evento.findByPk(req.params.id, { transaction, lock: transaction.LOCK.UPDATE })
+    if (!actual) throw new HttpError(404, 'Evento no encontrado.', 'EVENT_NOT_FOUND')
 
-  const existente = await Inscripcion.findOne({ where: { eventoId: evento.id, usuarioId: req.user.id } })
-  if (existente) {
-    return res.status(409).json({ error: 'Ya estas inscrito en este evento.' })
-  }
-
-  if (evento.cupoMaximo != null) {
-    const totalInscritos = await Inscripcion.count({ where: { eventoId: evento.id } })
-    if (totalInscritos >= evento.cupoMaximo) {
-      return res.status(400).json({ error: 'Este evento ya alcanzó su cupo máximo de inscritos.' })
+    if (actual.estado !== 'Activo') {
+      throw new HttpError(400, 'Este evento no está disponible para inscripciones.')
     }
-  }
 
-  const inscripcion = await Inscripcion.create({
-    eventoId: evento.id,
-    usuarioId: req.user.id,
-    nombre: req.user.nombre,
-    rol: req.user.rol,
+    const existente = await Inscripcion.findOne({ where: { eventoId: actual.id, usuarioId: req.user.id }, transaction })
+    if (existente) {
+      throw new HttpError(409, 'Ya estas inscrito en este evento.')
+    }
+
+    if (actual.cupoMaximo != null) {
+      const totalInscritos = await Inscripcion.count({ where: { eventoId: actual.id }, transaction })
+      if (totalInscritos >= actual.cupoMaximo) {
+        throw new HttpError(400, 'Este evento ya alcanzó su cupo máximo de inscritos.')
+      }
+    }
+
+    const nueva = await Inscripcion.create(
+      { eventoId: actual.id, usuarioId: req.user.id, nombre: req.user.nombre, rol: req.user.rol },
+      { transaction },
+    )
+    return { evento: actual, inscripcion: nueva }
   })
   // E2-32: la notificacion la genera el servicio, no el frontend.
   notificar({

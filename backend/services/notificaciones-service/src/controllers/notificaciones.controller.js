@@ -1,6 +1,7 @@
 // Controlador encargado de gestionar la logica de notificaciones: creación, listado y envío
 import { Notificacion } from '../models/index.js'
 import { HttpError } from '../middlewares/errores.js'
+import { verificarDestinatario } from '../utils/usuariosClient.js'
 
 export const CATEGORIAS = ['Solicitudes', 'PQRS', 'Reservas', 'Eventos', 'Institucional']
 
@@ -74,7 +75,13 @@ export async function crear(req, res) {
     if (!PUEDE_NOTIFICAR_A_OTROS.includes(req.user.rol)) {
       return res.status(403).json({ error: 'No puedes crear notificaciones para otros usuarios.' })
     }
-    destinatarioId = usuarioId
+    // Guia 7.3: el destinatario debe existir y estar activo (se consulta a
+    // usuarios-service; si no responde, 503 y no se crea la notificacion).
+    if (!Number.isInteger(Number(usuarioId)) || Number(usuarioId) < 1) {
+      throw new HttpError(400, 'usuarioId debe ser el id de un usuario.')
+    }
+    await verificarDestinatario(Number(usuarioId))
+    destinatarioId = Number(usuarioId)
   }
 
   const notificacion = await Notificacion.create({

@@ -77,7 +77,7 @@ function VistaEstudiante({ highlightId }) {
           <div className="field">
             <label className="field__label">Dirigido a</label>
             <select className="field__input" value={form.dirigidoA} onChange={(e) => setForm({ ...form, dirigidoA: e.target.value })}>
-              {dependencias.map((d) => <option key={d}>{d}</option>)}
+              {dependencias.filter((d) => d !== 'Sin asignar').map((d) => <option key={d}>{d}</option>)}
             </select>
           </div>
         </div>
@@ -387,6 +387,7 @@ function VistaAdministrativo({ highlightId }) {
           'PQRS',
           `Te asignaron la PQRS ${id} (${actualizada.asunto}). Nota: ${nota}`,
           responsable.id,
+          `PQRS ${id} asignada`,
         )
       }
     }

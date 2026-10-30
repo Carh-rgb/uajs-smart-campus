@@ -24,3 +24,13 @@ export function requireRole(...rolesPermitidos) {
     next()
   }
 }
+
+// Endpoints internos: solo los aceptan tokens de servicio (servicio: true),
+// que firman los demas microservicios con el JWT_SECRET compartido. El token
+// de un usuario, aunque sea Administrador, recibe 403. Va despues de requireAuth.
+export function requireServicio(req, res, next) {
+  if (!req.user?.servicio) {
+    return res.status(403).json({ error: 'Este endpoint es solo para comunicacion entre servicios.', code: 'SERVICE_ONLY' })
+  }
+  next()
+}

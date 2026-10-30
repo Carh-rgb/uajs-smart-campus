@@ -81,6 +81,7 @@ export default function Notificaciones() {
           >
             <div style={{ flex: 1 }} title={rutaDeNotificacion(n.categoria) ? 'Ir al módulo' : undefined}>
               <p className="notif-item__category">{n.categoria}</p>
+              {n.titulo && <p className="notif-item__text" style={{ fontWeight: 600 }}>{n.titulo}</p>}
               <p className="notif-item__text">{n.mensaje}</p>
               <p className="notif-item__date">{n.fecha}</p>
             </div>

@@ -1,5 +1,54 @@
 // Controlador encargado de gestionar la logica de notificaciones: creación, listado y envío
 import { Notificacion } from '../models/index.js'
+import { HttpError } from '../middlewares/errores.js'
+
+export const CATEGORIAS = ['Solicitudes', 'PQRS', 'Reservas', 'Eventos', 'Institucional']
+
+function hoy() {
+  return new Date().toLocaleDateString('en-CA', { timeZone: 'America/Bogota' })
+}
+
+// E2-31: titulo, mensaje y categoria obligatorios y categoria valida.
+function validarContenido({ categoria, titulo, mensaje }) {
+  if (!String(titulo || '').trim() || !String(mensaje || '').trim() || !categoria) {
+    throw new HttpError(400, 'categoria, titulo y mensaje son obligatorios.')
+  }
+  if (!CATEGORIAS.includes(categoria)) {
+    throw new HttpError(400, `Categoria invalida. Valores permitidos: ${CATEGORIAS.join(', ')}.`)
+  }
+}
+
+async function buscarPropiaOFallar(id, usuarioId) {
+  const notificacion = await Notificacion.findOne({ where: { id, usuarioId } })
+  if (!notificacion) throw new HttpError(404, 'Notificacion no encontrada.', 'NOTIFICATION_NOT_FOUND')
+  return notificacion
+}
+
+// GET /notificaciones/:id (E2-31): solo el destinatario.
+export async function obtener(req, res) {
+  res.json(await buscarPropiaOFallar(req.params.id, req.user.id))
+}
+
+// POST /notificaciones/interna (E2-31/E2-32): la usan solicitudes, reservas
+// y eventos para avisarle a un usuario. Solo con token de servicio.
+export async function crearInterna(req, res) {
+  const { usuarioId, categoria, titulo, mensaje, entidadRelacionada, entidadId } = req.body
+  validarContenido({ categoria, titulo, mensaje })
+  if (!Number.isInteger(Number(usuarioId)) || Number(usuarioId) < 1) {
+    throw new HttpError(400, 'usuarioId debe ser el id de un usuario.')
+  }
+  const notificacion = await Notificacion.create({
+    usuarioId: Number(usuarioId),
+    categoria,
+    titulo: titulo.trim(),
+    mensaje: mensaje.trim(),
+    entidadRelacionada: entidadRelacionada || null,
+    entidadId: entidadId ? String(entidadId) : null,
+    fecha: hoy(),
+    leida: false,
+  })
+  res.status(201).json(notificacion)
+}
 
 export async function listar(req, res) {
   const notificaciones = await Notificacion.findAll({
@@ -17,10 +66,8 @@ export async function crear(req, res) {
   // es el propio frontend quien lo invoca tras una accion exitosa. Por eso
   // se permite indicar un usuarioId destino distinto al autenticado, pero
   // solo para roles de personal (un estudiante no puede notificar a otros).
-  const { categoria, mensaje, usuarioId } = req.body
-  if (!categoria || !mensaje) {
-    return res.status(400).json({ error: 'categoria y mensaje son obligatorios.' })
-  }
+  const { categoria, titulo, mensaje, usuarioId, entidadRelacionada, entidadId } = req.body
+  validarContenido({ categoria, titulo, mensaje })
 
   let destinatarioId = req.user.id
   if (usuarioId && usuarioId !== req.user.id) {
@@ -33,16 +80,18 @@ export async function crear(req, res) {
   const notificacion = await Notificacion.create({
     usuarioId: destinatarioId,
     categoria,
-    mensaje,
-    fecha: new Date().toISOString().slice(0, 10),
+    titulo: titulo.trim(),
+    mensaje: mensaje.trim(),
+    entidadRelacionada: entidadRelacionada || null,
+    entidadId: entidadId ? String(entidadId) : null,
+    fecha: hoy(),
     leida: false,
   })
   res.status(201).json(notificacion)
 }
 
 export async function marcarLeida(req, res) {
-  const notificacion = await Notificacion.findOne({ where: { id: req.params.id, usuarioId: req.user.id } })
-  if (!notificacion) return res.status(404).json({ error: 'Notificacion no encontrada.' })
+  const notificacion = await buscarPropiaOFallar(req.params.id, req.user.id)
 
   notificacion.leida = true
   await notificacion.save()
@@ -55,8 +104,7 @@ export async function marcarTodasLeidas(req, res) {
 }
 
 export async function eliminar(req, res) {
-  const notificacion = await Notificacion.findOne({ where: { id: req.params.id, usuarioId: req.user.id } })
-  if (!notificacion) return res.status(404).json({ error: 'Notificacion no encontrada.' })
+  const notificacion = await buscarPropiaOFallar(req.params.id, req.user.id)
 
   await notificacion.destroy()
   res.status(204).send()

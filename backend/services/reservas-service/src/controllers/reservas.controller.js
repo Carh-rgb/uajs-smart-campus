@@ -3,6 +3,8 @@ import { Reserva, ReservaHistorial, Equipo, Salon, SalaEspecial, SalaBiblioteca 
 import { indexarReserva, eliminarReservaDelIndice } from '../utils/busquedaClient.js'
 import { unidadesDisponibles } from '../utils/recursosClient.js'
 import { HttpError } from '../middlewares/errores.js'
+import { sequelize } from '../config/database.js'
+import { verificarUsuarioActivo } from '../utils/usuariosClient.js'
 import { notificar } from '../utils/notificacionesClient.js'
 
 // Estados de una reserva y a cuales puede pasar cada uno (E2-20/E2-22).
@@ -22,10 +24,10 @@ const TIPOS_ESPACIO = ['espacio', 'equipo']
 const HORA = /^([01]\d|2[0-3]):[0-5]\d$/
 const FECHA = /^\d{4}-\d{2}-\d{2}$/
 
-async function siguienteId() {
+async function siguienteId(transaction) {
   // Basado en el maximo id existente, no en el conteo de filas (ver la
   // misma nota en solicitudes.controller.js).
-  const ultima = await Reserva.findOne({ order: [['id', 'DESC']] })
+  const ultima = await Reserva.findOne({ order: [['id', 'DESC']], transaction })
   const ultimoNumero = ultima ? parseInt(ultima.id.split('-')[1], 10) : 150
   return `RES-${String(ultimoNumero + 1).padStart(4, '0')}`
 }
@@ -93,7 +95,18 @@ async function validarEspacio(tipoEspacio, espacio) {
 // E2-20: un espacio no puede tener dos reservas activas (Pendiente o
 // Confirmada) que se crucen en la misma fecha. Los equipos no usan esta
 // regla porque tienen varias unidades: los controla el stock.
-async function validarSolapamiento({ tipoEspacio, espacio, fecha, horaInicio, horaFin, excluirId }) {
+// La verificacion de solapamiento y la escritura deben ser atomicas: si dos
+// peticiones simultaneas pasan la verificacion antes de que cualquiera
+// inserte, se crearian dos reservas cruzadas. Un advisory lock de PostgreSQL
+// (se libera solo al terminar la transaccion) las serializa.
+function conBloqueoDeReservas(trabajo) {
+  return sequelize.transaction(async (transaction) => {
+    await sequelize.query("SELECT pg_advisory_xact_lock(hashtext('reservas-service:escritura'))", { transaction })
+    return trabajo(transaction)
+  })
+}
+
+async function validarSolapamiento({ tipoEspacio, espacio, fecha, horaInicio, horaFin, excluirId, transaction }) {
   if (tipoEspacio !== 'espacio') return
   const where = {
     espacio,
@@ -103,7 +116,7 @@ async function validarSolapamiento({ tipoEspacio, espacio, fecha, horaInicio, ho
     horaFin: { [Op.gt]: horaInicio },
   }
   if (excluirId) where.id = { [Op.ne]: excluirId }
-  const choque = await Reserva.findOne({ where })
+  const choque = await Reserva.findOne({ where, transaction })
   if (choque) {
     throw new HttpError(
       409,
@@ -145,24 +158,35 @@ export async function crear(req, res) {
     return res.status(400).json({ error: 'Todos los campos de la reserva son obligatorios.' })
   }
   validarFranja({ fecha, horaInicio, horaFin })
+  await verificarUsuarioActivo(req.user.id)
   await validarEspacio(tipoEspacio, espacio)
-  await validarSolapamiento({ tipoEspacio, espacio, fecha, horaInicio, horaFin })
 
-  const id = await siguienteId()
-  const reserva = await Reserva.create({
-    id,
-    tipoEspacio,
-    espacio,
-    fecha,
-    horaInicio,
-    horaFin,
-    motivo: motivo.trim(),
-    estado: 'Pendiente',
-    solicitanteId: req.user.id,
-    solicitanteNombre: req.user.nombre,
-    rolSolicitante: req.user.rol,
+  const reserva = await conBloqueoDeReservas(async (transaction) => {
+    await validarSolapamiento({ tipoEspacio, espacio, fecha, horaInicio, horaFin, transaction })
+    const id = await siguienteId(transaction)
+    const nueva = await Reserva.create(
+      {
+        id,
+        tipoEspacio,
+        espacio,
+        fecha,
+        horaInicio,
+        horaFin,
+        motivo: motivo.trim(),
+        estado: 'Pendiente',
+        solicitanteId: req.user.id,
+        solicitanteNombre: req.user.nombre,
+        rolSolicitante: req.user.rol,
+      },
+      { transaction },
+    )
+    await ReservaHistorial.create(
+      { reservaId: id, estado: 'Pendiente', fecha: hoy(), por: req.user.nombre },
+      { transaction },
+    )
+    return nueva
   })
-  await ReservaHistorial.create({ reservaId: id, estado: 'Pendiente', fecha: hoy(), por: req.user.nombre })
+  const id = reserva.id
   indexarReserva(reserva)
   notificar({
     usuarioId: reserva.solicitanteId,
@@ -195,17 +219,19 @@ export async function actualizar(req, res) {
     throw new HttpError(400, 'El motivo no puede quedar vacío.')
   }
   validarFranja({ fecha, horaInicio, horaFin })
-  await validarSolapamiento({
-    tipoEspacio: reserva.tipoEspacio,
-    espacio: reserva.espacio,
-    fecha,
-    horaInicio,
-    horaFin,
-    excluirId: reserva.id,
+  await conBloqueoDeReservas(async (transaction) => {
+    await validarSolapamiento({
+      tipoEspacio: reserva.tipoEspacio,
+      espacio: reserva.espacio,
+      fecha,
+      horaInicio,
+      horaFin,
+      excluirId: reserva.id,
+      transaction,
+    })
+    Object.assign(reserva, { fecha, horaInicio, horaFin, motivo: motivo.trim() })
+    await reserva.save({ transaction })
   })
-
-  Object.assign(reserva, { fecha, horaInicio, horaFin, motivo: motivo.trim() })
-  await reserva.save()
   indexarReserva(reserva)
   res.json(reserva)
 }

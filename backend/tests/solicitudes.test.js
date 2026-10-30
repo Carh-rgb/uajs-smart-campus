@@ -131,13 +131,13 @@ describe('PQRS', () => {
     esperarError(await api('PATCH', `/pqrs/${p.data.id}/responder`, { token: est.token, body: { respuesta: 'x' } }), 403)
   })
 
-  // Reglas pendientes de mezclarse: https://github.com/Carh-rgb/uajs-smart-campus/pull/20
-  test('asignar a un responsable inexistente -> 400', { todo: 'Pendiente del PR #20' }, async () => {
+  // Reglas incorporadas por el PR #20
+  test('asignar a un responsable inexistente -> 400', async () => {
     const p = await api('POST', '/pqrs', { token: est.token, body: nueva() })
     esperarError(await api('PATCH', `/pqrs/${p.data.id}/asignar`, { token: adm.token, body: { asignadoA: 'Persona Inventada' } }), 400, 'ASSIGNEE_NOT_FOUND')
   })
 
-  test('responder sin texto de respuesta -> 400', { todo: 'Pendiente del PR #20' }, async () => {
+  test('responder sin texto de respuesta -> 400', async () => {
     const p = await api('POST', '/pqrs', { token: est.token, body: nueva() })
     esperarError(await api('PATCH', `/pqrs/${p.data.id}/responder`, { token: adm.token, body: {} }), 400, 'VALIDATION_ERROR')
   })

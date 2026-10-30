@@ -69,8 +69,8 @@ describe('Notificaciones', () => {
     await api('DELETE', `/solicitudes/${s.data.id}`, { token: adm.token })
   })
 
-  // Regla pendiente de mezclarse: https://github.com/Carh-rgb/uajs-smart-campus/pull/15
-  test('crear una notificacion para un destinatario inexistente -> 400', { todo: 'Pendiente del PR #15' }, async () => {
+  // Reglas incorporadas por el PR #15
+  test('crear una notificacion para un destinatario inexistente -> 400', async () => {
     esperarError(await api('POST', '/notificaciones', { token: adm.token, body: nueva({ usuarioId: 999999 }) }), 400, 'RECIPIENT_NOT_FOUND')
   })
 })

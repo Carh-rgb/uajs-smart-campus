@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken'
+import { HttpError } from '../middlewares/errores.js'
 
 const RESERVAS_SERVICE_URL = process.env.RESERVAS_SERVICE_URL || 'http://localhost:4003'
 
@@ -32,4 +33,41 @@ export async function sincronizarEquipoEnReservas({ codigo, nombre, tipo, delta,
   } catch (err) {
     console.error('[recursos-service] no se pudo sincronizar con reservas-service:', err.message)
   }
+}
+
+// Cuenta las reservas vigentes (Pendiente o Confirmada, de hoy en adelante) de
+// un equipo. reservas-service es el dueño de esos datos: se consulta su API
+// con el token de servicio, que tiene vista completa de las reservas.
+//
+// A diferencia de la sincronizacion de stock, esta consulta SI bloquea: si
+// reservas-service no responde se devuelve 503 y no se elimina el recurso, en
+// lugar de asumir que no hay reservas (guia 8.5).
+export async function reservasVigentesDeEquipo(nombreEquipo) {
+  let respuesta
+  try {
+    respuesta = await fetch(`${RESERVAS_SERVICE_URL}/reservas`, {
+      headers: { Authorization: `Bearer ${firmarTokenServicio()}` },
+      signal: AbortSignal.timeout(3000),
+    })
+  } catch (err) {
+    console.error('[recursos-service] reservas-service no respondio:', err.message)
+    throw new HttpError(
+      503,
+      'No se pudo verificar si el equipo tiene reservas porque el servicio de reservas no responde. El recurso no fue eliminado; intenta de nuevo en unos minutos.',
+      'SERVICE_UNAVAILABLE',
+    )
+  }
+  if (!respuesta.ok) {
+    console.error(`[recursos-service] reservas-service respondio ${respuesta.status}`)
+    throw new HttpError(503, 'El servicio de reservas no pudo verificar las reservas del equipo.', 'SERVICE_UNAVAILABLE')
+  }
+  const reservas = await respuesta.json()
+  const hoy = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Bogota' })
+  return reservas.filter(
+    (r) =>
+      r.tipoEspacio === 'equipo' &&
+      r.espacio === nombreEquipo &&
+      ['Pendiente', 'Confirmada'].includes(r.estado) &&
+      r.fecha >= hoy,
+  ).length
 }

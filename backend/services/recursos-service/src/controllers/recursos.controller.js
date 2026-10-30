@@ -1,5 +1,6 @@
+import { Op } from 'sequelize'
 import { Recurso, RecursoHistorial } from '../models/index.js'
-import { sincronizarEquipoEnReservas } from '../utils/reservasClient.js'
+import { sincronizarEquipoEnReservas, reservasVigentesDeEquipo } from '../utils/reservasClient.js'
 import { indexarRecurso, eliminarRecursoDelIndice } from '../utils/busquedaClient.js'
 import { HttpError } from '../middlewares/errores.js'
 
@@ -172,6 +173,24 @@ export async function historial(req, res) {
 
 export async function eliminar(req, res) {
   const recurso = await buscarOFallar(req.params.codigo)
+
+  // Un equipo reservable no se elimina si tiene reservas vigentes y esta es la
+  // ultima unidad disponible con ese nombre: dejaria esas reservas sin unidad.
+  if (TIPOS_RESERVABLES.includes(recurso.tipo) && recurso.estado === 'Disponible') {
+    const otrasUnidades = await Recurso.count({
+      where: { nombre: recurso.nombre, estado: 'Disponible', codigo: { [Op.ne]: recurso.codigo } },
+    })
+    if (otrasUnidades === 0) {
+      const vigentes = await reservasVigentesDeEquipo(recurso.nombre)
+      if (vigentes > 0) {
+        throw new HttpError(
+          409,
+          `No se puede eliminar "${recurso.nombre}": es la ultima unidad disponible y tiene ${vigentes} reserva(s) vigente(s). Cancela o reasigna esas reservas primero.`,
+          'RESOURCE_IN_USE',
+        )
+      }
+    }
+  }
 
   await recurso.destroy()
   await RecursoHistorial.destroy({ where: { recursoCodigo: recurso.codigo } })

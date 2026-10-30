@@ -2,6 +2,7 @@ import { Pqrs, PqrsHistorial } from '../models/index.js'
 import { indexarPqrs } from '../utils/busquedaClient.js'
 import { HttpError } from '../middlewares/errores.js'
 import { notificar } from '../utils/notificacionesClient.js'
+import { validarResponsable } from '../utils/usuariosClient.js'
 import { TIPOS_PQRS, DEPENDENCIAS, ESTADOS_PQRS } from '../utils/catalogos.js'
 
 async function siguienteId() {
@@ -82,13 +83,16 @@ export async function responder(req, res) {
   }
 
   const { respuesta, adjunto, estado } = req.body
+  if (typeof respuesta !== 'string' || !respuesta.trim()) {
+    throw new HttpError(400, 'La respuesta para el solicitante es obligatoria.')
+  }
   if (estado && !ESTADOS_PQRS.includes(estado)) {
     throw new HttpError(400, `Estado de PQRS invalido. Valores permitidos: ${ESTADOS_PQRS.join(', ')}.`)
   }
   const fecha = hoy()
   const estadoAnterior = pqrs.estado
 
-  pqrs.respuesta = respuesta
+  pqrs.respuesta = respuesta.trim()
   pqrs.adjuntoRespuesta = adjunto || pqrs.adjuntoRespuesta
   pqrs.respondidoPor = req.user.nombre
   pqrs.estado = estado || 'Resuelta'
@@ -121,6 +125,11 @@ export async function asignar(req, res) {
   if (!pqrs) return res.status(404).json({ error: 'PQRS no encontrada.' })
 
   const { asignadoA } = req.body
+  if (typeof asignadoA !== 'string' || !asignadoA.trim()) {
+    throw new HttpError(400, 'asignadoA es obligatorio: indica el responsable o "Sin asignar".')
+  }
+  // El responsable debe existir y estar activo (guia 7.3); "Sin asignar" quita la asignacion.
+  if (asignadoA !== 'Sin asignar') await validarResponsable(asignadoA)
   const fecha = hoy()
   const estadoAnterior = pqrs.estado
   pqrs.asignadoA = asignadoA

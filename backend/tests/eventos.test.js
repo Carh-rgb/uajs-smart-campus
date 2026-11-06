@@ -100,8 +100,8 @@ describe('Eventos', () => {
     esperarError(await api('GET', `/eventos/${e.data.id}`, { token: adm.token }), 404)
   })
 
-  // Reglas pendientes de mezclarse: https://github.com/Carh-rgb/uajs-smart-campus/pull/17
-  test('5 inscripciones simultaneas con cupo 1 dejan un solo inscrito', { todo: 'Pendiente del PR #17' }, async () => {
+  // Reglas incorporadas por el PR #17
+  test('5 inscripciones simultaneas con cupo 1 dejan un solo inscrito', async () => {
     const e = await crear({ cupoMaximo: 1 })
     const usuarios = await Promise.all(['estudiante', 'docente'].map((r) => sesion(r)))
     await Promise.all(Array.from({ length: 5 }, (_, i) => api('POST', `/eventos/${e.data.id}/inscribir`, { token: usuarios[i % 2].token })))
@@ -109,7 +109,7 @@ describe('Eventos', () => {
     assert.equal(inscritos.data.length, 1)
   })
 
-  test('el cupo no puede bajar por debajo de los inscritos -> 409', { todo: 'Pendiente del PR #17' }, async () => {
+  test('el cupo no puede bajar por debajo de los inscritos -> 409', async () => {
     const e = await crear({ cupoMaximo: 5 })
     await api('POST', `/eventos/${e.data.id}/inscribir`, { token: est.token })
     await api('POST', `/eventos/${e.data.id}/inscribir`, { token: doc.token })

@@ -86,12 +86,12 @@ describe('Usuarios', () => {
     esperarError(await api('DELETE', `/usuarios/${admin.usuario.id}`, { token: admin.token }), 400)
   })
 
-  // Reglas pendientes de mezclarse: https://github.com/Carh-rgb/uajs-smart-campus/pull/19
-  test('GET /usuarios/abc -> 400', { todo: 'Pendiente del PR #19' }, async () => {
+  // Reglas incorporadas por el PR #19
+  test('GET /usuarios/abc -> 400', async () => {
     esperarError(await api('GET', '/usuarios/abc', { token: admin.token }), 400, 'VALIDATION_ERROR')
   })
 
-  test('login con tipos de dato incorrectos -> 400', { todo: 'Pendiente del PR #19' }, async () => {
+  test('login con tipos de dato incorrectos -> 400', async () => {
     esperarError(await api('POST', '/auth/login', { body: { correo: 123, password: { a: 1 } } }), 400, 'VALIDATION_ERROR')
   })
 })

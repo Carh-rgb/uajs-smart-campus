@@ -24,8 +24,13 @@ aleatorio() {
   fi
 }
 
-IP_DETECTADA=$(hostname -I 2>/dev/null | awk '{print $1}')
-URL_POR_DEFECTO="http://${IP_DETECTADA:-localhost}"
+read -r -p "Dominio para HTTPS (ej. uajs-smartcampus.eastus.cloudapp.azure.com; vacío si no usarás HTTPS): " DOMINIO
+if [ -n "$DOMINIO" ]; then
+  URL_POR_DEFECTO="https://$DOMINIO"
+else
+  IP_DETECTADA=$(hostname -I 2>/dev/null | awk '{print $1}')
+  URL_POR_DEFECTO="http://${IP_DETECTADA:-localhost}"
+fi
 read -r -p "URL pública donde se abrirá el sistema [$URL_POR_DEFECTO]: " PUBLIC_URL
 PUBLIC_URL=${PUBLIC_URL:-$URL_POR_DEFECTO}
 read -r -p "Puerto HTTP del servidor [80]: " HTTP_PORT
@@ -37,6 +42,8 @@ cat > .env <<EOF
 # Dónde se abre el sistema (se usa para CORS y para los enlaces de correo).
 PUBLIC_URL=$PUBLIC_URL
 HTTP_PORT=$HTTP_PORT
+# Solo para docker-compose.https.yml (Caddy + Let's Encrypt).
+DOMINIO=$DOMINIO
 
 # Secretos generados al azar para este servidor.
 JWT_SECRET=$(aleatorio 32)
@@ -54,4 +61,8 @@ chmod 600 .env
 
 echo ""
 echo "Listo: .env creado con PUBLIC_URL=$PUBLIC_URL y secretos nuevos."
-echo "Ahora corre:  docker compose up -d --build"
+if [ -n "$DOMINIO" ]; then
+  echo "Ahora corre:  docker compose -f docker-compose.yml -f docker-compose.https.yml up -d --build"
+else
+  echo "Ahora corre:  docker compose up -d --build"
+fi

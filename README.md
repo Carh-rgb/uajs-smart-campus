@@ -127,6 +127,14 @@ El sistema queda en `http://<ip-del-servidor>/` (puerto definido por `HTTP_PORT`
 | CORS | `FRONTEND_ORIGIN` = `PUBLIC_URL`; el navegador habla con un solo origen. |
 | Datos | Volúmenes `uajs_pgdata_prod` y `uajs_esdata_prod` (no se pierden al reiniciar). |
 
+**Con HTTPS (servidor con dominio, por ejemplo la VM de Azure):** al correr `setup.sh` se escribe el dominio (el nombre DNS de la VM, `<nombre>.<region>.cloudapp.azure.com`) y se levanta con la capa de Caddy, que pide el certificado de Let's Encrypt solo y redirige `http` a `https`:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.https.yml up -d --build
+```
+
+En ese modo solo Caddy publica los puertos 80 y 443; nginx queda interno.
+
 Comandos útiles: `docker compose logs -f gateway` (registros), `docker compose restart <servicio>`, `docker compose down` (apaga sin borrar datos) y `docker compose down -v` (borra también las bases). Si se vuelve a generar el `.env` con otra clave de Postgres, hay que borrar el volumen con `down -v`.
 
 La dockerización parte del trabajo de Maicol Anaya en `feature/maicol-qa-despliegue`, actualizado al contrato de `develop` del Entregable 2.

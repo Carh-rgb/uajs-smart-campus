@@ -102,6 +102,43 @@ El archivo [`.env.example`](.env.example) de la raíz resume todas las variables
 | Formato de error de la API | `{ "success": false, "error": { "code": "...", "message": "..." } }` en todos los servicios |
 | Reparto de tareas y trazabilidad | [`GUIA-ENTREGABLE-2.md`](GUIA-ENTREGABLE-2.md) |
 
+## Despliegue con Docker (Entregable 3)
+
+Todo el sistema (PostgreSQL, Elasticsearch, 7 microservicios, Gateway y frontend con nginx) se levanta con el `docker-compose.yml` de la raíz. Requisitos del servidor: Docker con el plugin Compose y unos 4 GB de RAM (Elasticsearch usa 512 MB de heap).
+
+```bash
+git clone https://github.com/Carh-rgb/uajs-smart-campus.git
+cd uajs-smart-campus
+bash setup.sh                  # solo la primera vez: crea .env con JWT_SECRET y clave de Postgres aleatorios
+                               # (en Windows: powershell -ExecutionPolicy Bypass -File .\setup.ps1)
+docker compose up -d --build   # la primera vez tarda unos minutos
+docker compose ps              # todos los contenedores deben quedar "running" / "healthy"
+curl http://127.0.0.1:4000/health   # salud de los 7 servicios vista por el Gateway
+```
+
+El sistema queda en `http://<ip-del-servidor>/` (puerto definido por `HTTP_PORT` en `.env`).
+
+| Qué | Cómo queda |
+|---|---|
+| Puerto abierto a internet | Solo el 80 (nginx). nginx sirve el frontend y reenvía `/api` y `/health` al Gateway por la red interna. |
+| Gateway | Publicado únicamente en `127.0.0.1:4000` del servidor, para diagnóstico. |
+| Postgres y Elasticsearch | Sin puertos publicados (ver [`SEGURIDAD.md`](SEGURIDAD.md)). |
+| Secretos | `.env` de la raíz, generado por `setup.sh`, fuera de git. Ya no se usa el `JWT_SECRET` de relleno. |
+| CORS | `FRONTEND_ORIGIN` = `PUBLIC_URL`; el navegador habla con un solo origen. |
+| Datos | Volúmenes `uajs_pgdata_prod` y `uajs_esdata_prod` (no se pierden al reiniciar). |
+
+**Con HTTPS (servidor con dominio, por ejemplo la VM de Azure):** al correr `setup.sh` se escribe el dominio (el nombre DNS de la VM, `<nombre>.<region>.cloudapp.azure.com`) y se levanta con la capa de Caddy, que pide el certificado de Let's Encrypt solo y redirige `http` a `https`:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.https.yml up -d --build
+```
+
+En ese modo solo Caddy publica los puertos 80 y 443; nginx queda interno.
+
+Comandos útiles: `docker compose logs -f gateway` (registros), `docker compose restart <servicio>`, `docker compose down` (apaga sin borrar datos) y `docker compose down -v` (borra también las bases). Si se vuelve a generar el `.env` con otra clave de Postgres, hay que borrar el volumen con `down -v`.
+
+La dockerización parte del trabajo de Maicol Anaya en `feature/maicol-qa-despliegue`, actualizado al contrato de `develop` del Entregable 2.
+
 ## Usuarios de prueba
 
 Contraseña para todos: `uajs2026`

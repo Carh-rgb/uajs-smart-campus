@@ -111,8 +111,8 @@ describe('Reservas', () => {
     assert.equal((await api('DELETE', `/reservas/${r.data.id}`, { token: est.token })).status, 204)
   })
 
-  // Reglas pendientes de mezclarse: https://github.com/Carh-rgb/uajs-smart-campus/pull/16
-  test('5 peticiones simultaneas al mismo horario crean una sola reserva', { todo: 'Pendiente del PR #16' }, async () => {
+  // Reglas incorporadas por el PR #16
+  test('5 peticiones simultaneas al mismo horario crean una sola reserva', async () => {
     const fecha = fechaFutura()
     const rs = await Promise.all(Array.from({ length: 5 }, () => reservar({ fecha })))
     assert.equal(rs.filter((x) => x.status === 201).length, 1)

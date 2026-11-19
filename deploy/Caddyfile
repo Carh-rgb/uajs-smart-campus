@@ -1,0 +1,10 @@
+# Proxy HTTPS delante del frontend (nginx). Caddy pide y renueva solo el
+# certificado de Let's Encrypt para el dominio de DOMINIO.
+{$DOMINIO} {
+	encode gzip
+	reverse_proxy frontend:80
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		-Server
+	}
+}

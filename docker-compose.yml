@@ -1,0 +1,244 @@
+# UAJS Smart Campus — stack completo para despliegue (Entregable 3).
+#
+# Levanta con un solo comando: PostgreSQL (6 bases), Elasticsearch, los 7
+# microservicios, el API Gateway y el frontend servido por nginx.
+#
+#   bash setup.sh                 # solo la primera vez: genera el .env con secretos
+#   docker compose up -d --build
+#
+# El sistema queda en http://<ip-del-servidor>:${HTTP_PORT:-80}/
+# Solo el frontend (nginx) se publica hacia afuera. nginx reenvía /api y
+# /health al Gateway por la red interna de Docker; Postgres, Elasticsearch,
+# el Gateway y los microservicios NO tienen puertos abiertos al exterior.
+#
+# Todas las variables salen del archivo .env de la raíz (lo crea setup.sh).
+# Para desarrollo local sin Docker sigue existiendo backend/docker-compose.yml,
+# que solo levanta Postgres y Elasticsearch.
+#
+# Base: dockerización de Maicol Anaya (rama feature/maicol-qa-despliegue),
+# actualizada al contrato de develop del Entregable 2.
+
+x-servicio-node: &servicio-node
+  build:
+    context: ./backend
+    dockerfile: Dockerfile
+  restart: unless-stopped
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "3"
+
+x-entorno-comun: &entorno-comun
+  NODE_ENV: production
+  JWT_SECRET: ${JWT_SECRET:?Falta JWT_SECRET en .env (corre bash setup.sh)}
+  # Mismo origen que sirve nginx; el navegador nunca habla directo con los servicios.
+  FRONTEND_ORIGIN: ${PUBLIC_URL:-http://localhost}
+
+x-depende-postgres: &depende-postgres
+  postgres:
+    condition: service_healthy
+
+services:
+  # ---------- Infraestructura ----------
+  postgres:
+    image: postgres:16-alpine
+    container_name: uajs-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: uajs
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Falta POSTGRES_PASSWORD en .env (corre bash setup.sh)}
+      POSTGRES_DB: uajs_usuarios
+    # Sin "ports:" a propósito (ver SEGURIDAD.md): solo la red interna lo alcanza.
+    volumes:
+      - uajs_pgdata_prod:/var/lib/postgresql/data
+      - ./backend/db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U uajs"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.0
+    container_name: uajs-elasticsearch
+    restart: unless-stopped
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+      xpack.security.http.ssl.enabled: "false"
+      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+    # Sin "ports:": corre sin autenticación, así que nunca se publica.
+    volumes:
+      - uajs_esdata_prod:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+  # ---------- Microservicios ----------
+  usuarios-service:
+    <<: *servicio-node
+    container_name: uajs-usuarios
+    build:
+      context: ./backend
+      args:
+        SERVICE_DIR: services/usuarios-service
+    environment:
+      <<: *entorno-comun
+      PORT: 4001
+      DATABASE_URL: postgres://uajs:${POSTGRES_PASSWORD}@postgres:5432/uajs_usuarios
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-8h}
+      FRONTEND_URL: ${PUBLIC_URL:-http://localhost}
+      SEED_PASSWORD: ${SEED_PASSWORD:-uajs2026}
+      EMAIL_USER: ${EMAIL_USER:-}
+      EMAIL_PASS: ${EMAIL_PASS:-}
+      BUSQUEDA_SERVICE_URL: http://busqueda-service:4007
+    depends_on: *depende-postgres
+
+  solicitudes-service:
+    <<: *servicio-node
+    container_name: uajs-solicitudes
+    build:
+      context: ./backend
+      args:
+        SERVICE_DIR: services/solicitudes-service
+    environment:
+      <<: *entorno-comun
+      PORT: 4002
+      DATABASE_URL: postgres://uajs:${POSTGRES_PASSWORD}@postgres:5432/uajs_solicitudes
+      BUSQUEDA_SERVICE_URL: http://busqueda-service:4007
+      NOTIFICACIONES_SERVICE_URL: http://notificaciones-service:4006
+      USUARIOS_SERVICE_URL: http://usuarios-service:4001
+    depends_on: *depende-postgres
+
+  reservas-service:
+    <<: *servicio-node
+    container_name: uajs-reservas
+    build:
+      context: ./backend
+      args:
+        SERVICE_DIR: services/reservas-service
+    environment:
+      <<: *entorno-comun
+      PORT: 4003
+      DATABASE_URL: postgres://uajs:${POSTGRES_PASSWORD}@postgres:5432/uajs_reservas
+      BUSQUEDA_SERVICE_URL: http://busqueda-service:4007
+      RECURSOS_SERVICE_URL: http://recursos-service:4004
+      NOTIFICACIONES_SERVICE_URL: http://notificaciones-service:4006
+      USUARIOS_SERVICE_URL: http://usuarios-service:4001
+    depends_on: *depende-postgres
+
+  recursos-service:
+    <<: *servicio-node
+    container_name: uajs-recursos
+    build:
+      context: ./backend
+      args:
+        SERVICE_DIR: services/recursos-service
+    environment:
+      <<: *entorno-comun
+      PORT: 4004
+      DATABASE_URL: postgres://uajs:${POSTGRES_PASSWORD}@postgres:5432/uajs_recursos
+      RESERVAS_SERVICE_URL: http://reservas-service:4003
+      BUSQUEDA_SERVICE_URL: http://busqueda-service:4007
+    depends_on: *depende-postgres
+
+  eventos-service:
+    <<: *servicio-node
+    container_name: uajs-eventos
+    build:
+      context: ./backend
+      args:
+        SERVICE_DIR: services/eventos-service
+    environment:
+      <<: *entorno-comun
+      PORT: 4005
+      DATABASE_URL: postgres://uajs:${POSTGRES_PASSWORD}@postgres:5432/uajs_eventos
+      BUSQUEDA_SERVICE_URL: http://busqueda-service:4007
+      NOTIFICACIONES_SERVICE_URL: http://notificaciones-service:4006
+    depends_on: *depende-postgres
+
+  notificaciones-service:
+    <<: *servicio-node
+    container_name: uajs-notificaciones
+    build:
+      context: ./backend
+      args:
+        SERVICE_DIR: services/notificaciones-service
+    environment:
+      <<: *entorno-comun
+      PORT: 4006
+      DATABASE_URL: postgres://uajs:${POSTGRES_PASSWORD}@postgres:5432/uajs_notificaciones
+      USUARIOS_SERVICE_URL: http://usuarios-service:4001
+    depends_on: *depende-postgres
+
+  busqueda-service:
+    <<: *servicio-node
+    container_name: uajs-busqueda
+    build:
+      context: ./backend
+      args:
+        SERVICE_DIR: services/busqueda-service
+    environment:
+      <<: *entorno-comun
+      PORT: 4007
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+      USUARIOS_SERVICE_URL: http://usuarios-service:4001
+      SOLICITUDES_SERVICE_URL: http://solicitudes-service:4002
+      RESERVAS_SERVICE_URL: http://reservas-service:4003
+      RECURSOS_SERVICE_URL: http://recursos-service:4004
+      EVENTOS_SERVICE_URL: http://eventos-service:4005
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+
+  # ---------- Gateway ----------
+  gateway:
+    <<: *servicio-node
+    container_name: uajs-gateway
+    build:
+      context: ./backend
+      args:
+        SERVICE_DIR: gateway
+    environment:
+      <<: *entorno-comun
+      PORT: 4000
+      USUARIOS_SERVICE_URL: http://usuarios-service:4001
+      SOLICITUDES_SERVICE_URL: http://solicitudes-service:4002
+      RESERVAS_SERVICE_URL: http://reservas-service:4003
+      RECURSOS_SERVICE_URL: http://recursos-service:4004
+      EVENTOS_SERVICE_URL: http://eventos-service:4005
+      NOTIFICACIONES_SERVICE_URL: http://notificaciones-service:4006
+      BUSQUEDA_SERVICE_URL: http://busqueda-service:4007
+    # Solo accesible desde el propio servidor (para diagnóstico con curl);
+    # desde internet se llega únicamente a través de nginx.
+    ports:
+      - "127.0.0.1:4000:4000"
+    depends_on:
+      - usuarios-service
+      - solicitudes-service
+      - reservas-service
+      - recursos-service
+      - eventos-service
+      - notificaciones-service
+      - busqueda-service
+
+  # ---------- Frontend ----------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: uajs-frontend
+    restart: unless-stopped
+    ports:
+      - "${HTTP_PORT:-80}:80"
+    depends_on:
+      - gateway
+
+volumes:
+  uajs_pgdata_prod:
+    name: uajs_pgdata_prod
+  uajs_esdata_prod:
+    name: uajs_esdata_prod

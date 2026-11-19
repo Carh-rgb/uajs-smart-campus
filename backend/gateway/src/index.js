@@ -13,8 +13,12 @@
  *  - Exponer /health, que ahora chequea en vivo los 7 microservicios.
  *  - Loggear cada peticion que pasa por el gateway.
  *
+ *  - Verificar la sesion de cada peticion autenticada (Entregable 3):
+ *    sesion unica por cuenta y cierre por 30 minutos de inactividad. Ver
+ *    src/sesion.js.
+ *
  * Que NO hace (a proposito):
- *  - No valida JWT ni sesiones: cada microservicio protege sus propias
+ *  - No valida la firma del JWT: cada microservicio protege sus propias
  *    rutas de forma independiente.
  *  - No contiene logica de negocio: es solo enrutamiento.
  */
@@ -22,6 +26,7 @@ import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
 import { createProxyMiddleware } from 'http-proxy-middleware'
+import { verificarSesion } from './sesion.js'
 
 const app = express()
 const PORT = process.env.PORT || 4000
@@ -71,8 +76,11 @@ app.use((req, res, next) => {
   next()
 })
 
-// El Gateway es un enrutador puro: no valida JWT ni contiene logica de
-// negocio. Cada microservicio protege sus propias rutas.
+// Sesion unica e inactividad (Entregable 3): se revisa antes de enrutar.
+app.use(verificarSesion())
+
+// El Gateway no valida la firma del JWT ni contiene logica de negocio:
+// cada microservicio protege sus propias rutas.
 const rutas = [
   { prefijo: '/api/auth', destino: process.env.USUARIOS_SERVICE_URL || 'http://localhost:4001' },
   { prefijo: '/api/usuarios', destino: process.env.USUARIOS_SERVICE_URL || 'http://localhost:4001' },

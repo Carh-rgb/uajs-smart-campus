@@ -36,10 +36,16 @@ export async function api(method, ruta, { token, body, raw } = {}) {
 }
 
 // Inicia sesion con uno de los usuarios de prueba y devuelve { token, usuario }.
-export async function sesion(rol) {
+// Desde el Entregable 3 cada cuenta tiene una sola sesion activa: un segundo
+// login cierra la anterior. Por eso la sesion de cada rol se reutiliza dentro
+// del mismo archivo de pruebas (los archivos corren uno tras otro).
+const sesiones = {}
+export async function sesion(rol, { nueva = false } = {}) {
+  if (sesiones[rol] && !nueva) return sesiones[rol]
   const { status, data } = await api('POST', '/auth/login', { body: { correo: USUARIOS[rol], password: PASSWORD } })
   assert.equal(status, 200, `login de ${rol} fallo (${status}). ¿Estan corriendo la BD y los servicios?`)
-  return { token: data.token, usuario: data.usuario }
+  sesiones[rol] = { token: data.token, usuario: data.usuario }
+  return sesiones[rol]
 }
 
 // Afirma la forma estandar de error del Entregable 2:

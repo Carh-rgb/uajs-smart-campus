@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext.jsx'
+import { useAuth, AVISO_SESION_KEY } from '../context/AuthContext.jsx'
 import { esCorreoInstitucional } from '../utils/validation.js'
 import LoadingButton from '../components/LoadingButton.jsx'
 import EntradaAnimada from '../components/EntradaAnimada.jsx'
@@ -17,6 +17,22 @@ export default function Login() {
   const [enviando, setEnviando] = useState(false)
   const [camposInvalidos, setCamposInvalidos] = useState({})
   const [usuarioIngresado, setUsuarioIngresado] = useState(null)
+  // Motivo por el que se cerro la sesion anterior (otro dispositivo o
+  // inactividad), si lo hay. Se muestra una sola vez.
+  const [aviso] = useState(() => {
+    try {
+      return sessionStorage.getItem(AVISO_SESION_KEY) || ''
+    } catch {
+      return ''
+    }
+  })
+  useEffect(() => {
+    try {
+      sessionStorage.removeItem(AVISO_SESION_KEY)
+    } catch {
+      // ignorar
+    }
+  }, [])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -109,6 +125,11 @@ export default function Login() {
             Ingresa tus credenciales de UAJS Smart Campus.
           </p>
 
+          {aviso && !error && (
+            <div className="login-card__aviso" role="status">
+              {aviso}
+            </div>
+          )}
           {error && <div className="login-card__error">{error}</div>}
 
           <div className="field">

@@ -478,6 +478,16 @@
   margin-bottom: 16px;
 }
 
+.login-card__aviso {
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+  font-size: 12.5px;
+  line-height: 1.45;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 16px;
+}
+
 .login-card__forgot {
   display: inline-block;
   margin-top: 10px;

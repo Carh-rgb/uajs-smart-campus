@@ -9,6 +9,7 @@ import {
   serializar as serializarDetalle,
 } from './auth.controller.js'
 import { HttpError } from '../middlewares/errores.js'
+import { siguienteCodigoEstudiantil } from '../utils/codigoEstudiantil.js'
 
 const ADMIN = 'Administrador del sistema'
 
@@ -121,6 +122,11 @@ export async function actualizarRol(req, res) {
     if (!encontrado) throw new HttpError(404, 'Usuario no encontrado.', 'USER_NOT_FOUND')
     if (rol !== ADMIN) await exigirOtroAdministrador(encontrado, transaction)
     encontrado.rol = rol
+    // Quien pasa a ser Estudiante y no tenia codigo recibe uno nuevo.
+    if (rol === 'Estudiante' && !encontrado.codigoEstudiantil) {
+      await sequelize.query("SELECT pg_advisory_xact_lock(hashtext('usuarios-service:codigo-estudiantil'))", { transaction })
+      encontrado.codigoEstudiantil = await siguienteCodigoEstudiantil(transaction)
+    }
     await encontrado.save({ transaction })
     return encontrado
   })
@@ -164,7 +170,8 @@ export async function crear(req, res) {
 
 // Campos que el Administrador puede editar desde Usuarios. El rol y el
 // estado tienen sus propios endpoints (PATCH /:id/rol y /:id/estado).
-const CAMPOS_EDITABLES_ADMIN = ['nombre', 'programa', ...CAMPOS_REGISTRO_INSTITUCIONAL]
+// El codigo estudiantil no se edita: lo asigna el sistema al crear la cuenta.
+const CAMPOS_EDITABLES_ADMIN = ['nombre', 'programa', ...CAMPOS_REGISTRO_INSTITUCIONAL.filter((c) => c !== 'codigoEstudiantil')]
 
 // PATCH /usuarios/:id (E2-11): actualiza datos del usuario.
 export async function actualizar(req, res) {

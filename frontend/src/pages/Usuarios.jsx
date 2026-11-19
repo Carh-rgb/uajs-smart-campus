@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useUsers } from '../context/UsersContext.jsx'
 import { ROLES_GESTIONABLES } from '../context/PermissionsContext.jsx'
@@ -8,6 +8,7 @@ import LoadingButton from '../components/LoadingButton.jsx'
 import { BrandSpinner, ButtonSpinner } from '../components/BrandSpinner.jsx'
 import { esCorreoInstitucional } from '../utils/validation.js'
 import { useHighlightRow } from '../hooks/useHighlightRow.js'
+import { FACULTADES, DEPENDENCIAS, SEMESTRES, programasDe } from '../data/catalogos.js'
 
 const ROLES_DISPONIBLES = [...ROLES_GESTIONABLES, 'Administrador del sistema']
 const TIPOS_DOCUMENTO = ['Cédula de ciudadanía', 'Tarjeta de identidad', 'Cédula de extranjería', 'Pasaporte']
@@ -45,7 +46,18 @@ export default function Usuarios() {
   const [cargandoEstadoId, setCargandoEstadoId] = useState(null)
   const [usuarioAEliminar, setUsuarioAEliminar] = useState(null)
   const [eliminando, setEliminando] = useState(false)
-  const highlightId = useHighlightRow()
+  const highlightBusqueda = useHighlightRow()
+  // Usuario recien creado: se resalta y se lleva a la vista unos segundos.
+  const [nuevoId, setNuevoId] = useState(null)
+  const highlightId = nuevoId ?? highlightBusqueda
+
+  useEffect(() => {
+    if (!nuevoId) return
+    const el = document.querySelector(`[data-row-id="${nuevoId}"]`)
+    el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    const t = setTimeout(() => setNuevoId(null), 2500)
+    return () => clearTimeout(t)
+  }, [nuevoId])
 
   if (user?.rol !== 'Administrador del sistema') {
     return (
@@ -76,6 +88,10 @@ export default function Usuarios() {
     if (!form.nombre.trim()) nuevosErrores.nombre = true
     if (!esCorreoInstitucional(form.correo)) nuevosErrores.correo = true
     if (!form.password || form.password.length < 6) nuevosErrores.password = true
+    if ((form.rol === 'Estudiante' || form.rol === 'Docente') && !form.area) nuevosErrores.area = true
+    if (form.rol === 'Estudiante' && !form.programa) nuevosErrores.programa = true
+    if (form.rol === 'Estudiante' && !form.semestre) nuevosErrores.semestre = true
+    if ((form.rol === 'Administrativo' || form.rol === 'Administrador del sistema') && !form.programa) nuevosErrores.programa = true
 
     if (Object.keys(nuevosErrores).length > 0) {
       setErrores(nuevosErrores)
@@ -84,6 +100,8 @@ export default function Usuarios() {
           ? 'El correo debe pertenecer al dominio @uajs.edu.co'
           : nuevosErrores.password
           ? 'La contraseña debe tener al menos 6 caracteres.'
+          : nuevosErrores.area || nuevosErrores.programa || nuevosErrores.semestre
+          ? 'Completa la información académica o laboral del rol.'
           : 'Completa los campos obligatorios.',
       )
       return
@@ -93,9 +111,14 @@ export default function Usuarios() {
     setErrorGeneral('')
     setCreando(true)
     try {
-      await crearUsuario(form)
+      const { codigoEstudiantil, ...datos } = form
+      const creado = await crearUsuario(datos)
       setForm(FORM_INICIAL)
       setModalAbierto(false)
+      // Se limpian los filtros para que el usuario nuevo quede a la vista.
+      setBusqueda('')
+      setFiltroRol('Todos')
+      setNuevoId(creado.id)
     } catch (err) {
       setErrorGeneral(err.message || 'No se pudo crear el usuario.')
     } finally {
@@ -273,14 +296,45 @@ export default function Usuarios() {
             <div className="field-grid">
               <div className="field">
                 <label className="field__label">Rol</label>
-                <select className="field__input" value={form.rol} onChange={(e) => setForm({ ...form, rol: e.target.value })}>
+                <select
+                  className="field__input"
+                  value={form.rol}
+                  onChange={(e) => setForm({ ...form, rol: e.target.value, programa: '', area: '', semestre: '' })}
+                >
                   {ROLES_DISPONIBLES.map((r) => <option key={r}>{r}</option>)}
                 </select>
               </div>
-              <div className="field">
-                <label className="field__label">Programa / Dependencia</label>
-                <input className="field__input" value={form.programa} onChange={(e) => setForm({ ...form, programa: e.target.value })} />
-              </div>
+              {form.rol === 'Estudiante' || form.rol === 'Docente' ? (
+                <div className="field">
+                  <label className="field__label">Facultad</label>
+                  <select
+                    className={`field__input ${errores.area ? 'field__input--error' : ''}`}
+                    value={form.area}
+                    onChange={(e) => {
+                      setForm({ ...form, area: e.target.value, programa: '' })
+                      if (errores.area) setErrores({ ...errores, area: false })
+                    }}
+                  >
+                    <option value="">Selecciona una facultad...</option>
+                    {FACULTADES.map((f) => <option key={f.nombre}>{f.nombre}</option>)}
+                  </select>
+                </div>
+              ) : (
+                <div className="field">
+                  <label className="field__label">Dependencia</label>
+                  <select
+                    className={`field__input ${errores.programa ? 'field__input--error' : ''}`}
+                    value={form.programa}
+                    onChange={(e) => {
+                      setForm({ ...form, programa: e.target.value })
+                      if (errores.programa) setErrores({ ...errores, programa: false })
+                    }}
+                  >
+                    <option value="">Selecciona una dependencia...</option>
+                    {DEPENDENCIAS.map((d) => <option key={d}>{d}</option>)}
+                  </select>
+                </div>
+              )}
             </div>
 
             <p className="field-section-title">Documento de identidad</p>
@@ -316,20 +370,37 @@ export default function Usuarios() {
                 <p className="field-section-title">Información académica</p>
                 <div className="field-grid">
                   <div className="field">
-                    <label className="field__label">Código estudiantil</label>
-                    <input
-                      className="field__input"
-                      value={form.codigoEstudiantil}
-                      onChange={(e) => setForm({ ...form, codigoEstudiantil: e.target.value })}
-                    />
+                    <label className="field__label">Programa académico</label>
+                    <select
+                      className={`field__input ${errores.programa ? 'field__input--error' : ''}`}
+                      value={form.programa}
+                      disabled={!form.area}
+                      onChange={(e) => {
+                        setForm({ ...form, programa: e.target.value })
+                        if (errores.programa) setErrores({ ...errores, programa: false })
+                      }}
+                    >
+                      <option value="">{form.area ? 'Selecciona un programa...' : 'Primero elige la facultad'}</option>
+                      {programasDe(form.area).map((p) => <option key={p}>{p}</option>)}
+                    </select>
                   </div>
                   <div className="field">
                     <label className="field__label">Semestre actual</label>
-                    <input
-                      className="field__input"
+                    <select
+                      className={`field__input ${errores.semestre ? 'field__input--error' : ''}`}
                       value={form.semestre}
-                      onChange={(e) => setForm({ ...form, semestre: e.target.value })}
-                    />
+                      onChange={(e) => {
+                        setForm({ ...form, semestre: e.target.value })
+                        if (errores.semestre) setErrores({ ...errores, semestre: false })
+                      }}
+                    >
+                      <option value="">Selecciona...</option>
+                      {SEMESTRES.map((n) => <option key={n} value={n}>{n}.º semestre</option>)}
+                    </select>
+                  </div>
+                  <div className="field">
+                    <label className="field__label">Código estudiantil</label>
+                    <input className="field__input" value="Automático (ej. 20260001)" title="El sistema lo asigna al crear la cuenta" disabled readOnly />
                   </div>
                 </div>
               </>
@@ -340,8 +411,16 @@ export default function Usuarios() {
                 <p className="field-section-title">Información laboral</p>
                 <div className="field-grid">
                   <div className="field">
-                    <label className="field__label">Facultad / Área</label>
-                    <input className="field__input" value={form.area} onChange={(e) => setForm({ ...form, area: e.target.value })} />
+                    <label className="field__label">Programa (opcional)</label>
+                    <select
+                      className="field__input"
+                      value={form.programa}
+                      disabled={!form.area}
+                      onChange={(e) => setForm({ ...form, programa: e.target.value })}
+                    >
+                      <option value="">{form.area ? 'Toda la facultad' : 'Primero elige la facultad'}</option>
+                      {programasDe(form.area).map((p) => <option key={p}>{p}</option>)}
+                    </select>
                   </div>
                   <div className="field">
                     <label className="field__label">Asignaturas a cargo</label>
@@ -372,7 +451,7 @@ export default function Usuarios() {
                     <input className="field__input" value={form.cargo} onChange={(e) => setForm({ ...form, cargo: e.target.value })} />
                   </div>
                   <div className="field">
-                    <label className="field__label">Oficina / Dependencia</label>
+                    <label className="field__label">Oficina</label>
                     <input className="field__input" value={form.oficina} onChange={(e) => setForm({ ...form, oficina: e.target.value })} />
                   </div>
                   <div className="field">

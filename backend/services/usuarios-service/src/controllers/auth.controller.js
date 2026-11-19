@@ -5,6 +5,7 @@ import { Usuario } from '../models/index.js'
 import { enviarCorreoReset } from '../utils/mailer.js'
 import { indexarUsuario } from '../utils/busquedaClient.js'
 import { HttpError } from '../middlewares/errores.js'
+import { siguienteCodigoEstudiantil, conBloqueoDeCodigo } from '../utils/codigoEstudiantil.js'
 
 function firmarToken(usuario) {
   return jwt.sign(
@@ -132,14 +133,24 @@ export async function crearCuenta(datos, { rolForzado } = {}) {
     if (datos[campo]) registroInstitucional[campo] = datos[campo]
   }
 
-  const usuario = await Usuario.create({
-    nombre: nombre.trim(),
-    correo: correo.toLowerCase(),
-    passwordHash,
-    rol,
-    programa: programa || null,
-    ...registroInstitucional,
-  })
+  // El codigo estudiantil lo genera el sistema (ver utils/codigoEstudiantil.js);
+  // si llega uno en el cuerpo se ignora.
+  delete registroInstitucional.codigoEstudiantil
+
+  const usuario = await conBloqueoDeCodigo(async (transaction) =>
+    Usuario.create(
+      {
+        nombre: nombre.trim(),
+        correo: correo.toLowerCase(),
+        passwordHash,
+        rol,
+        programa: programa || null,
+        ...registroInstitucional,
+        codigoEstudiantil: rol === 'Estudiante' ? await siguienteCodigoEstudiantil(transaction) : null,
+      },
+      { transaction },
+    ),
+  )
   indexarUsuario(usuario)
   return usuario
 }

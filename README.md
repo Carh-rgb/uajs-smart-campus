@@ -110,6 +110,7 @@ Todo el sistema (PostgreSQL, Elasticsearch, 7 microservicios, Gateway y frontend
 git clone https://github.com/Carh-rgb/uajs-smart-campus.git
 cd uajs-smart-campus
 bash setup.sh                  # solo la primera vez: crea .env con JWT_SECRET y clave de Postgres aleatorios
+                               # (en Windows: powershell -ExecutionPolicy Bypass -File .\setup.ps1)
 docker compose up -d --build   # la primera vez tarda unos minutos
 docker compose ps              # todos los contenedores deben quedar "running" / "healthy"
 curl http://127.0.0.1:4000/health   # salud de los 7 servicios vista por el Gateway

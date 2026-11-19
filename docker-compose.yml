@@ -90,6 +90,7 @@ services:
       PORT: 4001
       DATABASE_URL: postgres://uajs:${POSTGRES_PASSWORD}@postgres:5432/uajs_usuarios
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-8h}
+      SESION_INACTIVIDAD_MIN: ${SESION_INACTIVIDAD_MIN:-30}
       FRONTEND_URL: ${PUBLIC_URL:-http://localhost}
       SEED_PASSWORD: ${SEED_PASSWORD:-uajs2026}
       EMAIL_USER: ${EMAIL_USER:-}

@@ -7,6 +7,8 @@ import {
   restablecerPassword,
   actualizarPerfil,
   actualizarCorreoRecuperacion,
+  estadoSesion,
+  cerrarSesionActual,
 } from '../controllers/auth.controller.js'
 import { requireAuth } from '../middlewares/auth.js'
 
@@ -15,6 +17,8 @@ export const authRouter = Router()
 authRouter.post('/login', login)
 authRouter.post('/register', registrar)
 authRouter.get('/me', requireAuth, perfil)
+authRouter.get('/sesion', requireAuth, estadoSesion)
+authRouter.post('/logout', requireAuth, cerrarSesionActual)
 authRouter.post('/forgot-password', solicitarReset)
 authRouter.post('/reset-password', restablecerPassword)
 authRouter.patch('/perfil', requireAuth, actualizarPerfil)

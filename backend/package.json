@@ -17,7 +17,7 @@
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
     "db:logs": "docker compose logs -f postgres",
-    "test": "node --test --test-concurrency=1 tests/gateway.test.js tests/usuarios.test.js tests/solicitudes.test.js tests/reservas.test.js tests/recursos.test.js tests/eventos.test.js tests/notificaciones.test.js"
+    "test": "node --test --test-concurrency=1 tests/gateway.test.js tests/usuarios.test.js tests/sesion.test.js tests/solicitudes.test.js tests/reservas.test.js tests/recursos.test.js tests/eventos.test.js tests/notificaciones.test.js"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

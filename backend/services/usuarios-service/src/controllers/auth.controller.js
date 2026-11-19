@@ -6,10 +6,13 @@ import { enviarCorreoReset } from '../utils/mailer.js'
 import { indexarUsuario } from '../utils/busquedaClient.js'
 import { HttpError } from '../middlewares/errores.js'
 import { siguienteCodigoEstudiantil, conBloqueoDeCodigo } from '../utils/codigoEstudiantil.js'
+import { abrirSesion, cerrarSesion, verificarSesion, MINUTOS_INACTIVIDAD } from '../utils/sesiones.js'
 
-function firmarToken(usuario) {
+// El token lleva el identificador de la sesion (sid). Al iniciar sesion en
+// otro dispositivo se genera un sid nuevo y este token deja de valer.
+function firmarToken(usuario, sid) {
   return jwt.sign(
-    { id: usuario.id, nombre: usuario.nombre, rol: usuario.rol, correo: usuario.correo },
+    { id: usuario.id, nombre: usuario.nombre, rol: usuario.rol, correo: usuario.correo, sid },
     process.env.JWT_SECRET,
     { expiresIn: process.env.JWT_EXPIRES_IN || '8h' },
   )
@@ -93,8 +96,30 @@ export async function login(req, res) {
     return res.status(401).json({ error: 'Credenciales invalidas.' })
   }
 
-  const token = firmarToken(usuario)
-  res.json({ token, usuario: serializar(usuario) })
+  const sid = await abrirSesion(usuario.id)
+  const token = firmarToken(usuario, sid)
+  res.json({ token, usuario: serializar(usuario), inactividadMinutos: MINUTOS_INACTIVIDAD })
+}
+
+// GET /auth/sesion: lo usa el API Gateway antes de reenviar cada peticion
+// autenticada, y el frontend para enterarse a tiempo de que la sesion se
+// cerro. Con la cabecera "X-Sesion-Pasiva: 1" solo consulta, sin contar
+// como actividad del usuario.
+export async function estadoSesion(req, res) {
+  const pasiva = req.get('x-sesion-pasiva') === '1'
+  const resultado = await verificarSesion(req.user, { registrarActividad: !pasiva })
+  if (!resultado.ok) {
+    return res.status(401).json({ error: resultado.message, code: resultado.code })
+  }
+  res.json({ activa: true, inactividadMinutos: MINUTOS_INACTIVIDAD })
+}
+
+// POST /auth/logout: cierra la sesion en el servidor (solo si el token es
+// el de la sesion vigente, para que un dispositivo viejo no cierre la nueva).
+export async function cerrarSesionActual(req, res) {
+  const resultado = await verificarSesion(req.user, { registrarActividad: false })
+  if (resultado.ok) await cerrarSesion(req.user.id)
+  res.status(204).send()
 }
 
 // Roles validos (mismos valores del ENUM de Usuario.rol).
@@ -161,8 +186,9 @@ export async function crearCuenta(datos, { rolForzado } = {}) {
 // Administrador con POST /usuarios.
 export async function registrar(req, res) {
   const usuario = await crearCuenta(req.body, { rolForzado: 'Estudiante' })
-  const token = firmarToken(usuario)
-  res.status(201).json({ token, usuario: serializar(usuario) })
+  const sid = await abrirSesion(usuario.id)
+  const token = firmarToken(usuario, sid)
+  res.status(201).json({ token, usuario: serializar(usuario), inactividadMinutos: MINUTOS_INACTIVIDAD })
 }
 
 export async function perfil(req, res) {
@@ -246,6 +272,8 @@ export async function restablecerPassword(req, res) {
   usuario.resetToken = null
   usuario.resetTokenExpira = null
   await usuario.save()
+  // Por seguridad, al cambiar la contraseña se cierra la sesion abierta.
+  await cerrarSesion(usuario.id)
 
   res.json({ mensaje: 'Contraseña actualizada correctamente.' })
 }

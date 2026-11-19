@@ -10,6 +10,7 @@ import {
 } from './auth.controller.js'
 import { HttpError } from '../middlewares/errores.js'
 import { siguienteCodigoEstudiantil } from '../utils/codigoEstudiantil.js'
+import { cerrarSesion } from '../utils/sesiones.js'
 
 const ADMIN = 'Administrador del sistema'
 
@@ -107,6 +108,8 @@ export async function actualizarEstado(req, res) {
     return encontrado
   })
   if (!usuario) return res.status(404).json({ error: 'Usuario no encontrado.' })
+  // Una cuenta desactivada pierde de inmediato la sesion que tuviera abierta.
+  if (!usuario.activo) await cerrarSesion(usuario.id)
   indexarUsuario(usuario)
   res.json(serializar(usuario))
 }
@@ -130,6 +133,9 @@ export async function actualizarRol(req, res) {
     await encontrado.save({ transaction })
     return encontrado
   })
+  // El rol viaja dentro del token: se cierra la sesion para que el usuario
+  // vuelva a entrar con sus permisos nuevos.
+  await cerrarSesion(usuario.id)
   indexarUsuario(usuario)
   res.json(serializar(usuario))
 }
@@ -147,6 +153,7 @@ export async function eliminar(req, res) {
     return encontrado
   })
   if (!usuario) return res.status(404).json({ error: 'Usuario no encontrado.' })
+  await cerrarSesion(usuario.id)
   eliminarUsuarioDelIndice(usuario.id)
   res.status(204).send()
 }

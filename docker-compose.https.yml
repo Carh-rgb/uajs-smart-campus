@@ -1,0 +1,35 @@
+# Capa opcional de HTTPS para el despliegue en un servidor con dominio
+# (por ejemplo el nombre DNS de la VM de Azure: <nombre>.<region>.cloudapp.azure.com).
+#
+#   docker compose -f docker-compose.yml -f docker-compose.https.yml up -d --build
+#
+# Requisitos: DOMINIO en el .env, puertos 80 y 443 abiertos en el servidor y
+# PUBLIC_URL=https://<DOMINIO>. Caddy obtiene el certificado de Let's Encrypt
+# automáticamente y redirige http -> https.
+
+services:
+  frontend:
+    # nginx deja de publicarse hacia afuera: solo Caddy le habla por la red interna.
+    ports: !reset []
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: uajs-caddy
+    restart: unless-stopped
+    environment:
+      DOMINIO: ${DOMINIO:?Falta DOMINIO en .env (ej. uajs-smartcampus.eastus.cloudapp.azure.com)}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - uajs_caddy_data:/data
+      - uajs_caddy_config:/config
+    depends_on:
+      - frontend
+
+volumes:
+  uajs_caddy_data:
+    name: uajs_caddy_data
+  uajs_caddy_config:
+    name: uajs_caddy_config

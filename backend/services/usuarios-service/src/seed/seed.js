@@ -1,9 +1,10 @@
 import bcrypt from 'bcryptjs'
 import { Usuario, Permiso } from '../models/index.js'
+import { asignarCodigosFaltantes } from '../utils/codigoEstudiantil.js'
 
 const USUARIOS_SEED = [
-  { nombre: 'Camilo Ramírez', rol: 'Estudiante', programa: 'Ingeniería de Sistemas', correo: 'camilo.ramirez@uajs.edu.co' },
-  { nombre: 'Laura Pérez', rol: 'Docente', programa: 'Facultad de Ingeniería', correo: 'laura.perez@uajs.edu.co' },
+  { nombre: 'Camilo Ramírez', rol: 'Estudiante', programa: 'Ingeniería de Sistemas', area: 'Facultad de Ciencias de la Ingeniería', semestre: '5', correo: 'camilo.ramirez@uajs.edu.co' },
+  { nombre: 'Laura Pérez', rol: 'Docente', programa: 'Ingeniería de Sistemas', area: 'Facultad de Ciencias de la Ingeniería', correo: 'laura.perez@uajs.edu.co' },
   { nombre: 'Andrés Gómez', rol: 'Administrativo', programa: 'Bienestar Universitario', correo: 'andres.gomez@uajs.edu.co' },
   { nombre: 'Admin UAJS', rol: 'Administrador del sistema', programa: 'Oficina de Tecnología', correo: 'admin@uajs.edu.co' },
 ]
@@ -31,4 +32,6 @@ export async function seed() {
     )
     console.log('[usuarios-service] Sembrados permisos por defecto.')
   }
+
+  await asignarCodigosFaltantes()
 }

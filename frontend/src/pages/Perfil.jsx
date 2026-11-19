@@ -14,6 +14,7 @@ function registroInstitucionalDe(user) {
     return {
       titulo: 'Información académica',
       campos: [
+        { label: 'Facultad', valor: user.area || SIN_DATO },
         { label: 'Programa académico', valor: user.programa || SIN_DATO },
         { label: 'Código estudiantil', valor: user.codigoEstudiantil || SIN_DATO },
         { label: 'Semestre actual', valor: user.semestre || SIN_DATO },
@@ -24,7 +25,8 @@ function registroInstitucionalDe(user) {
     return {
       titulo: 'Información laboral',
       campos: [
-        { label: 'Facultad / Área', valor: user.area || SIN_DATO },
+        { label: 'Facultad', valor: user.area || SIN_DATO },
+        { label: 'Programa', valor: user.programa || 'Toda la facultad' },
         { label: 'Asignaturas a cargo', valor: user.asignaturas || SIN_DATO },
         { label: 'Extensión telefónica', valor: user.extension || SIN_DATO },
       ],
@@ -35,7 +37,8 @@ function registroInstitucionalDe(user) {
       titulo: 'Información laboral',
       campos: [
         { label: 'Cargo', valor: user.cargo || SIN_DATO },
-        { label: 'Oficina / Dependencia', valor: user.oficina || SIN_DATO },
+        { label: 'Dependencia', valor: user.programa || SIN_DATO },
+        { label: 'Oficina', valor: user.oficina || SIN_DATO },
         { label: 'Extensión telefónica', valor: user.extension || SIN_DATO },
       ],
     }
